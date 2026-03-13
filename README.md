@@ -9,7 +9,9 @@
 
 You've got OpenClaw running. Your bot works. But it's slow, forgets things between sessions, and gives generic answers. This guide fixes all three.
 
-I run OpenClaw with Claude Opus 4.6 as my daily driver. These are the exact optimizations I use — nothing theoretical, all battle-tested.
+These are the exact optimizations I use daily — nothing theoretical, all battle-tested.
+
+> **Note:** This guide and the one-shot prompt have been tested with Claude Opus 4.6. Other frontier models (Sonnet, GPT, Gemini, etc.) should work but haven't been confirmed yet. If your model can follow multi-step instructions well, it should handle this fine.
 
 ---
 
@@ -34,13 +36,13 @@ The rule: if it's longer than a tweet thread, it's too long for a workspace file
 
 ### Add a Fallback Model
 
-Your main model (Opus) is powerful but slow. Add a faster fallback for when it's rate-limited or for simple tasks:
+Whatever your main model is, add a faster/cheaper model as fallback for when it's rate-limited or for simple tasks:
 
 ```json
-"fallbackModels": ["anthropic-sonnet/claude-sonnet-4-6"]
+"fallbackModels": ["your-provider/faster-cheaper-model"]
 ```
 
-Sonnet 4.6 is 5x faster than Opus for simple responses. OpenClaw automatically falls back when needed.
+For example: if your main model is a large reasoning model, set a smaller/faster model from the same provider as fallback. OpenClaw automatically switches when needed.
 
 ### Reasoning Mode — Know the Tradeoff
 
@@ -50,7 +52,7 @@ Run `/status` in your chat to see your current reasoning mode.
 - **Low** — slight thinking, faster responses
 - **High** — deep reasoning before every answer, adds 2-5 seconds
 
-I personally run on **high** and keep it there. Yes it's slower, but the quality difference is massive — Opus on high reasoning catches things it completely misses on low/off. Complex debugging, architecture decisions, multi-step planning — high reasoning is worth every second of delay.
+I personally run on **high** and keep it there. Yes it's slower, but the quality difference is massive — high reasoning catches things that get missed on low/off. Complex debugging, architecture decisions, multi-step planning — high reasoning is worth every second of delay.
 
 If speed matters more than quality for your use case, drop to low. But if you want the best answers possible, stay on high. The context trimming from the other steps more than compensates for the reasoning overhead.
 
@@ -150,7 +152,7 @@ Your MEMORY.md should look like this:
 _Pointers only. Search before answering._
 
 ## Identity
-- MyBot on Opus 4.6
+- [Bot name] on [model]
 - Owner: YourName, location, preferences
 
 ## Active Projects
@@ -184,13 +186,13 @@ run memory_search FIRST. It costs 45ms. Not searching = wrong answers.
 
 ## Part 3: Orchestration (Stop Doing Everything Yourself)
 
-Your bot (on Opus) should NEVER do heavy work directly. It should plan and delegate to cheaper, faster sub-agents.
+Your main model should NEVER do heavy work directly. It should plan and delegate to cheaper, faster sub-agents.
 
 ### The Mental Model
 
 - **You** = CEO (gives direction)
-- **Your Bot (Opus)** = COO (plans, coordinates, makes decisions)  
-- **Sub-agents (Sonnet)** = Workers (execute tasks fast and cheap)
+- **Your Bot (main model)** = COO (plans, coordinates, makes decisions)  
+- **Sub-agents (cheaper/faster model)** = Workers (execute tasks fast and cheap)
 
 ### Add This to AGENTS.md
 
@@ -206,17 +208,17 @@ sessions_spawn({
   task: "description...",
   mode: "run",
   runtime: "subagent",
-  model: "anthropic-sonnet/claude-sonnet-4-6"
+  model: "your-provider/your-cheaper-faster-model"
 })
 
 ## Model Strategy
-- YOU (orchestrator): Opus — planning, judgment, synthesis
-- Sub-agents (workers): Sonnet — execution, code, research
+- YOU (orchestrator): Your best model — planning, judgment, synthesis
+- Sub-agents (workers): Cheaper/faster model — execution, code, research
 ```
 
 ### Why This Matters
 
-Opus costs $15/M input tokens and is slow. Sonnet costs $3/M and is 5x faster. If your bot writes 200 lines of code on Opus, you just paid 5x what you needed to. Spawn a Sonnet agent for the code, let Opus focus on deciding WHAT to build.
+Your main model is expensive and slow. A smaller model from the same provider is usually much cheaper and faster for execution tasks. If your bot writes 200 lines of code on your expensive model, you're overpaying. Spawn a cheaper agent for the code, let your main model focus on deciding WHAT to build.
 
 ---
 
@@ -230,7 +232,7 @@ Run through this in 30 minutes:
 - [ ] Total workspace context under 8 KB
 - [ ] Ollama installed + `nomic-embed-text` pulled
 - [ ] vault/ directory structure created
-- [ ] Sonnet fallback model added
+- [ ] Faster/cheaper fallback model added
 - [ ] Unused plugins disabled
 - [ ] Reasoning mode — high if you want best quality, low/off if you prioritize speed
 - [ ] Orchestration rules in AGENTS.md
@@ -247,7 +249,7 @@ After these optimizations on my setup:
 | Context per message | 15 KB | 5 KB |
 | Average response time | Slow | 50-66% faster |
 | Memory recall | Forgets everything | Remembers projects, people, decisions |
-| Code tasks | Bot writes it all (expensive) | Delegates to Sonnet (5x cheaper) |
+| Code tasks | Bot writes it all (expensive) | Delegates to cheaper model (up to 5x savings) |
 | Token cost | High | ~60% reduction on execution tasks |
 
 ---
@@ -293,7 +295,7 @@ Rewrite AGENTS.md to be under 2 KB with this exact structure:
 ## Orchestrator Mode
 You coordinate; sub-agents execute.
 - YOU (orchestrator): Main model — planning, judgment, synthesis
-- Sub-agents (workers): Sonnet 4.6 — execution, code, research
+- Sub-agents (workers): A cheaper/faster model from your provider — execution, code, research
 - Parallel is DEFAULT. 2+ independent parts → spawn simultaneously.
 
 ## How to Spawn
@@ -301,7 +303,7 @@ sessions_spawn({
   task: "description",
   mode: "run",
   runtime: "subagent",
-  model: "anthropic-sonnet/claude-sonnet-4-6"
+  model: "your-provider/your-cheaper-faster-model"
 })
 
 ## Memory
@@ -369,10 +371,9 @@ Verify it works:
 
 ## STEP 5: ADD FALLBACK MODEL
 
-In openclaw.json, find your main agent config and add a fallback model. If your primary is Opus:
-- Add "anthropic-sonnet/claude-sonnet-4-6" as fallback
-
-If your primary is another model, add a faster/cheaper version of it as fallback.
+In openclaw.json, find your main agent config and add a fallback model. Use a faster/cheaper model from the same provider as your main model. For example:
+- If you use a large reasoning model, add a smaller/faster variant as fallback
+- The fallback kicks in automatically when your main model is slow or rate-limited
 
 ## STEP 6: DISABLE UNUSED PLUGINS
 
