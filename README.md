@@ -15,6 +15,18 @@ These are the exact optimizations I use daily — nothing theoretical, all battl
 
 ---
 
+## Results
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Context per message | 15 KB | 5 KB |
+| Response time | Slow | 50-66% faster |
+| Memory | Forgets everything | Remembers projects, people, decisions |
+| Code tasks | Bot does it all (expensive) | Delegates to cheaper model (up to 5x savings) |
+| Token cost | High | ~60% reduction on execution tasks |
+
+---
+
 ## Part 1: Speed (Stop Being Slow)
 
 Every message you send, OpenClaw injects your workspace files into the prompt. If those files are bloated, every single reply is slower. This is the #1 speed issue people don't realize they have.
@@ -239,18 +251,6 @@ Run through this in 30 minutes:
 - [ ] `memory_search` habit added to SOUL.md
 
 ---
-
-## Results
-
-After these optimizations on my setup:
-
-| Metric | Before | After |
-|--------|--------|-------|
-| Context per message | 15 KB | 5 KB |
-| Average response time | Slow | 50-66% faster |
-| Memory recall | Forgets everything | Remembers projects, people, decisions |
-| Code tasks | Bot writes it all (expensive) | Delegates to cheaper model (up to 5x savings) |
-| Token cost | High | ~60% reduction on execution tasks |
 
 ---
 
