@@ -36,6 +36,8 @@ These are the exact optimizations I run daily on my own setup. Not theoretical �
 
 > **Note:** Tested and confirmed working with Claude Opus 4.6. Other frontier models (Sonnet, GPT, Gemini, etc.) should work if they can follow multi-step instructions. Haven't confirmed all of them yet.
 
+> **Templates included:** Check the [`/templates`](./templates) folder for ready-to-use versions of SOUL.md, AGENTS.md, MEMORY.md, TOOLS.md, and a sample vault/ structure. Copy them directly into your workspace as a starting point.
+
 ---
 
 ## Results
@@ -439,4 +441,23 @@ That's it. One paste, your bot does everything. If anything fails, your config b
 
 ---
 
-*Built by Terp AI Labs. Questions? Find me on X.*
+## Troubleshooting
+
+**One-shot prompt only partially completed:**
+Your model may have hit a context limit or timed out mid-execution. Run `/status` to check, then re-paste just the steps that didn't complete. The prompt is designed to be idempotent — running a step twice won't break anything.
+
+**memory_search not working after setup:**
+Make sure Ollama is running (`ollama ps`) and nomic-embed-text is pulled (`ollama pull nomic-embed-text`). OpenClaw auto-detects Ollama on localhost:11434. If Ollama is on a different machine, you'll need to configure the Ollama URL in your OpenClaw settings.
+
+**Bot still feels slow after trimming:**
+Check your total workspace file sizes: `ls -la *.md` in your workspace root. If total is still over 10KB, you have files that weren't trimmed. Also check if reasoning mode is set to `high` — that adds 2-5 seconds per message (worth it for quality, but know the tradeoff).
+
+**Sub-agents not spawning:**
+Make sure your model supports `sessions_spawn`. Check that you have a fallback model configured — sub-agents use the fallback model by default so your main model stays available for you.
+
+**Gateway won't restart after config changes:**
+Run `openclaw doctor --fix` to validate and repair your config. If you backed up before making changes (the prompt does this automatically), you can always restore: `cp ~/.openclaw/openclaw.json.bak ~/.openclaw/openclaw.json`
+
+---
+
+*Built by Terp AI Labs. Questions? Find me on X [@OnlyTerp](https://x.com/OnlyTerp).*
