@@ -548,9 +548,9 @@ Run `setup.sh` (Mac/Linux) or `setup.ps1` (Windows) instead — they do the same
 
 Tested and confirmed on Opus 4.6. The architecture works with any model that supports `memory_search` and `sessions_spawn` in OpenClaw. The one-shot prompt needs a model that can follow multi-step instructions well — most frontier models (Sonnet, GPT, Gemini) should handle it fine.
 
-**How is this different from Mem0 or other memory solutions?**
+**How is this different from other memory solutions?**
 
-Mem0 is a full memory management system with automatic fact extraction, deduplication, and scoped short/long-term memory. It's powerful but adds complexity and dependencies. This guide gives you 90% of the practical benefit (persistent memory across sessions, fast retrieval, zero forgetting) with 10% of the moving parts — just local files + vector search. If you outgrow this approach, graduating to Mem0 or a database-backed solution is straightforward because the vault structure maps cleanly to any backend.
+Most agent memory tools add external databases, cloud services, or complex dependency chains. This guide gives you 90% of the practical benefit (persistent memory across sessions, fast retrieval, zero forgetting) with 10% of the moving parts — just local files + vector search. Nothing to install except Ollama. Nothing leaves your machine. If you outgrow this approach, the vault structure maps cleanly to any database backend.
 
 ---
 
