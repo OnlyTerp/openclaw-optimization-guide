@@ -7,11 +7,23 @@
 
 ## Who This Is For
 
-You've got OpenClaw running. Your bot works. But it's slow, forgets things between sessions, and gives generic answers. This guide fixes all three.
+You've got OpenClaw running. Your bot works. But out of the box:
+- It injects 15KB+ of context into every message (slow, expensive)
+- It forgets everything between sessions (no persistent memory)
+- It does all the work itself instead of delegating (wasteful)
 
-These are the exact optimizations I use daily — nothing theoretical, all battle-tested.
+This isn't a list of tips. It's a **complete system** — memory architecture, orchestration pattern, and context engineering — that turns a stock OpenClaw bot into a production-grade personal agent.
 
-> **Note:** This guide and the one-shot prompt have been tested with Claude Opus 4.6. Other frontier models (Sonnet, GPT, Gemini, etc.) should work but haven't been confirmed yet. If your model can follow multi-step instructions well, it should handle this fine.
+The one-shot prompt at the bottom does the entire setup automatically. One paste, walk away, done.
+
+**What changes after setup:**
+- Your bot remembers every project, person, decision, and preference across sessions — for $0 (local vector search via Ollama, no cloud DB)
+- It delegates heavy tasks (code, research) to cheaper/faster models automatically while your main model focuses on planning
+- Every response is faster because the prompt is 66% smaller
+
+These are the exact optimizations I run daily. Nothing theoretical — all battle-tested in production.
+
+> **Note:** Tested with Claude Opus 4.6. Other frontier models should work but haven't been confirmed yet. If your model can follow multi-step instructions, it should handle this.
 
 ---
 
