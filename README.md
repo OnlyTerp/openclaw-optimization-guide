@@ -62,6 +62,8 @@ Old approach: Stuff everything into MEMORY.md so the bot "sees" it every message
 
 New approach: MEMORY.md is a slim index of pointers. Full details live in vault/ files. When the bot needs something, `memory_search()` finds it instantly via vector embeddings (local Ollama, $0). The bot only loads what's relevant to RIGHT NOW.
 
+This is the same approach that distributed databases like TiDB use for hybrid search — combining structured queries with semantic vector similarity to find exactly the right information in milliseconds. We're applying that same architecture to your agent's memory: structured metadata (file paths, categories) + semantic search (what's actually relevant to your question) in one unified system.
+
 This means your workspace files can be tiny without losing any knowledge. The knowledge just moves from "always loaded" to "loaded on demand."
 
 ### Trim Your Context Files
