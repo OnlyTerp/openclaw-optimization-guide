@@ -530,6 +530,30 @@ That gets you 90% of the benefit. The one-shot prompt just automates these steps
 
 ---
 
+## FAQ
+
+**Why markdown files instead of a real database like Postgres?**
+
+The .md + vault approach is the zero-infrastructure entry point. No Docker, no database admin, no config — just files + Ollama. You're set up in 30 minutes. For power users who want more, the architecture scales naturally into a real database backend (we're using TiDB vector for hybrid SQL + semantic search on our own setup). Think of the markdown approach as the starting line, not the finish line.
+
+**Doesn't the expensive model need to do the hard tasks?**
+
+No — and this is the key insight of the orchestration section. Your expensive model (Opus, GPT, etc.) should PLAN and JUDGE. The actual execution (writing code, doing research, running analysis) gets delegated to cheaper/faster models via sub-agents. The expensive model decides WHAT to build. The cheap model builds it. The expensive model reviews the output. You get frontier-quality judgment with budget-tier execution costs.
+
+**What if my model isn't smart enough to follow the one-shot prompt?**
+
+Run `setup.sh` (Mac/Linux) or `setup.ps1` (Windows) instead — they do the same thing without needing your model to interpret instructions. Or just copy the files from `/templates` into your workspace manually. Three paths, same result.
+
+**Does this work with models other than Claude Opus?**
+
+Tested and confirmed on Opus 4.6. The architecture works with any model that supports `memory_search` and `sessions_spawn` in OpenClaw. The one-shot prompt needs a model that can follow multi-step instructions well — most frontier models (Sonnet, GPT, Gemini) should handle it fine.
+
+**How is this different from Mem0 or other memory solutions?**
+
+Mem0 is a full memory management system with automatic fact extraction, deduplication, and scoped short/long-term memory. It's powerful but adds complexity and dependencies. This guide gives you 90% of the practical benefit (persistent memory across sessions, fast retrieval, zero forgetting) with 10% of the moving parts — just local files + vector search. If you outgrow this approach, graduating to Mem0 or a database-backed solution is straightforward because the vault structure maps cleanly to any backend.
+
+---
+
 *Built by Terp AI Labs.*
 
 **Saved you tokens/time?** Drop a ⭐ on this repo or ping me [@OnlyTerp](https://x.com/OnlyTerp) on X with your before/after numbers — happy to feature real user results.
