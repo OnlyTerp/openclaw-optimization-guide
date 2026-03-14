@@ -41,22 +41,32 @@ These are the exact optimizations I run daily. Nothing theoretical — all battl
 
 ## Part 1: Speed (Stop Being Slow)
 
-Every message you send, OpenClaw injects your workspace files into the prompt. If those files are bloated, every single reply is slower. This is the #1 speed issue people don't realize they have.
+Every message you send, OpenClaw injects ALL your workspace files (SOUL.md, AGENTS.md, MEMORY.md, TOOLS.md) into the prompt. If those files are bloated, every single reply is slower and more expensive. This is the #1 speed issue people don't realize they have.
+
+### Why Trimming Works (It's Not Just About Size)
+
+The key insight: **you don't need big files anymore once you have vector search.**
+
+Old approach: Stuff everything into MEMORY.md so the bot "sees" it every message. Result: 15KB+ context, slow responses, wasted tokens on info that's irrelevant to the current question.
+
+New approach: MEMORY.md is a slim index of pointers. Full details live in vault/ files. When the bot needs something, `memory_search()` finds it instantly via vector embeddings (local Ollama, $0). The bot only loads what's relevant to RIGHT NOW.
+
+This means your workspace files can be tiny without losing any knowledge. The knowledge just moves from "always loaded" to "loaded on demand."
 
 ### Trim Your Context Files
 
-| File | Target Size | What Goes In It |
-|------|------------|-----------------|
-| SOUL.md | < 1 KB | Personality, tone, 5-6 bullet points max |
-| AGENTS.md | < 2 KB | Decision tree, tool routing rules |
-| MEMORY.md | < 3 KB | Pointers only — NOT full docs |
-| TOOLS.md | < 1 KB | Tool names + one-liner usage |
-| **Total** | **< 8 KB** | Everything injected per message |
+| File | Target Size | What Goes In It | Why This Size |
+|------|------------|-----------------|---------------|
+| SOUL.md | < 1 KB | Personality, tone, core rules | Injected EVERY message — every byte costs latency |
+| AGENTS.md | < 2 KB | Decision tree, tool routing | Needs to fit in working memory, not be a manual |
+| MEMORY.md | < 3 KB | **Pointers only** — NOT full docs | Vector search replaces the need for big files |
+| TOOLS.md | < 1 KB | Tool names + one-liner usage | Just reminders, not documentation |
+| **Total** | **< 8 KB** | Everything injected per message | Down from 15KB+ = 50-66% faster |
 
-**Before:** 15 KB injected per message = slow
-**After:** 5 KB injected per message = fast
+**Before:** 15 KB injected per message. Bot reads everything every time, even if 90% is irrelevant.
+**After:** 5 KB injected per message. Bot loads detailed knowledge on-demand via vector search.
 
-The rule: if it's longer than a tweet thread, it's too long for a workspace file.
+The rule: if it's longer than a tweet thread, it's too long for a workspace file. Move the details to vault/.
 
 ### Add a Fallback Model
 
