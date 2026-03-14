@@ -28,6 +28,38 @@ After this setup, your bot:
 
 **The key insight:** Your workspace files become **lightweight routers, not storage.** All the actual knowledge lives in a local vector database on your machine. The bot only loads exactly what it needs for the current question — not everything it's ever learned.
 
+### How It Works
+
+```
+You ask a question
+    ↓
+Orchestrator (main model, lean context ~5KB)
+    ↓
+┌─────────────────────────────────────────┐
+│  memory_search() — 45ms, local, $0     │
+│  ┌─────────┐  ┌──────────┐  ┌────────┐ │
+│  │MEMORY.md│→ │memory/*.md│→ │vault/* │ │
+│  │(index)  │  │(quick)   │  │(deep)  │ │
+│  └─────────┘  └──────────┘  └────────┘ │
+└─────────────────────────────────────────┘
+    ↓
+Only relevant context loaded (~200 tokens)
+    ↓
+Fast, accurate response + sub-agents for heavy work
+```
+
+### Real Numbers
+
+```
+                    Before          After
+Context per msg:    15-20 KB        4-5 KB
+Time to respond:    4-8 sec         1-2 sec
+Memory recall:      Forgets daily   Remembers weeks
+Token cost/msg:     ~5,000 tokens   ~1,500 tokens
+Long sessions:      Degrades        Stable
+Concurrent tasks:   One at a time   Multiple parallel
+```
+
 This isn't a settings tweak. It's a **complete architecture change** — memory routing, context engineering, and orchestration — that work together. The vector search is what makes small files possible. The small files are what make it fast. The orchestration is what makes it affordable. They're connected.
 
 **The one-shot prompt at the bottom does the entire setup automatically.** One paste into your OpenClaw bot, walk away, done.
@@ -457,6 +489,14 @@ Make sure your model supports `sessions_spawn`. Check that you have a fallback m
 
 **Gateway won't restart after config changes:**
 Run `openclaw doctor --fix` to validate and repair your config. If you backed up before making changes (the prompt does this automatically), you can always restore: `cp ~/.openclaw/openclaw.json.bak ~/.openclaw/openclaw.json`
+
+**One-shot prompt only works partially on your model:**
+If your model struggles with the full prompt, do these 3 things manually instead:
+1. Copy the files from `/templates` into your workspace root
+2. Run `ollama pull nomic-embed-text`
+3. Restart gateway: `openclaw gateway stop && openclaw gateway start`
+
+That gets you 90% of the benefit. The one-shot prompt just automates these steps + moves your existing content to vault/.
 
 ---
 
