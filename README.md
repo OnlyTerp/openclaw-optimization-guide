@@ -530,4 +530,8 @@ That gets you 90% of the benefit. The one-shot prompt just automates these steps
 
 ---
 
-*Built by Terp AI Labs. Questions? Find me on X [@OnlyTerp](https://x.com/OnlyTerp).*
+*Built by Terp AI Labs.*
+
+**Saved you tokens/time?** Drop a ⭐ on this repo or ping me [@OnlyTerp](https://x.com/OnlyTerp) on X with your before/after numbers — happy to feature real user results.
+
+**Prefer scripts over the prompt?** Run `bash setup.sh` (Mac/Linux) or `powershell setup.ps1` (Windows) from the repo root.
