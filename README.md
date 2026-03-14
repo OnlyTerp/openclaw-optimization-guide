@@ -60,6 +60,36 @@ Long sessions:      Degrades        Stable
 Concurrent tasks:   One at a time   Multiple parallel
 ```
 
+### What The Optimized Files Look Like
+
+Here's a peek at the template files (full versions in [`/templates`](./templates)):
+
+**SOUL.md** (772 bytes — injected every message):
+```markdown
+## Who You Are
+- Direct, concise, no fluff. Say the useful thing, then stop.
+- Have opinions. Disagree when warranted. No sycophancy.
+
+## Memory Rule
+Before answering about past work, projects, people, or decisions:
+run memory_search FIRST. It costs 45ms. Not searching = wrong answers.
+
+## Orchestrator Rule
+You coordinate; sub-agents execute. Never write 50+ lines of code yourself.
+```
+
+**MEMORY.md** (581 bytes — slim pointer index):
+```markdown
+## Active Projects
+- Project A → vault/projects/project-a.md
+- Project B → vault/projects/project-b.md
+
+## Key People
+- Person A — role, relationship → vault/people/person-a.md
+```
+
+That's it. The details live in vault/. The bot finds them via vector search in 45ms.
+
 This isn't a settings tweak. It's a **complete architecture change** — memory routing, context engineering, and orchestration — that work together. The vector search is what makes small files possible. The small files are what make it fast. The orchestration is what makes it affordable. They're connected.
 
 **The one-shot prompt at the bottom does the entire setup automatically.** One paste into your OpenClaw bot, walk away, done.
