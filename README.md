@@ -19,13 +19,16 @@ If you're running a stock OpenClaw setup, you're probably dealing with some of t
 
 After this setup, your bot:
 
-- **Never freezes.** Context stays under 8KB total. You'll never hit context limits on normal conversations again.
-- **Responds 50-66% faster.** Less context to process = faster time to first token. The difference is immediately noticeable.
-- **Remembers everything that matters.** Projects, people, decisions, preferences, lessons learned — all persisted in a vault structure and instantly retrievable via local vector search ($0, runs on your machine). When you mention a project from two weeks ago, your bot knows exactly what you're talking about without you re-explaining.
+- **Responses feel instant.** 4-8 second lag drops to near-instant on most queries. Less context to process = faster time to first token.
+- **Memory actually works.** Your bot references things from weeks ago correctly — not just the most recent session. Projects, people, decisions, preferences — all instantly retrievable.
+- **No context ceiling.** Long sessions don't degrade. You'll never hit context limits on normal conversations again because context stays under 8KB.
+- **Multitask while working.** Give a second task while the first is still running. The agent spawns sub-agents for heavy work and stays conversational with you.
 - **Stays consistent.** A lean SOUL.md with clear rules means the bot's personality and behavior are the same every session. It follows YOUR rules, not its defaults.
-- **Delegates automatically.** Heavy tasks (writing code, doing research) get spawned to cheaper/faster models. Your main model focuses on what it's best at — planning, judgment, and talking to you.
+- **$0 memory cost.** All vector search runs locally via Ollama. Nothing leaves your machine. No cloud database fees.
 
-This isn't a list of tips you try one at a time. It's a **complete system** — memory architecture, context engineering, and orchestration — that work together. The vector search is what makes the small files possible. The small files are what make it fast. The orchestration is what makes it affordable. They're connected.
+**The key insight:** Your workspace files become **lightweight routers, not storage.** All the actual knowledge lives in a local vector database on your machine. The bot only loads exactly what it needs for the current question — not everything it's ever learned.
+
+This isn't a settings tweak. It's a **complete architecture change** — memory routing, context engineering, and orchestration — that work together. The vector search is what makes small files possible. The small files are what make it fast. The orchestration is what makes it affordable. They're connected.
 
 **The one-shot prompt at the bottom does the entire setup automatically.** One paste into your OpenClaw bot, walk away, done.
 
