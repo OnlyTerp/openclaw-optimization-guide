@@ -1088,33 +1088,6 @@ src/
 
 **The difference:** The first prompt requires the AI to make 50+ decisions about design, tech, features, and structure — and it'll get most of them wrong. The second prompt makes all those decisions upfront based on research, so the AI just executes. One shot, high quality.
 
-### The Research Tools
-
-Here's what to use for each phase of research:
-
-| Research Need | Tool | Why |
-|--------------|------|-----|
-| Find best examples | Tavily (advanced depth) | Returns structured results, not just links |
-| Analyze competitor UIs | Vision model + screenshots | Describe what you see, extract patterns |
-| Study repos/docs | web_fetch + GitHub | Read actual READMEs and code structure |
-| Find common pitfalls | Tavily or web search | "mistakes to avoid" queries |
-| Get design inspiration | Dribbble, Behance, or direct URLs | Screenshot the ones you like |
-| Validate tech stack | web search | "[stack] vs [alternative] for [use case]" |
-
-### When to One-Shot vs When to Iterate
-
-One-shotting works best for:
-- **New projects from scratch** — greenfield, no existing codebase to navigate
-- **Self-contained features** — a component, page, or tool that doesn't deeply integrate with existing code
-- **UI-heavy work** — dashboards, landing pages, admin panels
-- **Scripts and utilities** — CLI tools, automation scripts, data pipelines
-
-Iterate instead when:
-- **Working in a large existing codebase** — the agent needs to understand existing patterns
-- **Debugging** — you need back-and-forth to isolate issues
-- **Vague requirements** — if YOU don't know what you want, research more before prompting
-- **Multi-system integration** — anything touching databases, auth, external APIs needs careful step-by-step work
-
 ### Let Your Agent Do the Research For You
 
 Here's the thing — you have an AI agent with web search. **You don't have to do the research yourself.** Make your agent do Phase 1 before it starts Phase 3. This turns a 30-minute manual research session into a 2-minute conversation.
