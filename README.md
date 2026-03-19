@@ -14,6 +14,8 @@ If you're running a stock OpenClaw setup, you're probably dealing with some of t
 - **Forgetting everything.** New session = blank slate. Your bot doesn't remember what you built yesterday, what decisions you made last week, or what your preferences are. You're re-explaining context constantly.
 - **Inconsistent behavior.** Without clear rules, the bot's personality drifts. Sometimes it's helpful, sometimes it's verbose, sometimes it ignores your preferences entirely.
 - **Doing everything the expensive way.** Your main model writes code, does research, AND orchestrates — all at top-tier pricing. No delegation.
+- **Flying blind.** Your agent can't search the web, so it guesses at anything after its training cutoff. No grounding, no real-time info.
+- **No idea which model to use.** You picked whatever was default and never looked back. You're either overpaying or underperforming.
 
 ## What This Fixes
 
@@ -25,6 +27,8 @@ After this setup, your bot:
 - **Multitask while working.** Give a second task while the first is still running. The agent spawns sub-agents for heavy work and stays conversational with you.
 - **Stays consistent.** A lean SOUL.md with clear rules means the bot's personality and behavior are the same every session. It follows YOUR rules, not its defaults.
 - **$0 memory cost.** All vector search runs locally via Ollama. Nothing leaves your machine. No cloud database fees.
+- **Grounded in reality.** Web search gives your agent real-time information instead of guessing from stale training data.
+- **Right model for each job.** Your orchestrator uses a frontier model. Sub-agents use fast/cheap models. Code goes to coding models. You stop overpaying.
 
 **The key insight:** Your workspace files become **lightweight routers, not storage.** All the actual knowledge lives in a local vector database on your machine. The bot only loads exactly what it needs for the current question — not everything it's ever learned.
 
@@ -193,7 +197,190 @@ The only model you need loaded for memory search is `nomic-embed-text` (300 MB).
 
 ---
 
-## Part 2: Memory (Stop Forgetting Everything)
+## Part 2: Context Bloat (The Silent Performance Killer)
+
+You trimmed your workspace files. Good. But do you know *why* that actually matters? Context bloat isn't just "my files are big" — it's a fundamental physics problem with how LLMs work, and most people don't realize how bad it gets.
+
+### The Quadratic Problem
+
+Every LLM uses an attention mechanism that scales **quadratically** with context length. That means:
+
+- **2x the tokens = 4x the compute cost**
+- **3x the tokens = 9x the compute cost**
+
+This isn't linear. It's exponential. When your context goes from 50K to 100K tokens, the model isn't doing twice the work — it's doing **four times** the work. That directly translates to slower responses and higher bills.
+
+### What Happens at 50% of Your Context Window
+
+If you're running a model with a 1M token context window (like Claude Opus or Gemini Pro), you might think "I've got plenty of room." You don't.
+
+Real-world benchmarks show:
+
+- **11 out of 12 models** tested dropped below 50% accuracy by just 32K tokens
+- **GPT-4.1** showed a **50x increase in response time** at ~133K tokens — it hit a wall
+- Models exhibit **"lost-in-the-middle" bias** — they pay attention to the beginning and end of context but literally lose track of information buried in the middle
+- By the time you're at 500K tokens (50% of a 1M window), you're experiencing significant latency spikes, accuracy drops, and cost explosions
+
+**The takeaway:** Just because a model *advertises* 1M context doesn't mean it *performs well* at 1M. Effective context is usually a fraction of the max.
+
+### Where Bloat Actually Comes From
+
+It's not just your workspace files. Context accumulates from multiple sources in every single message:
+
+| Source | Typical Size | Injected When |
+|--------|-------------|---------------|
+| System prompt | 2-5 KB | Every message |
+| Workspace files (SOUL, AGENTS, MEMORY, TOOLS) | 5-20 KB | Every message |
+| Conversation history | Grows per turn | Every message |
+| Tool results (exec, read, web_search) | 1-50 KB each | After tool calls |
+| Skill files | 1-5 KB each | When skill activates |
+| Bootstrap/context files | 1-10 KB | Session start |
+
+In agentic workflows, **tool spam** is the worst offender. Every tool call dumps its full output into the context. A single `exec` that returns a large file read? That's 20K+ tokens added permanently to your session. Five tool calls in a row? You just burned 100K tokens of context space that the model has to re-read on every subsequent message.
+
+### The Cost Math
+
+Providers charge per token. Here's what context bloat actually costs you:
+
+```
+Lean context (5K tokens/msg):
+  → Claude Opus: $0.075/msg input + $0.0075 cached
+  
+Bloated context (50K tokens/msg):
+  → Claude Opus: $0.75/msg input + $0.075 cached
+  
+That's 10x more per message. Over 100 messages/day = $67.50/day vs $6.75/day.
+```
+
+Even with caching, you're paying for every token on the first write. And if your session goes idle past the cache TTL? You re-cache the entire bloated context at full price.
+
+### What OpenClaw Does About It (Built-In Defenses)
+
+OpenClaw has two built-in mechanisms most people don't know about:
+
+**Session Pruning** — Trims old tool results from context before each LLM call. Only affects in-memory context, not your saved session history. Enable it:
+
+```json
+{
+  "agents": {
+    "defaults": {
+      "contextPruning": {
+        "mode": "cache-ttl",
+        "ttl": "5m"
+      }
+    }
+  }
+}
+```
+
+**Auto-Compaction** — When a session nears the context window limit, OpenClaw automatically summarizes older conversation into a compact summary and keeps recent messages intact. You can also trigger it manually with `/compact`.
+
+**Use both.** Pruning handles tool result bloat per-request. Compaction handles conversation history bloat over time. Together they keep your context lean without you thinking about it.
+
+### Your Context Bloat Checklist
+
+- [ ] Workspace files under 8 KB total (you did this in Part 1)
+- [ ] Context pruning enabled (`mode: "cache-ttl"`)
+- [ ] Use `/compact` proactively when sessions feel slow or stale
+- [ ] Use `/new` or `/reset` when switching topics entirely
+- [ ] Delegate heavy tool work to sub-agents (their context is separate from yours)
+- [ ] Monitor your context usage with `/status` — watch the token count and percentage
+
+**The golden rule:** Your main session context should rarely exceed 10-15% of your model's context window. If `/status` shows you're above 20%, something is bloating.
+
+---
+
+## Part 3: Cron Session Bloat (The Hidden Killer)
+
+If you run cron jobs — automated tasks on a schedule — there's a second type of bloat that builds up silently over weeks and months. It's not context window bloat. It's **session file bloat**.
+
+### The Problem
+
+Every cron job execution creates a session transcript file (`.jsonl`). These live in your agent's sessions directory and get tracked in `sessions.json`. Over time:
+
+- **30 cron jobs × 48 runs/day × 30 days = 43,200 session files**
+- Each file can be 10-100 KB depending on what the cron did
+- The `sessions.json` index grows to track all of them
+- Session loading slows down as the index balloons
+
+You won't notice it at first. After a few weeks, your bot starts taking an extra second or two to respond. After a month, session management becomes a noticeable bottleneck.
+
+### How to Spot It
+
+Check your session file count:
+
+```bash
+# Linux/Mac
+ls ~/.openclaw/agents/*/sessions/*.jsonl | wc -l
+
+# Windows (PowerShell)
+(Get-ChildItem ~\.openclaw\agents\*\sessions\*.jsonl).Count
+```
+
+If you're seeing thousands of files, you have cron session bloat.
+
+### The Fix
+
+**1. Configure session rotation**
+
+OpenClaw can automatically rotate large session files. Add this to your `openclaw.json`:
+
+```json
+{
+  "session": {
+    "maintenance": {
+      "rotateBytes": "100mb"
+    }
+  }
+}
+```
+
+**2. Clean up old cron sessions**
+
+Run periodic cleanup of stale session entries:
+
+```bash
+openclaw sessions cleanup
+```
+
+This prunes entries older than the configured `pruneAfter` threshold (default: 30 days).
+
+**3. Use isolated sessions for cron**
+
+When setting up cron jobs, use `sessionTarget: "isolated"` so each run gets its own throwaway session instead of accumulating in a shared session:
+
+```json
+{
+  "sessionTarget": "isolated",
+  "payload": {
+    "kind": "agentTurn",
+    "message": "Do the thing"
+  }
+}
+```
+
+Isolated sessions don't pile up in your main agent's session history.
+
+**4. Set a maintenance schedule**
+
+If you're a power user running lots of crons, add a monthly cleanup cron:
+
+```
+Check and clean up old cron session files. 
+Report how many were cleaned and total space recovered.
+```
+
+### Prevention > Cleanup
+
+The best fix is not generating the bloat in the first place:
+
+- If your cron output already saves to a database or vault file, you don't need the session transcript too
+- Use `delivery: { "mode": "none" }` on crons where you don't need the output announced
+- Keep cron tasks focused and small — a cron that runs 15 tool calls generates 15x more session data than one that runs 1
+
+---
+
+## Part 4: Memory (Stop Forgetting Everything)
 
 Out of the box, OpenClaw forgets everything between sessions. The fix is a 3-tier memory system that makes your bot remember every project, decision, and preference.
 
@@ -295,7 +482,7 @@ run memory_search FIRST. It costs 45ms. Not searching = wrong answers.
 
 ---
 
-## Part 3: Orchestration (Stop Doing Everything Yourself)
+## Part 5: Orchestration (Stop Doing Everything Yourself)
 
 Your main model should NEVER do heavy work directly. It should plan and delegate to cheaper, faster sub-agents.
 
@@ -333,7 +520,321 @@ Your main model is expensive and slow. A smaller model from the same provider is
 
 ---
 
-## Part 4: Quick Checklist
+## Part 6: Models (What to Actually Use)
+
+Not all models are created equal for agent work. After weeks of daily testing across every major provider, here's what actually works — and what each model is best at.
+
+### The Model Strategy
+
+You don't want one model doing everything. You want the **right model for each job**:
+
+| Role | What It Does | Best Model(s) | Why |
+|------|-------------|----------------|-----|
+| **Orchestrator** (main) | Plans, judges, coordinates | Claude Opus 4.6 | Best at complex reasoning, tool use, and following nuanced instructions |
+| **Daily driver** | General assistant, balanced | Claude Sonnet 4.6, Gemini 3.1 Pro | Great quality at lower cost than Opus |
+| **Sub-agents** (workers) | Execute delegated tasks | Gemini 3 Flash, Kimi K2.5, MiMo V2 Pro | Fast, cheap, capable enough for execution |
+| **Coding** | Write/refactor code | GPT-5.3 Codex, Claude Sonnet | Purpose-built for code generation |
+| **Research** | Web search, analysis | Gemini 2.5 Flash, Perplexity Sonar | Built-in search grounding, fast |
+| **Free tier** | Zero-cost operations | Gemini (all variants), Groq open models | $0 with generous rate limits |
+
+### Model Deep Dive
+
+**Claude Opus 4.6** — The Best Orchestrator
+- Unmatched at multi-step reasoning and complex tool use
+- Follows long, nuanced system prompts better than any other model
+- Best "memory search then act" behavior — actually searches before answering
+- 1M context window with prompt caching (saves up to 90% on cached tokens)
+- Downside: most expensive per-token. Use it for orchestration, not execution
+- **Cost:** $15/M input, $75/M output, $1.50/M cached read
+
+**Claude Sonnet 4.6** — The Sweet Spot
+- 80% of Opus quality at 20% of the cost
+- Excellent for daily driving if you don't need Opus-level reasoning
+- Same 1M context window and caching benefits
+- Great as a fallback when Opus is rate-limited
+- Strong at coding tasks — can replace dedicated coding models for most work
+- **Cost:** $3/M input, $15/M output, $0.30/M cached read
+
+**Gemini 3.1 Pro / 3 Pro** — Free Powerhouse
+- Legitimately competitive with Sonnet on most tasks — and it's free
+- 1M context window, multimodal (text + image)
+- Google's API has generous free-tier rate limits
+- Excellent as a default model if you want to keep costs at $0
+- Weaker than Claude on complex agentic tool-use chains
+- **Cost:** Free (API key required)
+
+**Gemini Flash (2.5 / 3)** — Speed Demon
+- Fastest responses of any capable model
+- Perfect for sub-agents and research tasks where speed > depth
+- Same free pricing as Gemini Pro
+- Flash Lite variants are even faster for simple tasks
+- **Cost:** Free
+
+**GPT-5.3 / 5.4 Pro** — OpenAI's Best
+- GPT-5.4 Pro is a strong thinking model with 1M context
+- Good at code and structured output
+- Competitive with Claude on many tasks, slightly weaker on long agentic chains
+- OpenAI's Codex models are purpose-built for code tasks — fast and cheap
+- **Cost:** $1.75-2.50/M input, $14-15/M output
+
+**Grok 4 / 4.1 Fast** — The Dark Horse  
+- Surprisingly good at reasoning tasks
+- Grok 4.20 has a massive 2M context window (largest available)
+- Fast reasoning variant is great for tasks that need thinking + speed
+- xAI pricing is competitive with Claude Sonnet
+- **Cost:** $2-3/M input, $6-15/M output
+
+**Kimi K2.5** — Budget Sub-Agent King
+- Multimodal, 262K context, strong instruction following
+- Excellent price-to-performance for delegated tasks
+- Available via OpenRouter with Fireworks backend for fast inference
+- Perfect for sub-agents that need to be capable but cheap
+- **Cost:** $0.60/M input, $3/M output
+
+**MiMo V2 Pro (Xiaomi)** — The Sleeper
+- 1T parameter model with 1M context window
+- Surprisingly capable for an open-weight model
+- Good for agentic tasks via OpenRouter
+- Great as a sub-agent model when you need large context on a budget
+- **Cost:** $1/M input, $3/M output
+
+### OpenRouter: The Model Marketplace
+
+[OpenRouter](https://openrouter.ai) gives you access to dozens of models through one API key. It's the easiest way to add variety to your setup without managing multiple provider accounts.
+
+**The Free Router — `openrouter/free`**
+
+This is a hidden gem. Point your model config at [`openrouter/free`](https://openrouter.ai/openrouter/free) and OpenRouter automatically picks the best free model for your request. It analyzes what you need (tool calling, image understanding, structured output) and routes to a capable free model. Zero cost, zero thinking about which model to use.
+
+```json
+{
+  "id": "openrouter/free",
+  "name": "OpenRouter Free Auto-Router"
+}
+```
+
+Perfect for sub-agents where you want $0 cost and don't care which model does the work — just that it gets done.
+
+**Notable OpenRouter Models:**
+
+**Xiaomi MiMo V2 Pro** — *Free right now (launch week)*
+- 1 trillion parameter model, 1M context window
+- Launched anonymously as "Hunter Alpha" and topped OpenRouter rankings before anyone knew it was Xiaomi
+- Designed specifically for agentic scenarios — tool use, multi-step planning
+- **Currently free for developers** as part of the launch promotion. Try it now before pricing kicks in
+- Normal pricing: $1/M input, $3/M output
+- Add it: `openrouter/xiaomi/mimo-v2-pro`
+
+**Kimi K2.5 (Moonshot AI)** — Budget Powerhouse
+- 262K context, multimodal, strong instruction following
+- $0.60/M input, $3/M output — one of the best price-to-performance ratios
+- Excellent for delegated sub-agent tasks
+- Add it: `openrouter/moonshotai/kimi-k2.5`
+
+**Perplexity Sonar** — Built-In Web Search
+- Research model with native search grounding — no separate search tool needed
+- Great for sub-agents doing web research
+- $1/M input, $1/M output
+- Add it: `openrouter/perplexity/sonar`
+
+### Local Models: $0 Forever, No Rate Limits
+
+If you have a GPU (even a modest one), local models via Ollama give you unlimited inference at zero cost. No API keys, no rate limits, no data leaving your machine.
+
+**Qwopus (Qwen 3.5 27B + Claude Opus Reasoning Distilled)**
+- Someone distilled Claude Opus 4.6's chain-of-thought reasoning into a Qwen 3.5 27B model
+- It actually works — you get Opus-style structured thinking in a model that runs on a single RTX 3090/4090
+- Excellent for local sub-agents that need reasoning capability
+- Install: `ollama pull qwopus`
+- Runs at ~Q4_K_M quantization, needs ~16GB VRAM
+
+**NVIDIA Nemotron Nano 4B**
+- Only 4 billion parameters but punches way above its weight
+- Has toggleable System 1 / System 2 reasoning — turn deep thinking on or off per request
+- 128K context window in a model that fits on basically any GPU
+- 50% more throughput than other models in its class
+- Perfect for: quick local tasks, edge deployments, or as an always-available local fallback
+- Install: `ollama pull nemotron-nano`
+
+**When to Use Local Models:**
+- Sub-agent tasks where you want $0 cost and no rate limits
+- Sensitive work where data shouldn't leave your machine
+- As a fallback when cloud APIs are down or rate-limited
+- Embedding/memory search (nomic-embed-text is already local if you followed Part 4)
+
+### Using Anthropic Membership (The Best Way)
+
+If you have a Claude Pro or Max subscription, you're probably overpaying by also buying API credits separately. Here's the thing — **your membership includes API access**, and OpenClaw can use it directly. No separate API key billing needed.
+
+The setup is dead simple now:
+
+**Step 1:** Open Claude Code in your terminal and run `claude` — it will ask you to log in via browser (OAuth). This creates a local auth token on your machine.
+
+**Step 2:** Run `openclaw onboard` — during setup, it will detect your Claude Code credentials and ask if you want to use them. Say yes. That's it.
+
+**Step 3:** Your OpenClaw bot now uses your membership allocation. No separate API key, no pay-per-token billing, no surprise charges.
+
+**Why this matters:**
+- Claude Pro ($20/month) or Max ($100/month) gives you a usage allocation that's usually way cheaper than raw API pricing
+- Prompt caching works the same way — you still get 90% savings on cached tokens
+- If you hit your membership limits, set a fallback to a free model (Gemini) so your bot never goes silent
+
+```
+Membership flow:
+  Claude Code login (OAuth) → local auth token
+      ↓
+  openclaw onboard → detects token → uses membership
+      ↓
+  Your bot runs on your subscription. Done.
+```
+
+No terminal hacking, no environment variables, no copying keys between apps. Just paste and go.
+
+### Recommended Setups
+
+**Budget Setup ($0/month):**
+```
+Main: Gemini 3.1 Pro (free)
+Fallback: OpenRouter Free Router (openrouter/free)
+Sub-agents: Gemini 3 Flash (free)
+Local: Nemotron Nano 4B for quick tasks
+```
+
+**Balanced Setup (~$20/month with Claude Pro membership):**
+```
+Main: Claude Sonnet 4.6 (via membership)
+Fallback: Gemini 3.1 Pro (free)
+Sub-agents: Gemini 3 Flash or Kimi K2.5
+Coding: Claude Sonnet (via membership)
+Local: Qwopus 27B for offline/private work
+```
+
+**Power Setup (~$100/month with Claude Max membership):**
+```
+Main: Claude Opus 4.6 (via membership)
+Fallback: Claude Sonnet 4.6 (via membership)
+Sub-agents: Kimi K2.5 / MiMo V2 Pro / Gemini Flash
+Coding: GPT-5.3 Codex
+Research: Gemini Flash + Perplexity Sonar
+Local: Qwopus 27B for reasoning, Nemotron Nano for quick tasks
+```
+
+### Pro Tips
+
+- **Always set fallbacks.** If your main model gets rate-limited or goes down, your bot should auto-switch, not break. Set 2-3 fallbacks in order of preference.
+- **Match model to task, not vibes.** Don't use Opus to write a Python script. Don't use Flash to plan a complex architecture. Right tool, right job.
+- **Cache matters on Anthropic.** Claude's prompt caching can reduce costs by 90% on repeated context. If you're using Opus/Sonnet, enable `cacheRetention: "extended"` and set up cache-ttl pruning.
+- **Free models are real.** Gemini's free tier is not a toy — it's legitimately good for daily driving. Start free, upgrade when you hit limits.
+- **Membership > API keys.** If you're paying for Claude Pro/Max anyway, use it through OpenClaw via OAuth. You're already paying for the tokens — don't pay twice.
+- **Try MiMo V2 Pro right now.** It's free for launch week. A 1T parameter model at $0 is not something that happens often.
+- **Test yourself.** These recommendations are based on our testing. Your use case might be different. Run `/model gemini` for a day, then `/model sonnet`, and compare. The best model is the one that works for YOU.
+
+---
+
+## Part 7: Web Search (Give Your Agent Eyes on the Internet)
+
+Your agent's training data is months old. Without web search, it's guessing about anything that happened after its cutoff. This is the difference between "I think the answer is..." and "Here's what's actually happening right now."
+
+### The Players
+
+Here's every major web search API worth considering for an AI agent in 2026:
+
+| Provider | Price per 1K queries | Free Tier | Best For | LLM-Optimized |
+|----------|---------------------|-----------|----------|----------------|
+| **Tavily** | ~$8 | 1,000/month | AI agents, RAG | ✅ Built for it |
+| **Brave Search** | $5 | $5 credit/month | Privacy, scale | ✅ LLM Context mode |
+| **Serper** | $1-3 | 2,500 credits | Budget, speed | Partial (structured JSON) |
+| **SerpAPI** | $25-75/month tiers | 100/month | Multi-engine, enterprise | Partial |
+| **Gemini Grounding** | Free (with Gemini) | Included | Google ecosystem | ✅ Native |
+| **Perplexity Sonar** | $1/M tokens | Via OpenRouter | Research synthesis | ✅ Built for it |
+| **Google Custom Search** | $5 | 100/day | ⚠️ Shutting down Jan 2027 | ❌ |
+
+### Why We Use Tavily
+
+After testing every option on this list, we settled on [Tavily](https://tavily.com) as our primary search API. Here's why:
+
+**1. Built specifically for AI agents, not humans**
+
+Traditional search APIs (Brave, Serper, SerpAPI) return what Google/Bing shows humans — a list of links with snippets. Your agent then has to fetch each page, parse the HTML, extract relevant content, and figure out what matters. That's 4-5 extra steps and tool calls burning context and time.
+
+Tavily returns **clean, structured, pre-processed content** that an LLM can consume directly. It does the fetching, parsing, and relevance filtering for you. One API call → usable answer. Your agent's context stays lean because it's not stuffing raw HTML into the conversation.
+
+**2. Search + Extract + Crawl in one API**
+
+Most search APIs only search. If your agent needs the full content of a page (not just a snippet), you need a separate tool to fetch and parse it. Tavily bundles search, content extraction, and crawling into one service:
+
+- **Search** → Find relevant results (1 credit)
+- **Extract** → Pull full article content from any URL as clean markdown (1 credit per 5 URLs)
+- **Crawl** → Map and crawl an entire site (1 credit per 10 pages)
+
+This means fewer tools in your agent's toolkit, fewer context-eating tool calls, and simpler orchestration.
+
+**3. Depth control**
+
+Tavily lets you choose search depth per query:
+- **Basic** — fast, surface-level, 1 credit. Good for simple fact checks
+- **Advanced** — deep, comprehensive, 2 credits. Good for research tasks
+
+Your agent can pick the right depth based on the task. Quick question? Basic. Deep research? Advanced. This saves credits and keeps responses fast when speed matters.
+
+**4. The free tier is actually usable**
+
+1,000 free API credits per month. That's 1,000 basic searches or 500 advanced searches — enough for a personal assistant that searches a few times a day. You don't need to pay anything to get real value out of it.
+
+**5. Built-in safety**
+
+Tavily has built-in safeguards against prompt injection from search results, PII leakage, and malicious sources. When your agent is ingesting content from the open web, this matters more than people realize.
+
+### Setting Up Tavily with OpenClaw
+
+**Step 1:** Get a free API key at [tavily.com](https://tavily.com) — takes 30 seconds.
+
+**Step 2:** Your agent can use Tavily through sub-agents or custom skills. The simplest approach is to add it as a tool your agent knows about in TOOLS.md:
+
+```markdown
+## Web Search
+- Tavily Search: For grounded web research. API key in environment.
+- Use basic depth for quick lookups, advanced for deep research.
+```
+
+**Step 3:** For sub-agents doing research, include Tavily in their task instructions:
+
+```
+Research [topic] using Tavily search. Use advanced depth.
+Summarize findings with sources.
+```
+
+### When to Use What
+
+Not every search need is the same. Here's a quick decision tree:
+
+```
+Need real-time facts/news?
+  → Tavily (basic depth) or Gemini grounding (if already using Gemini)
+
+Need deep research with full article content?
+  → Tavily (advanced depth + extract)
+
+Need privacy-first search?
+  → Brave Search API
+
+Need structured Google results on a budget?
+  → Serper ($1/1K queries)
+
+Need search built into the model response?
+  → Perplexity Sonar (via OpenRouter)
+
+Just need free and good enough?
+  → Gemini grounding (included with Gemini models)
+```
+
+### The Bottom Line
+
+You can get by with Gemini's built-in grounding for free. But if you want your agent to do serious research — the kind where it actually reads articles, cross-references sources, and gives you grounded answers — Tavily is worth the upgrade. The free tier lets you try it without committing, and the structured output keeps your context lean instead of bloating it with raw web content.
+
+---
+
+## Part 8: Quick Checklist
 
 Run through this in 30 minutes:
 
@@ -341,9 +842,13 @@ Run through this in 30 minutes:
 - [ ] SOUL.md under 1 KB
 - [ ] AGENTS.md under 2 KB  
 - [ ] Total workspace context under 8 KB
+- [ ] Context pruning enabled (`mode: "cache-ttl"`)
+- [ ] Cron sessions cleaned up / isolated sessions configured
 - [ ] Ollama installed + `nomic-embed-text` pulled
 - [ ] vault/ directory structure created
+- [ ] Model strategy chosen (orchestrator + sub-agents + fallbacks)
 - [ ] Faster/cheaper fallback model added
+- [ ] Web search API configured (Tavily recommended, Gemini grounding for free)
 - [ ] Unused plugins disabled
 - [ ] Reasoning mode — high if you want best quality, low/off if you prioritize speed
 - [ ] Orchestration rules in AGENTS.md
@@ -353,7 +858,7 @@ Run through this in 30 minutes:
 
 ---
 
-## Part 5: The One-Shot Prompt
+## Part 9: The One-Shot Prompt
 
 Copy this entire prompt and send it to your OpenClaw bot. It will do everything in this guide automatically — trim context files, set up the memory system, configure orchestration, and install Ollama with the embedding model. Just paste and let it run.
 
