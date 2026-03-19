@@ -244,12 +244,12 @@ Providers charge per token. Here's what context bloat actually costs you:
 
 ```
 Lean context (5K tokens/msg):
-  → Claude Opus: $0.075/msg input + $0.0075 cached
+  → Claude Opus: $0.025/msg input + $0.0025 cached
   
 Bloated context (50K tokens/msg):
-  → Claude Opus: $0.75/msg input + $0.075 cached
+  → Claude Opus: $0.25/msg input + $0.025 cached
   
-That's 10x more per message. Over 100 messages/day = $67.50/day vs $6.75/day.
+That's 10x more per message. Over 100 messages/day = $22.50/day vs $2.25/day.
 ```
 
 Even with caching, you're paying for every token on the first write. And if your session goes idle past the cache TTL? You re-cache the entire bloated context at full price.
@@ -545,7 +545,7 @@ You don't want one model doing everything. You want the **right model for each j
 - Best "memory search then act" behavior — actually searches before answering
 - 1M context window with prompt caching (saves up to 90% on cached tokens)
 - Downside: most expensive per-token. Use it for orchestration, not execution
-- **Cost (API):** $15/M input, $75/M output, $1.50/M cached read
+- **Cost (API):** $5/M input, $25/M output, $0.50/M cached read
 - **Cost (Max subscription):** Included in your $100/month plan — drastically cheaper for heavy use. If you're sending 100+ messages/day on Opus, Max pays for itself in the first week
 
 **Claude Sonnet 4.6** — The Sweet Spot
@@ -579,21 +579,21 @@ You don't want one model doing everything. You want the **right model for each j
 - Good at code and structured output
 - Competitive with Claude on many tasks, slightly weaker on long agentic chains
 - OpenAI's Codex models are purpose-built for code tasks — fast and cheap
-- **Cost:** $1.75-2.50/M input, $14-15/M output
+- **Cost:** GPT-5.3: $1.75/M input, $14/M output | GPT-5.4 Pro: $30/M input, $180/M output
 
 **Grok 4 / 4.1 Fast** — The Dark Horse  
 - Surprisingly good at reasoning tasks
 - Grok 4.20 has a massive 2M context window (largest available)
 - Fast reasoning variant is great for tasks that need thinking + speed
-- xAI pricing is competitive with Claude Sonnet
-- **Cost:** $2-3/M input, $6-15/M output
+- Grok 4.1 Fast is insanely cheap — $0.20/M input
+- **Cost:** Grok 4: $3/M input, $15/M output | Grok 4.1 Fast: $0.20/M input, $0.50/M output | Grok 4.20: $2/M input, $6/M output
 
 **Kimi K2.5** — Budget Sub-Agent King
 - Multimodal, 262K context, strong instruction following
 - Excellent price-to-performance for delegated tasks
 - Available via OpenRouter with Fireworks backend for fast inference
 - Perfect for sub-agents that need to be capable but cheap
-- **Cost:** $0.60/M input, $3/M output
+- **Cost:** $0.45/M input, $2.20/M output
 
 **MiMo V2 Pro (Xiaomi)** — The Sleeper
 - 1T parameter model with 1M context window
@@ -631,14 +631,14 @@ Perfect for sub-agents where you want $0 cost and don't care which model does th
 
 **Kimi K2.5 (Moonshot AI)** — Budget Powerhouse
 - 262K context, multimodal, strong instruction following
-- $0.60/M input, $3/M output — one of the best price-to-performance ratios
+- $0.45/M input, $2.20/M output — one of the best price-to-performance ratios
 - Excellent for delegated sub-agent tasks
 - Add it: `openrouter/moonshotai/kimi-k2.5`
 
 **Perplexity Sonar** — Built-In Web Search
 - Research model with native search grounding — no separate search tool needed
 - Great for sub-agents doing web research
-- $1/M input, $1/M output
+- $3/M input, $15/M output (Sonar Pro)
 - Add it: `openrouter/perplexity/sonar`
 
 ### Local Models: $0 Forever, No Rate Limits
@@ -750,7 +750,7 @@ Here's every major web search API worth considering for an AI agent in 2026:
 | **Serper** | $1-3 | 2,500 credits | Budget, speed | Partial (structured JSON) |
 | **SerpAPI** | $25-75/month tiers | 100/month | Multi-engine, enterprise | Partial |
 | **Gemini Grounding** | Free (with Gemini) | Included | Google ecosystem | ✅ Native |
-| **Perplexity Sonar** | $1/M tokens | Via OpenRouter | Research synthesis | ✅ Built for it |
+| **Perplexity Sonar** | $3/M input, $15/M output | Via OpenRouter | Research synthesis | ✅ Built for it |
 | **Google Custom Search** | $5 | 100/day | ⚠️ Shutting down Jan 2027 | ❌ |
 
 ### Why We Use Tavily
