@@ -1,7 +1,24 @@
 # OpenClaw Optimization Guide
 ### Make Your AI Agent Faster, Smarter, and Actually Useful
 
-*By Terp — Terp AI Labs*
+*By Terp — [Terp AI Labs](https://x.com/OnlyTerp)*
+
+> **Keywords:** OpenClaw optimization, OpenClaw speed, OpenClaw memory, context window management, AI agent optimization, OpenClaw models, OpenClaw tutorial, OpenClaw guide, OpenClaw setup, AI agent memory, context engineering, prompt caching, sub-agent orchestration, OpenClaw best practices, OpenClaw configuration, AI agent cost reduction, Ollama memory search, vault memory system
+
+---
+
+## Table of Contents
+
+1. [Speed](#part-1-speed-stop-being-slow) — Trim context files, add fallbacks, manage reasoning mode
+2. [Context Bloat](#part-2-context-bloat-the-silent-performance-killer) — Why 50% context = broken, quadratic scaling, built-in defenses
+3. [Cron Session Bloat](#part-3-cron-session-bloat-the-hidden-killer) — Session file accumulation, cleanup, isolated sessions
+4. [Memory](#part-4-memory-stop-forgetting-everything) — 3-tier memory system, Ollama vector search, vault architecture
+5. [Orchestration](#part-5-orchestration-stop-doing-everything-yourself) — Sub-agent delegation, CEO/COO/Worker model
+6. [Models](#part-6-models-what-to-actually-use) — Provider comparison, pricing, local models, membership setup
+7. [Web Search](#part-7-web-search-give-your-agent-eyes-on-the-internet) — Tavily, Brave, Serper, Gemini grounding comparison
+8. [One-Shotting Big Tasks](#part-8-one-shotting-big-tasks-stop-iterating-start-researching) — Research-first methodology, spec-driven development
+9. [Quick Checklist](#part-9-quick-checklist) — 30-minute setup checklist
+10. [The One-Shot Prompt](#part-10-the-one-shot-prompt) — Copy-paste automation prompt
 
 ---
 
@@ -106,18 +123,6 @@ These are the exact optimizations I run daily on my own setup. Not theoretical �
 
 ---
 
-## Results
-
-| Metric | Before | After |
-|--------|--------|-------|
-| Context per message | 15 KB | 5 KB |
-| Response time | Slow | 50-66% faster |
-| Memory | Forgets everything | Remembers projects, people, decisions |
-| Code tasks | Bot does it all (expensive) | Delegates to cheaper model (up to 5x savings) |
-| Token cost | High | ~60% reduction on execution tasks |
-
----
-
 ## Part 1: Speed (Stop Being Slow)
 
 Every message you send, OpenClaw injects ALL your workspace files (SOUL.md, AGENTS.md, MEMORY.md, TOOLS.md) into the prompt. If those files are bloated, every single reply is slower and more expensive. This is the #1 speed issue people don't realize they have.
@@ -129,8 +134,6 @@ The key insight: **you don't need big files anymore once you have vector search.
 Old approach: Stuff everything into MEMORY.md so the bot "sees" it every message. Result: 15KB+ context, slow responses, wasted tokens on info that's irrelevant to the current question.
 
 New approach: MEMORY.md is a slim index of pointers. Full details live in vault/ files. When the bot needs something, `memory_search()` finds it instantly via vector embeddings (local Ollama, $0). The bot only loads what's relevant to RIGHT NOW.
-
-This is the same approach that distributed databases like TiDB use for hybrid search — combining structured queries with semantic vector similarity to find exactly the right information in milliseconds. We're applying that same architecture to your agent's memory: structured metadata (file paths, categories) + semantic search (what's actually relevant to your question) in one unified system.
 
 This means your workspace files can be tiny without losing any knowledge. The knowledge just moves from "always loaded" to "loaded on demand."
 
@@ -360,15 +363,6 @@ When setting up cron jobs, use `sessionTarget: "isolated"` so each run gets its 
 ```
 
 Isolated sessions don't pile up in your main agent's session history.
-
-**4. Set a maintenance schedule**
-
-If you're a power user running lots of crons, add a monthly cleanup cron:
-
-```
-Check and clean up old cron session files. 
-Report how many were cleaned and total space recovered.
-```
 
 ### Prevention > Cleanup
 
@@ -1168,8 +1162,6 @@ Run through this in 30 minutes:
 
 ---
 
----
-
 ## Part 10: The One-Shot Prompt
 
 Copy this entire prompt and send it to your OpenClaw bot. It will do everything in this guide automatically — trim context files, set up the memory system, configure orchestration, and install Ollama with the embedding model. Just paste and let it run.
@@ -1371,8 +1363,18 @@ Most agent memory tools add external databases, cloud services, or complex depen
 
 ---
 
-*Built by Terp AI Labs.*
+## About
+
+*Built by [Terp — Terp AI Labs](https://x.com/OnlyTerp)*
+
+The definitive optimization guide for OpenClaw — covering speed, memory, context management, model selection, web search, orchestration, and spec-driven development. Battle-tested daily on a production OpenClaw setup.
 
 **Saved you tokens/time?** Drop a ⭐ on this repo or ping me [@OnlyTerp](https://x.com/OnlyTerp) on X with your before/after numbers — happy to feature real user results.
 
 **Prefer scripts over the prompt?** Run `bash setup.sh` (Mac/Linux) or `powershell setup.ps1` (Windows) from the repo root.
+
+### Related Resources
+- [OpenClaw Documentation](https://docs.openclaw.ai)
+- [OpenClaw GitHub](https://github.com/openclaw/openclaw)
+- [OpenClaw Discord Community](https://discord.gg/clawd)
+- [ClawHub — Skills Marketplace](https://clawhub.com)
