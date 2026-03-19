@@ -545,7 +545,8 @@ You don't want one model doing everything. You want the **right model for each j
 - Best "memory search then act" behavior — actually searches before answering
 - 1M context window with prompt caching (saves up to 90% on cached tokens)
 - Downside: most expensive per-token. Use it for orchestration, not execution
-- **Cost:** $15/M input, $75/M output, $1.50/M cached read
+- **Cost (API):** $15/M input, $75/M output, $1.50/M cached read
+- **Cost (Max subscription):** Included in your $100/month plan — drastically cheaper for heavy use. If you're sending 100+ messages/day on Opus, Max pays for itself in the first week
 
 **Claude Sonnet 4.6** — The Sweet Spot
 - 80% of Opus quality at 20% of the cost
@@ -553,7 +554,10 @@ You don't want one model doing everything. You want the **right model for each j
 - Same 1M context window and caching benefits
 - Great as a fallback when Opus is rate-limited
 - Strong at coding tasks — can replace dedicated coding models for most work
-- **Cost:** $3/M input, $15/M output, $0.30/M cached read
+- **Cost (API):** $3/M input, $15/M output, $0.30/M cached read
+- **Cost (Pro subscription):** Included in your $20/month plan. Best value if Sonnet is your daily driver
+
+> **💡 Pro tip:** Don't pay API rates for Claude if you have a subscription. Claude Pro ($20/month) covers Sonnet usage, Claude Max ($100/month) covers Opus. For power users, Max is the best value in AI right now — unlimited Opus orchestration for a flat rate instead of paying per-token. See the [membership setup guide](#using-anthropic-membership-the-best-way) below.
 
 **Gemini 3.1 Pro / 3 Pro** — Free Powerhouse
 - Legitimately competitive with Sonnet on most tasks — and it's free
