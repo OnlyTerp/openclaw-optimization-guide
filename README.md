@@ -534,7 +534,7 @@ You don't want one model doing everything. You want the **right model for each j
 | **Daily driver** | General assistant, balanced | Claude Sonnet 4.6, Gemini 3.1 Pro | Great quality at lower cost than Opus |
 | **Sub-agents** (workers) | Execute delegated tasks | Gemini 3 Flash, Kimi K2.5, MiMo V2 Pro | Fast, cheap, capable enough for execution |
 | **Coding** | Write/refactor code | GPT-5.3 Codex, Claude Sonnet | Purpose-built for code generation |
-| **Research** | Web search, analysis | Gemini 2.5 Flash, Perplexity Sonar | Built-in search grounding, fast |
+| **Research** | Web search, analysis | Gemini 2.5 Flash + Tavily | Built-in grounding + structured search |
 | **Free tier** | Zero-cost operations | Gemini (all variants), Groq open models | $0 with generous rate limits |
 
 ### Model Deep Dive
