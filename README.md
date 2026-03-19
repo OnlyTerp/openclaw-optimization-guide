@@ -838,7 +838,294 @@ You can get by with Gemini's built-in grounding for free. But if you want your a
 
 ---
 
-## Part 8: Quick Checklist
+## Part 8: One-Shotting Big Tasks (Stop Iterating, Start Researching)
+
+Most people use AI agents like this: type a vague prompt, get a mediocre result, iterate 15 times, burn through context and money, end up with something that's 60% of what they wanted. Then they blame the model.
+
+The model isn't the problem. **Your prompt is the problem.**
+
+### The Data Behind This
+
+This isn't opinion — there's hard data:
+
+- AI-generated code from vague prompts contains **1.7x more issues** than human-written code
+- Vague requirements lead to **39% more cognitive complexity** and **30-41% more technical debt**
+- Security vulnerabilities are **2.74x higher** when requirements are ambiguous
+- Logic errors are **75% more common** without clear specifications
+
+But here's the flip side: when you give AI a **detailed specification with clear context**, first-attempt accuracy hits **95%+**. The same model, same capability — the only difference is what you put in.
+
+**The quality of your output is capped by the quality of your input. Period.**
+
+### Why Iteration Fails
+
+Every time you iterate on a coding task with an AI agent, you're:
+
+1. **Burning context** — each correction adds to the conversation history, pushing you toward bloat
+2. **Confusing the model** — contradictory instructions from multiple rounds create inconsistency
+3. **Paying twice** — you paid for the bad output AND the correction
+4. **Losing coherence** — by iteration 8, the agent has forgotten what you said in iteration 1 (lost-in-the-middle, remember Part 2?)
+
+One well-researched prompt beats ten lazy iterations every time.
+
+### The Method: Research → Spec → Ship
+
+Here's the exact workflow. Three phases, no shortcuts.
+
+#### Phase 1: Research (30-60 minutes)
+
+Before you tell your agent to build anything, you need to know what "good" looks like. This is where most people skip straight to prompting and pay for it later.
+
+**Step 1: Find the best examples of what you're building**
+
+Use Tavily or web search to find 3-5 top implementations:
+
+```
+Search: "best [thing you're building] open source 2025 2026"
+Search: "top [thing you're building] UI design examples"
+Search: "[thing you're building] GitHub stars:>1000"
+```
+
+You're looking for:
+- What tech stack do the best ones use?
+- What features do they all share? (these are table stakes)
+- What features differentiate the best from the rest?
+- What's the general UI layout pattern?
+
+**Step 2: Analyze the UI patterns**
+
+If you're building anything with a frontend, screenshots are gold. Modern models with vision can analyze UI screenshots and replicate patterns.
+
+- Screenshot 3-5 of the best UIs you found
+- Crop them clean — remove browser chrome, sidebars, anything irrelevant
+- Note what works: layout, color scheme, typography, component patterns
+- Note the design system: are they using cards? sidebar nav? dashboard grid?
+
+**Step 3: Study the tech stack**
+
+Don't just pick a stack because you like it. Pick the stack the best implementations use:
+
+```
+Search: "[thing you're building] best tech stack 2026"
+Search: "[thing you're building] React vs Next.js vs [alternative]"
+```
+
+Look for:
+- What framework handles this use case best?
+- What UI library pairs well? (shadcn, Tailwind, Material)
+- What are the common dependencies?
+- Are there starter templates or boilerplate repos?
+
+**Step 4: Find the pitfalls**
+
+This is the step everyone skips. Search for what goes wrong:
+
+```
+Search: "[thing you're building] common mistakes to avoid"
+Search: "[thing you're building] production issues lessons learned"
+```
+
+Every pitfall you find and include in your prompt is one fewer iteration later.
+
+#### Phase 2: Write the Spec (15-30 minutes)
+
+Now turn your research into a specification. This is not a conversation with the AI — this is a blueprint.
+
+**The Spec Structure:**
+
+```markdown
+# Project: [Name]
+
+## Context
+[One paragraph: what this is, who it's for, why it exists]
+
+## Research Summary
+[Key findings from Phase 1 — what the best implementations do]
+
+## Design Reference
+[Describe the UI patterns you want. If you have screenshots, 
+attach them and say "match this layout pattern"]
+
+## Tech Stack
+- Framework: [specific choice based on research]
+- UI Library: [specific choice]
+- Key Dependencies: [list them]
+- Styling: [approach — Tailwind, CSS modules, etc.]
+
+## Features (Ordered by Priority)
+1. [Feature] — [specific acceptance criteria]
+2. [Feature] — [specific acceptance criteria]
+3. [Feature] — [specific acceptance criteria]
+
+## File Structure
+[If you care about project organization, specify it]
+
+## Quality Bar
+- [ ] Responsive design (mobile + desktop)
+- [ ] Error handling on all API calls
+- [ ] Loading states for async operations
+- [ ] Clean, consistent code style
+- [ ] No placeholder text or TODO comments in final output
+- [ ] [Any other specific quality requirements]
+
+## What NOT To Do
+- Don't [common pitfall from research]
+- Don't [another pitfall]
+- Don't [bad pattern you've seen]
+```
+
+**Why this works:** You're not asking the AI to make decisions — you've already made them based on research. The AI's job is execution, not strategy. This is the difference between telling a contractor "build me a nice house" versus handing them architectural blueprints.
+
+#### Phase 3: Delegate and Ship
+
+Now send the spec to a **coding agent**, not your orchestrator:
+
+```
+sessions_spawn({
+  task: "[your full spec from Phase 2]",
+  mode: "run",
+  runtime: "subagent"  // or "acp" for Codex/Claude Code
+})
+```
+
+**Key rules for delegation:**
+
+- **Send to a coding model, not your orchestrator.** Your main model should plan, not build. Codex, Sonnet, or a dedicated coding model does the building.
+- **Include everything in one prompt.** Don't plan to "follow up" — the whole point is one shot. If you're thinking "I'll clarify later," you haven't researched enough.
+- **Attach reference images if applicable.** Vision-capable models can analyze screenshots and match layout patterns.
+- **Set a reasonable timeout.** Big tasks take time. Don't interrupt the agent mid-build.
+
+### Real Example: One-Shotting a Dashboard
+
+Here's what this looks like in practice. Say you want to build a analytics dashboard.
+
+**Bad prompt (what most people do):**
+```
+Build me a cool analytics dashboard
+```
+
+This will produce a generic, mid-quality dashboard with placeholder data, random charts, and no coherent design. You'll iterate 10+ times.
+
+**Good prompt (after 30 minutes of research):**
+
+```markdown
+# Project: Real-Time Analytics Dashboard
+
+## Context
+Internal analytics dashboard for monitoring key business metrics. 
+Single-page app, real-time data updates, used daily by a small team.
+
+## Research Summary
+Analyzed top dashboards: Vercel Analytics, PostHog, Plausible, 
+Linear's dashboard. Common patterns:
+- Metric cards at top (KPIs with trend indicators)
+- Main chart area (line/area charts, time-selectable)
+- Data table below with sortable columns
+- Sidebar navigation (collapsible)
+- Dark mode default with light mode toggle
+- All use 4px border radius, subtle shadows, muted color palette
+
+## Design Reference
+[Attached: screenshots of Vercel Analytics layout, PostHog chart 
+style, Linear's sidebar pattern]
+Match the Vercel Analytics layout pattern — metric cards top, 
+main chart center, table bottom. Use PostHog's chart styling 
+(area charts with gradient fill). Linear's sidebar navigation pattern.
+
+## Tech Stack
+- Next.js 15 (App Router)
+- shadcn/ui + Tailwind CSS
+- Recharts for charts
+- TanStack Table for data tables
+- Lucide icons
+
+## Features (Priority Order)
+1. KPI metric cards — 4 cards showing: total users, active today, 
+   revenue, conversion rate. Each with sparkline and % change vs 
+   previous period (green up, red down)
+2. Main chart — area chart with gradient fill, time range selector 
+   (24h, 7d, 30d, 90d), hover tooltips with exact values
+3. Data table — sortable columns, search filter, pagination (20 rows), 
+   row click expands detail view
+4. Sidebar — collapsible, icon + text labels, active state highlight, 
+   sections: Overview, Users, Revenue, Settings
+5. Dark/light mode toggle — persist preference to localStorage
+6. Responsive — sidebar collapses to icons on tablet, 
+   bottom nav on mobile
+
+## File Structure
+src/
+  app/
+    layout.tsx
+    page.tsx (dashboard)
+  components/
+    dashboard/
+      MetricCard.tsx
+      MainChart.tsx
+      DataTable.tsx
+    layout/
+      Sidebar.tsx
+      Header.tsx
+  lib/
+    utils.ts
+    mock-data.ts (realistic sample data, not lorem ipsum)
+
+## Quality Bar
+- [ ] All components are properly typed (TypeScript strict)
+- [ ] Mock data looks realistic (real-looking names, numbers, dates)
+- [ ] Smooth animations on chart transitions
+- [ ] Loading skeletons for async states
+- [ ] Keyboard accessible (tab navigation, focus states)
+- [ ] No console errors or warnings
+
+## What NOT To Do
+- Don't use random/clashing colors — stick to a cohesive palette
+- Don't use placeholder text like "Lorem ipsum" or "Sample Data"
+- Don't hardcode pixel values — use Tailwind spacing scale
+- Don't skip error boundaries
+- Don't make the sidebar fixed width on mobile (it should collapse)
+```
+
+**The difference:** The first prompt requires the AI to make 50+ decisions about design, tech, features, and structure — and it'll get most of them wrong. The second prompt makes all those decisions upfront based on research, so the AI just executes. One shot, high quality.
+
+### The Research Tools
+
+Here's what to use for each phase of research:
+
+| Research Need | Tool | Why |
+|--------------|------|-----|
+| Find best examples | Tavily (advanced depth) | Returns structured results, not just links |
+| Analyze competitor UIs | Vision model + screenshots | Describe what you see, extract patterns |
+| Study repos/docs | web_fetch + GitHub | Read actual READMEs and code structure |
+| Find common pitfalls | Tavily or web search | "mistakes to avoid" queries |
+| Get design inspiration | Dribbble, Behance, or direct URLs | Screenshot the ones you like |
+| Validate tech stack | web search | "[stack] vs [alternative] for [use case]" |
+
+### When to One-Shot vs When to Iterate
+
+One-shotting works best for:
+- **New projects from scratch** — greenfield, no existing codebase to navigate
+- **Self-contained features** — a component, page, or tool that doesn't deeply integrate with existing code
+- **UI-heavy work** — dashboards, landing pages, admin panels
+- **Scripts and utilities** — CLI tools, automation scripts, data pipelines
+
+Iterate instead when:
+- **Working in a large existing codebase** — the agent needs to understand existing patterns
+- **Debugging** — you need back-and-forth to isolate issues
+- **Vague requirements** — if YOU don't know what you want, research more before prompting
+- **Multi-system integration** — anything touching databases, auth, external APIs needs careful step-by-step work
+
+### The 30-Minute Rule
+
+If you can't spend 30 minutes researching before prompting, your task is either:
+1. **Simple enough to not need research** — just prompt directly
+2. **Not important enough to do well** — accept mediocre output
+
+For anything you actually care about shipping, 30 minutes of research saves 3+ hours of iteration. That's not a guess — that's from doing this daily for weeks. The math always works out.
+
+---
+
+## Part 9: Quick Checklist
 
 Run through this in 30 minutes:
 
@@ -857,12 +1144,13 @@ Run through this in 30 minutes:
 - [ ] Reasoning mode — high if you want best quality, low/off if you prioritize speed
 - [ ] Orchestration rules in AGENTS.md
 - [ ] `memory_search` habit added to SOUL.md
+- [ ] For big tasks: research first, spec second, build third (Part 8)
 
 ---
 
 ---
 
-## Part 9: The One-Shot Prompt
+## Part 10: The One-Shot Prompt
 
 Copy this entire prompt and send it to your OpenClaw bot. It will do everything in this guide automatically — trim context files, set up the memory system, configure orchestration, and install Ollama with the embedding model. Just paste and let it run.
 
