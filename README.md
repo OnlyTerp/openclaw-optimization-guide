@@ -1115,13 +1115,60 @@ Iterate instead when:
 - **Vague requirements** — if YOU don't know what you want, research more before prompting
 - **Multi-system integration** — anything touching databases, auth, external APIs needs careful step-by-step work
 
-### The 30-Minute Rule
+### Let Your Agent Do the Research For You
 
-If you can't spend 30 minutes researching before prompting, your task is either:
-1. **Simple enough to not need research** — just prompt directly
-2. **Not important enough to do well** — accept mediocre output
+Here's the thing — you have an AI agent with web search. **You don't have to do the research yourself.** Make your agent do Phase 1 before it starts Phase 3. This turns a 30-minute manual research session into a 2-minute conversation.
 
-For anything you actually care about shipping, 30 minutes of research saves 3+ hours of iteration. That's not a guess — that's from doing this daily for weeks. The math always works out.
+**Just ask it:**
+
+```
+Before you build anything, I need you to research first:
+
+1. Search for the top 5 [dashboards/landing pages/CLI tools/whatever] 
+   that exist right now. What tech stack do they use? What UI patterns 
+   do they share? What makes the best ones stand out?
+
+2. Search for "[thing you're building] UI design best practices 2026" 
+   and summarize the key patterns.
+
+3. Search for "[thing you're building] common mistakes to avoid" 
+   and list the top pitfalls.
+
+4. Based on your research, write me a detailed spec for building 
+   [what you want]. Include tech stack recommendation, feature list 
+   with acceptance criteria, file structure, and quality bar.
+
+Do NOT start building until the spec is written and I approve it.
+```
+
+That's it. Your agent uses Tavily/web search to do the deep dive, synthesizes everything into a spec, and waits for your approval before building. You get the same research quality in a fraction of the time.
+
+**The workflow becomes:**
+
+```
+You: "Research and spec out a [thing]"          → 2 minutes
+Agent: [does Tavily research, writes spec]      → 3-5 minutes
+You: "Looks good, build it" (or tweak the spec) → 30 seconds
+Agent: [builds from researched spec]            → one-shot quality
+```
+
+Total time: ~5-8 minutes instead of 30+ minutes of manual research or 3+ hours of blind iteration.
+
+**Even better — split research and building across agents:**
+
+```
+Step 1: Ask your orchestrator to research and write the spec
+Step 2: Review and approve the spec
+Step 3: Orchestrator spawns a coding sub-agent with the full spec
+```
+
+Your orchestrator (Opus/Sonnet/Gemini) does the research and strategic thinking. The coding agent (Codex/Sonnet/cheaper model) does the building. Right model for each job, and the coding agent starts with a complete spec instead of a vague prompt.
+
+### The 5-Minute Rule
+
+If you care about quality, spend 5 minutes having your agent research before building. That's one message. The agent does the rest.
+
+For anything you actually care about shipping, 5 minutes of agent-driven research saves 3+ hours of iteration. That's not a guess — that's from doing this daily for weeks. The math always works out.
 
 ---
 
