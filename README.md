@@ -2,23 +2,25 @@
 ### Make Your OpenClaw AI Agent Faster, Smarter, and Actually Useful
 #### Speed optimization, memory architecture, context management, model selection, and one-shot development for OpenClaw
 
-*By Terp — [Terp AI Labs](https://x.com/OnlyTerp)*
+*By Terp - [Terp AI Labs](https://x.com/OnlyTerp)*
 
 ---
 
 ## Table of Contents
 
-1. [Speed](#part-1-speed-stop-being-slow) — Trim context files, add fallbacks, manage reasoning mode
-2. [Context Bloat](#part-2-context-bloat-the-silent-performance-killer) — Quadratic scaling, built-in defenses
-3. [Cron Session Bloat](#part-3-cron-session-bloat-the-hidden-killer) — Session file accumulation, cleanup
-4. [Memory](#part-4-memory-stop-forgetting-everything) — 3-tier memory system, Ollama vector search
-5. [Orchestration](#part-5-orchestration-stop-doing-everything-yourself) — Sub-agent delegation, CEO/COO/Worker model
-6. [Models](#part-6-models-what-to-actually-use) — Provider comparison, pricing, local models
-7. [Web Search](#part-7-web-search-give-your-agent-eyes-on-the-internet) — Tavily, Brave, Serper, Gemini grounding
-8. [One-Shotting Big Tasks](#part-8-one-shotting-big-tasks-stop-iterating-start-researching) — Research-first methodology
-9. [Vault Memory System](#part-9-vault-memory-system-stop-losing-knowledge-between-sessions) — Structured knowledge graph, MOCs, cross-session continuity
-10. [Quick Checklist](#part-10-quick-checklist) — 30-minute setup checklist
-11. [The One-Shot Prompt](#part-11-the-one-shot-prompt) — Copy-paste automation prompt
+1. [Speed](#part-1-speed-stop-being-slow) - Trim context files, add fallbacks, manage reasoning mode
+2. [Context Bloat](#part-2-context-bloat-the-silent-performance-killer) - Quadratic scaling, built-in defenses
+3. [Cron Session Bloat](#part-3-cron-session-bloat-the-hidden-killer) - Session file accumulation, cleanup
+4. [Memory](#part-4-memory-stop-forgetting-everything) - 3-tier memory system, Ollama vector search
+5. [Orchestration](#part-5-orchestration-stop-doing-everything-yourself) - Sub-agent delegation, CEO/COO/Worker model
+6. [Models](#part-6-models-what-to-actually-use) - Provider comparison, pricing, local models
+7. [Web Search](#part-7-web-search-give-your-agent-eyes-on-the-internet) - Tavily, Brave, Serper, Gemini grounding
+8. [One-Shotting Big Tasks](#part-8-one-shotting-big-tasks-stop-iterating-start-researching) - Research-first methodology
+9. [Vault Memory System](#part-9-vault-memory-system-stop-losing-knowledge-between-sessions) - Structured knowledge graph, MOCs, cross-session continuity
+10. [State-of-the-Art Embeddings](./part10-state-of-the-art-embeddings.md) - Upgrade from nomic to Qwen3-VL, Stark Edition server, Windows gotchas
+11. [Auto-Capture Hook](./part11-auto-capture-hook.md) - Automatic knowledge extraction after every session, no manual memory writes
+12. [Quick Checklist](#part-12-quick-checklist) - 30-minute setup checklist
+13. [The One-Shot Prompt](#part-13-the-one-shot-prompt) - Copy-paste automation prompt
 
 ---
 
@@ -30,7 +32,7 @@ If you're running a stock OpenClaw setup, you're probably dealing with:
 - **Slow responses.** 15-20KB+ of context injected every message = hundreds of milliseconds of latency per reply.
 - **Forgetting everything.** New session = blank slate. No memory of yesterday's work or decisions.
 - **Inconsistent behavior.** Without clear rules, personality drifts between sessions.
-- **Doing everything the expensive way.** Main model writes code, does research, AND orchestrates — all at top-tier pricing.
+- **Doing everything the expensive way.** Main model writes code, does research, AND orchestrates - all at top-tier pricing.
 - **Flying blind.** No web search means guessing at anything after training cutoff.
 - **Wrong model choice.** Using whatever was default without considering the tradeoffs.
 
@@ -55,7 +57,7 @@ You ask a question
 Orchestrator (main model, lean context ~5KB)
     ↓
 ┌─────────────────────────────────────────┐
-│  memory_search() — 45ms, local, $0     │
+│  memory_search() - 45ms, local, $0     │
 │  ┌─────────┐  ┌──────────┐  ┌────────┐ │
 │  │MEMORY.md│→ │memory/*.md│→ │vault/* │ │
 │  │(index)  │  │(quick)   │  │(deep)  │ │
@@ -67,13 +69,13 @@ Only relevant context loaded (~200 tokens)
 Fast, accurate response + sub-agents for heavy work
 ```
 
-**The key insight:** Workspace files become **lightweight routers, not storage.** All knowledge lives in a local vector database. The bot loads only what it needs — not everything it's ever learned.
+**The key insight:** Workspace files become **lightweight routers, not storage.** All knowledge lives in a local vector database. The bot loads only what it needs - not everything it's ever learned.
 
 ### What The Optimized Files Look Like
 
 Full versions in [`/templates`](./templates):
 
-**SOUL.md** (772 bytes — injected every message):
+**SOUL.md** (772 bytes - injected every message):
 ```markdown
 ## Who You Are
 - Direct, concise, no fluff. Say the useful thing, then stop.
@@ -87,19 +89,19 @@ run memory_search FIRST. It costs 45ms. Not searching = wrong answers.
 You coordinate; sub-agents execute. Never write 50+ lines of code yourself.
 ```
 
-**MEMORY.md** (581 bytes — slim pointer index):
+**MEMORY.md** (581 bytes - slim pointer index):
 ```markdown
 ## Active Projects
 - Project A → vault/projects/project-a.md
 - Project B → vault/projects/project-b.md
 
 ## Key People
-- Person A — role, relationship → vault/people/person-a.md
+- Person A - role, relationship → vault/people/person-a.md
 ```
 
 Details live in vault/. The bot finds them via vector search in 45ms.
 
-This isn't a settings tweak — it's a **complete architecture change**: memory routing, context engineering, and orchestration working together. The one-shot prompt at the bottom does the entire setup automatically.
+This isn't a settings tweak - it's a **complete architecture change**: memory routing, context engineering, and orchestration working together. The one-shot prompt at the bottom does the entire setup automatically.
 
 > **Note:** Tested on Claude Opus 4.6. Other frontier models should work if they can follow multi-step instructions.
 
@@ -123,9 +125,9 @@ New approach: MEMORY.md is a slim index of pointers. Full details live in vault/
 
 | File | Target Size | What Goes In It | Why This Size |
 |------|------------|-----------------|---------------|
-| SOUL.md | < 1 KB | Personality, tone, core rules | Injected EVERY message — every byte costs latency |
+| SOUL.md | < 1 KB | Personality, tone, core rules | Injected EVERY message - every byte costs latency |
 | AGENTS.md | < 2 KB | Decision tree, tool routing | Needs to fit in working memory |
-| MEMORY.md | < 3 KB | **Pointers only** — NOT full docs | Vector search replaces big files |
+| MEMORY.md | < 3 KB | **Pointers only** - NOT full docs | Vector search replaces big files |
 | TOOLS.md | < 1 KB | Tool names + one-liner usage | Just reminders, not documentation |
 | **Total** | **< 8 KB** | Everything injected per message | Down from 15KB+ = 50-66% faster |
 
@@ -139,13 +141,13 @@ New approach: MEMORY.md is a slim index of pointers. Full details live in vault/
 
 OpenClaw automatically switches when your main model is rate-limited or slow.
 
-### Reasoning Mode — Know the Tradeoff
+### Reasoning Mode - Know the Tradeoff
 
 Run `/status` to see your current reasoning mode.
 
-- **Off** — fastest, no thinking phase
-- **Low** — slight thinking, faster responses
-- **High** — deep reasoning, adds 2-5 seconds but catches things low/off misses
+- **Off** - fastest, no thinking phase
+- **Low** - slight thinking, faster responses
+- **High** - deep reasoning, adds 2-5 seconds but catches things low/off misses
 
 I run **high** and keep it there. The context trimming from other steps more than compensates for the reasoning overhead.
 
@@ -181,7 +183,7 @@ Just because a model *advertises* 1M context doesn't mean it *performs well* at 
 
 - **11 of 12 models** tested dropped below 50% accuracy by 32K tokens
 - **GPT-4.1** showed a **50x increase in response time** at ~133K tokens
-- Models exhibit **"lost-in-the-middle" bias** — they track the beginning and end but lose the middle
+- Models exhibit **"lost-in-the-middle" bias** - they track the beginning and end but lose the middle
 - Effective context is usually a fraction of the max
 
 ### Where Bloat Comes From
@@ -206,7 +208,7 @@ Over 100 msgs/day: $2.25/day vs $22.50/day
 
 ### Built-In Defenses
 
-**Session Pruning** — Trims old tool results from context:
+**Session Pruning** - Trims old tool results from context:
 
 ```json
 {
@@ -218,7 +220,7 @@ Over 100 msgs/day: $2.25/day vs $22.50/day
 }
 ```
 
-**Auto-Compaction** — Summarizes older conversation when nearing context limits. Trigger manually with `/compact`.
+**Auto-Compaction** - Summarizes older conversation when nearing context limits. Trigger manually with `/compact`.
 
 **Use both.** Pruning handles tool result bloat. Compaction handles conversation history bloat.
 
@@ -229,7 +231,7 @@ Over 100 msgs/day: $2.25/day vs $22.50/day
 - [ ] Use `/compact` proactively when sessions feel slow
 - [ ] Use `/new` when switching topics entirely
 - [ ] Delegate heavy tool work to sub-agents (their context is separate)
-- [ ] Monitor with `/status` — stay under 10-15% of your model's context window
+- [ ] Monitor with `/status` - stay under 10-15% of your model's context window
 
 ---
 
@@ -277,7 +279,7 @@ Isolated sessions don't pile up in your main agent's session history.
 ### Prevention > Cleanup
 
 - Use `delivery: { "mode": "none" }` on crons where you don't need output announced
-- Keep cron tasks focused — 1 tool call generates 15x less session data than 15
+- Keep cron tasks focused - 1 tool call generates 15x less session data than 15
 
 ---
 
@@ -291,7 +293,7 @@ Out of the box, OpenClaw forgets everything between sessions. The fix is a 3-tie
 MEMORY.md          ← Slim index (< 3 KB), pointers only
 memory/            ← Auto-searched by memory_search()
   projects.md
-  people.md  
+  people.md
   decisions.md
 vault/             ← Deep storage, searched via memory
   projects/
@@ -304,9 +306,9 @@ vault/             ← Deep storage, searched via memory
 
 ### How It Works
 
-1. **MEMORY.md** — table of contents with one-liner pointers. Never put full documents here.
-2. **memory/*.md** — automatically searched when the bot calls `memory_search("query")`.
-3. **vault/** — deep storage for detailed project docs, research notes, full profiles.
+1. **MEMORY.md** - table of contents with one-liner pointers. Never put full documents here.
+2. **memory/*.md** - automatically searched when the bot calls `memory_search("query")`.
+3. **vault/** - deep storage for detailed project docs, research notes, full profiles.
 
 ### Setting It Up
 
@@ -333,7 +335,7 @@ workspace/
 **Step 3: Slim down MEMORY.md**
 
 ```markdown
-# MEMORY.md — Core Index
+# MEMORY.md - Core Index
 _Pointers only. Search before answering._
 
 ## Active Projects
@@ -342,7 +344,7 @@ _Pointers only. Search before answering._
 ## Key Tools
 - Tool X: `command here`
 
-## Key Rules  
+## Key Rules
 - Rule 1
 ```
 
@@ -356,7 +358,7 @@ Add this to your SOUL.md:
 
 ```markdown
 ## Memory
-Before answering about past work, projects, or decisions: 
+Before answering about past work, projects, or decisions:
 run memory_search FIRST. It costs 45ms. Not searching = wrong answers.
 ```
 
@@ -369,7 +371,7 @@ Your main model should NEVER do heavy work directly. It should plan and delegate
 ### The Mental Model
 
 - **You** = CEO (gives direction)
-- **Your Bot (main model)** = COO (plans, coordinates, makes decisions)  
+- **Your Bot (main model)** = COO (plans, coordinates, makes decisions)
 - **Sub-agents (cheaper/faster model)** = Workers (execute tasks fast and cheap)
 
 ### Add This to AGENTS.md
@@ -378,12 +380,12 @@ Your main model should NEVER do heavy work directly. It should plan and delegate
 ## Core Rule
 You are the ORCHESTRATOR. You coordinate; sub-agents execute.
 - Code task (3+ files)? → Spawn coding agent
-- Research task? → Spawn research agent  
+- Research task? → Spawn research agent
 - 2+ independent tasks? → Spawn ALL in parallel
 
 ## Model Strategy
-- YOU (orchestrator): Best model — planning, judgment, synthesis
-- Sub-agents (workers): Cheaper/faster model — execution, code, research
+- YOU (orchestrator): Best model - planning, judgment, synthesis
+- Sub-agents (workers): Cheaper/faster model - execution, code, research
 ```
 
 Your expensive model decides WHAT to build. The cheap model builds it. Right model, right job.
@@ -405,54 +407,54 @@ Your expensive model decides WHAT to build. The cheap model builds it. Right mod
 
 ### Model Deep Dive
 
-**Claude Opus 4.6** — The Best Orchestrator
+**Claude Opus 4.6** - The Best Orchestrator
 - Unmatched multi-step reasoning and complex tool use
 - Follows long, nuanced system prompts better than any other model
 - 1M context window with prompt caching (up to 90% savings on cached tokens)
-- **Cost:** $5/M input, $25/M output, $0.50/M cached | **Max ($100/mo):** included — best value for heavy use
+- **Cost:** $5/M input, $25/M output, $0.50/M cached | **Max ($100/mo):** included - best value for heavy use
 
-**Claude Sonnet 4.6** — The Sweet Spot
+**Claude Sonnet 4.6** - The Sweet Spot
 - 80% of Opus quality at 20% of the cost. Strong at coding
 - **Cost:** $3/M input, $15/M output | **Pro ($20/mo):** included
 
 > **💡 Pro tip:** Don't pay API rates for Claude if you have a subscription. Pro ($20/mo) covers Sonnet, Max ($100/mo) covers Opus. For power users, Max is the best value in AI right now.
 
-**Gemini 3.1 Pro / 3 Pro** — Free Powerhouse
-- Competitive with Sonnet on most tasks — and it's free. 1M context, multimodal.
+**Gemini 3.1 Pro / 3 Pro** - Free Powerhouse
+- Competitive with Sonnet on most tasks - and it's free. 1M context, multimodal.
 - Weaker than Claude on complex agentic tool-use chains.
 
-**Gemini Flash (2.5 / 3)** — Speed Demon
+**Gemini Flash (2.5 / 3)** - Speed Demon
 - Fastest responses of any capable model. Perfect for sub-agents. Free.
 
-**GPT-5.3 / 5.4 Pro** — OpenAI's Best
-- Codex models are purpose-built for code — fast and cheap.
+**GPT-5.3 / 5.4 Pro** - OpenAI's Best
+- Codex models are purpose-built for code - fast and cheap.
 - **Cost:** GPT-5.3: $1.75/M input, $14/M output | GPT-5.4 Pro: $30/M input, $180/M output
 
-**Grok 4 / 4.1 Fast** — The Dark Horse
+**Grok 4 / 4.1 Fast** - The Dark Horse
 - Grok 4.20 has a massive 2M context window. Grok 4.1 Fast is insanely cheap.
 - **Cost:** Grok 4: $3/M in, $15/M out | Grok 4.1 Fast: $0.20/M in, $0.50/M out
 
-**Kimi K2.5** — Budget Sub-Agent King
-- 262K context, multimodal, $0.45/M input, $2.20/M output — excellent price-to-performance.
+**Kimi K2.5** - Budget Sub-Agent King
+- 262K context, multimodal, $0.45/M input, $2.20/M output - excellent price-to-performance.
 
-**MiMo V2 Pro (Xiaomi)** — The Sleeper
+**MiMo V2 Pro (Xiaomi)** - The Sleeper
 - 1T parameter model, 1M context. Great for agentic sub-agents on a budget. $1/M in, $3/M out.
 
 ### OpenRouter: The Model Marketplace
 
 [OpenRouter](https://openrouter.ai) gives you dozens of models through one API key. Notable options:
 
-- **`openrouter/free`** — auto-routes to the best free model for your request. Perfect for $0 sub-agents.
-- **MiMo V2 Pro** — Currently free (launch promotion). Add: `openrouter/xiaomi/mimo-v2-pro`
-- **Kimi K2.5** — Budget powerhouse. Add: `openrouter/moonshotai/kimi-k2.5`
-- **Perplexity Sonar** — Built-in web search, no separate tool needed. Add: `openrouter/perplexity/sonar`
+- **`openrouter/free`** - auto-routes to the best free model for your request. Perfect for $0 sub-agents.
+- **MiMo V2 Pro** - Currently free (launch promotion). Add: `openrouter/xiaomi/mimo-v2-pro`
+- **Kimi K2.5** - Budget powerhouse. Add: `openrouter/moonshotai/kimi-k2.5`
+- **Perplexity Sonar** - Built-in web search, no separate tool needed. Add: `openrouter/perplexity/sonar`
 
 ### Local Models: $0 Forever, No Rate Limits
 
 If you have a GPU, local models via Ollama = unlimited inference at zero cost.
 
-- **Qwopus (Qwen 3.5 27B + Claude Opus reasoning distilled)** — Opus-style thinking on a single 4090. `ollama pull qwopus`
-- **NVIDIA Nemotron Nano 4B** — Punches above its weight, 128K context, fits on any GPU. `ollama pull nemotron-nano`
+- **Qwopus (Qwen 3.5 27B + Claude Opus reasoning distilled)** - Opus-style thinking on a single 4090. `ollama pull qwopus`
+- **NVIDIA Nemotron Nano 4B** - Punches above its weight, 128K context, fits on any GPU. `ollama pull nemotron-nano`
 
 ### Using Anthropic Membership (The Best Way)
 
@@ -471,12 +473,12 @@ Your Claude Pro/Max subscription includes API access. OpenClaw can use it direct
 Main: Gemini 3.1 Pro (free) | Sub-agents: Gemini 3 Flash | Local: Nemotron Nano 4B
 ```
 
-**Balanced (~$20/month — Claude Pro):**
+**Balanced (~$20/month - Claude Pro):**
 ```
 Main: Sonnet 4.6 (membership) | Fallback: Gemini 3.1 Pro | Sub-agents: Flash / Kimi K2.5
 ```
 
-**Power (~$100/month — Claude Max):**
+**Power (~$100/month - Claude Max):**
 ```
 Main: Opus 4.6 (membership) | Fallback: Sonnet | Sub-agents: Kimi / MiMo / Flash | Code: Codex
 ```
@@ -508,9 +510,9 @@ Without web search, your agent guesses at anything after its training cutoff.
 
 ### Why We Use Tavily
 
-1. **Built for AI agents.** Returns clean, structured, pre-processed content — not a list of links. One API call → usable answer. No fetching/parsing extra steps.
+1. **Built for AI agents.** Returns clean, structured, pre-processed content - not a list of links. One API call → usable answer. No fetching/parsing extra steps.
 2. **Search + Extract + Crawl in one API.** Fewer tools, fewer context-eating tool calls.
-3. **Depth control.** Basic (1 credit, fast) vs Advanced (2 credits, comprehensive) — per query.
+3. **Depth control.** Basic (1 credit, fast) vs Advanced (2 credits, comprehensive) - per query.
 4. **Usable free tier.** 1,000 credits/month = enough for a personal assistant that searches a few times daily.
 5. **Built-in safety.** Guards against prompt injection from search results and PII leakage.
 
@@ -535,7 +537,7 @@ Without web search, your agent guesses at anything after its training cutoff.
 
 ## Part 8: One-Shotting Big Tasks (Stop Iterating, Start Researching)
 
-Most people type a vague prompt, iterate 15 times, burn context and money, end up at 60% quality. **The model isn't the problem — your prompt is.**
+Most people type a vague prompt, iterate 15 times, burn context and money, end up at 60% quality. **The model isn't the problem - your prompt is.**
 
 ### The Data
 
@@ -546,10 +548,10 @@ Most people type a vague prompt, iterate 15 times, burn context and money, end u
 
 ### Why Iteration Fails
 
-1. **Burns context** — each correction adds to history, pushing toward bloat
-2. **Confuses the model** — contradictory instructions across rounds
-3. **Pays twice** — you paid for the bad output AND the correction
-4. **Loses coherence** — by iteration 8, the agent forgot iteration 1 (lost-in-the-middle)
+1. **Burns context** - each correction adds to history, pushing toward bloat
+2. **Confuses the model** - contradictory instructions across rounds
+3. **Pays twice** - you paid for the bad output AND the correction
+4. **Loses coherence** - by iteration 8, the agent forgot iteration 1 (lost-in-the-middle)
 
 ### The Method: Research → Spec → Ship
 
@@ -557,10 +559,10 @@ Most people type a vague prompt, iterate 15 times, burn context and money, end u
 
 Before building, know what "good" looks like:
 
-1. **Find best examples** — Search for top 3-5 implementations, study their tech stack and shared features
-2. **Analyze UI patterns** — Screenshot the best UIs, note layouts, color schemes, component patterns
-3. **Study the tech stack** — Pick the stack the best implementations use, not your default
-4. **Find the pitfalls** — Search for common mistakes. Every pitfall in your prompt = one fewer iteration
+1. **Find best examples** - Search for top 3-5 implementations, study their tech stack and shared features
+2. **Analyze UI patterns** - Screenshot the best UIs, note layouts, color schemes, component patterns
+3. **Study the tech stack** - Pick the stack the best implementations use, not your default
+4. **Find the pitfalls** - Search for common mistakes. Every pitfall in your prompt = one fewer iteration
 
 #### Phase 2: Write the Spec (15-30 minutes)
 
@@ -573,7 +575,7 @@ Turn research into a blueprint:
 [What this is, who it's for, why it exists]
 
 ## Research Summary
-[Key findings — what the best implementations do]
+[Key findings - what the best implementations do]
 
 ## Tech Stack
 - Framework: [choice based on research]
@@ -581,8 +583,8 @@ Turn research into a blueprint:
 - Key Dependencies: [list]
 
 ## Features (Priority Order)
-1. [Feature] — [acceptance criteria]
-2. [Feature] — [acceptance criteria]
+1. [Feature] - [acceptance criteria]
+2. [Feature] - [acceptance criteria]
 
 ## File Structure
 [Project organization]
@@ -595,7 +597,7 @@ Turn research into a blueprint:
 - [Pitfall from research]
 ```
 
-**Why this works:** You're not asking the AI to make 50+ decisions — you've already made them based on research. The AI executes, not strategizes. Blueprints, not vibes.
+**Why this works:** You're not asking the AI to make 50+ decisions - you've already made them based on research. The AI executes, not strategizes. Blueprints, not vibes.
 
 #### Phase 3: Delegate and Ship
 
@@ -615,14 +617,14 @@ sessions_spawn({
 
 ### Let Your Agent Do the Research
 
-You don't have to research manually — make your agent do Phase 1:
+You don't have to research manually - make your agent do Phase 1:
 
 ```
 Before building anything, research first:
 1. Find top 5 [things] that exist. What tech/UI patterns do they share?
-2. Search "[thing] best practices 2026" — summarize key patterns.
-3. Search "[thing] common mistakes" — list top pitfalls.
-4. Based on research, write a detailed spec with tech stack, features, 
+2. Search "[thing] best practices 2026" - summarize key patterns.
+3. Search "[thing] common mistakes" - list top pitfalls.
+4. Based on research, write a detailed spec with tech stack, features,
    file structure, and quality bar.
 Do NOT start building until the spec is written and I approve it.
 ```
@@ -648,11 +650,11 @@ Part 4 gave you memory. But after months of daily use, **your agent gets dumber,
 
 ### Why Flat Files + Vector Search Breaks Down
 
-Vector search finds what's *similar* — not what's *connected*. Ask "what do we know about God Mode?" and you get 8 files that all mention Cerebras. None give the full picture because it's spread across 12 files that vector search doesn't know are related.
+Vector search finds what's *similar* - not what's *connected*. Ask "what do we know about God Mode?" and you get 8 files that all mention Cerebras. None give the full picture because it's spread across 12 files that vector search doesn't know are related.
 
 | Problem | What Happens |
 |---------|-------------|
-| **Date-named files** | `2026-03-19.md` — what's in it? Who knows |
+| **Date-named files** | `2026-03-19.md` - what's in it? Who knows |
 | **No connections** | Related files don't know about each other |
 | **Bloat pollutes results** | Generic knowledge drowns specific insights |
 | **Session amnesia** | Agent starts fresh, no breadcrumbs from last session |
@@ -664,10 +666,10 @@ Vector search finds what's *similar* — not what's *connected*. Ask "what do we
 
 An Obsidian-inspired linked knowledge vault with four key ideas:
 
-1. **Notes named as claims** — the filename IS the knowledge
-2. **MOCs (Maps of Content) link related notes** — one page = full picture
-3. **Wiki-links create a traversable graph** — follow connections, not similarity
-4. **Agent Notes provide cross-session breadcrumbs** — next session picks up where this one left off
+1. **Notes named as claims** - the filename IS the knowledge
+2. **MOCs (Maps of Content) link related notes** - one page = full picture
+3. **Wiki-links create a traversable graph** - follow connections, not similarity
+4. **Agent Notes provide cross-session breadcrumbs** - next session picks up where this one left off
 
 #### Folder Structure
 
@@ -692,9 +694,9 @@ BAD:  session-notes.md           GOOD: memory-is-the-bottleneck.md
 BAD:  cerebras-research.md       GOOD: god-mode-is-cerebras-plus-orchestration.md
 ```
 
-The agent reads filenames before content. When every filename is a claim, scanning a folder gives the agent a map of everything you know — without opening a single file.
+The agent reads filenames before content. When every filename is a claim, scanning a folder gives the agent a map of everything you know - without opening a single file.
 
-#### MOCs — Maps of Content
+#### MOCs - Maps of Content
 
 A MOC connects related notes with `[[wiki-links]]`. Example:
 
@@ -704,7 +706,7 @@ A MOC connects related notes with `[[wiki-links]]`. Example:
 ## Key Facts
 - 358 memory files in memory/, mostly date-named
 - Vector search (nomic-embed-text, 45ms, $0) finds similar, not connected
-- MEMORY.md must stay under 5K — injected on every message
+- MEMORY.md must stay under 5K - injected on every message
 
 ## Connected Topics
 - [[vault/decisions/memory-architecture.md]]
@@ -712,7 +714,7 @@ A MOC connects related notes with `[[wiki-links]]`. Example:
 - [[vault/projects/reasoning-traces.md]]
 
 ## Agent Notes
-- [x] Vault restructure completed — 8 MOCs + philosophy doc
+- [x] Vault restructure completed - 8 MOCs + philosophy doc
 - [ ] Every session MUST save knowledge to memory
 ```
 
@@ -720,14 +722,14 @@ The `## Agent Notes` section is the cross-session breadcrumb trail. Each session
 
 #### Vault Philosophy Document
 
-Save to `vault/06_system/vault-philosophy.md` — this teaches your agent HOW to use the vault:
+Save to `vault/06_system/vault-philosophy.md` - this teaches your agent HOW to use the vault:
 
-1. **The Network Is The Knowledge** — No single note is the answer. The answer is the path through connected notes.
-2. **Notes Are Named As Claims** — Bad: `local-models.md`. Good: `local-models-are-the-fast-layer.md`.
-3. **Links Woven Into Sentences** — Not footnotes. Context-rich inline links.
-4. **Agent Orients Before Acting** — Scan MOCs → read relevant MOC → follow links → respond.
-5. **Agent Leaves Breadcrumbs** — Update MOC "Agent Notes" after every session.
-6. **Capture First, Structure Later** — Dump in `00_inbox/` now. Organize later.
+1. **The Network Is The Knowledge** - No single note is the answer. The answer is the path through connected notes.
+2. **Notes Are Named As Claims** - Bad: `local-models.md`. Good: `local-models-are-the-fast-layer.md`.
+3. **Links Woven Into Sentences** - Not footnotes. Context-rich inline links.
+4. **Agent Orients Before Acting** - Scan MOCs → read relevant MOC → follow links → respond.
+5. **Agent Leaves Breadcrumbs** - Update MOC "Agent Notes" after every session.
+6. **Capture First, Structure Later** - Dump in `00_inbox/` now. Organize later.
 
 ### The Graph Tools
 
@@ -736,10 +738,10 @@ MOCs and wiki-links create a graph, but the agent needs tooling to traverse it. 
 | Script | Purpose |
 |--------|---------|
 | `graph-indexer.mjs` | Scans all `.md` files, parses `[[wiki-links]]`, builds JSON adjacency graph |
-| `graph-search.mjs` | CLI for traversing the graph — finds files + direct/2nd-degree connections |
+| `graph-search.mjs` | CLI for traversing the graph - finds files + direct/2nd-degree connections |
 | `auto-capture.mjs` | Creates claim-named notes in `00_inbox/`, auto-links to related MOCs |
 | `process-inbox.mjs` | Reviews inbox notes and suggests/auto-moves to appropriate vault folders |
-| `update-mocs.mjs` | Health check — finds broken wiki-links, stale items, orphaned notes |
+| `update-mocs.mjs` | Health check - finds broken wiki-links, stale items, orphaned notes |
 
 **Graph search vs vector search:**
 - `memory_search("topic")` → Find files you didn't know were relevant (similarity)
@@ -753,7 +755,7 @@ Add to your `AGENTS.md`:
 
 ```markdown
 ## Vault Orientation Protocol
-1. Scan `vault/01_thinking/` — read MOC filenames (claim-named = instant topic map)
+1. Scan `vault/01_thinking/` - read MOC filenames (claim-named = instant topic map)
 2. If user message relates to an existing MOC, read it before responding
 3. Follow [[wiki-links]] from the MOC for deeper context
 4. After session work: update MOC "Agent Notes" with what was done/discovered
@@ -770,10 +772,10 @@ If you have a `memory/knowledge-base/` full of generic reference material, move 
 mv memory/knowledge-base vault/05_archive/knowledge-base
 ```
 
-Your primary search path (`memory/` + `vault/01_thinking/`) should contain only YOUR knowledge — not generic docs the agent could web search.
+Your primary search path (`memory/` + `vault/01_thinking/`) should contain only YOUR knowledge - not generic docs the agent could web search.
 
-**Before:** "memory architecture" returns 15 results — 3 about your system, 12 generic RAG articles.
-**After:** Same search returns 3 results — all about your actual system.
+**Before:** "memory architecture" returns 15 results - 3 about your system, 12 generic RAG articles.
+**After:** Same search returns 3 results - all about your actual system.
 
 ### Results
 
@@ -783,16 +785,16 @@ Your primary search path (`memory/` + `vault/01_thinking/`) should contain only 
 | **Search method** | Vector only | Graph traversal + vector |
 | **Wiki-links** | 0 | 71 bidirectional |
 | **MOC pages** | 0 | 8 in 01_thinking/ |
-| **Cross-session memory** | None — starts fresh | Agent Notes breadcrumbs |
+| **Cross-session memory** | None - starts fresh | Agent Notes breadcrumbs |
 | **Knowledge capture** | Manual (usually forgotten) | auto-capture creates claim-named notes |
 | **Search relevance** | 15 partial matches, 3 useful | 3 connected results via graph |
 
 ### Quick Setup
 
 1. **Create vault structure:** `mkdir -p vault/{00_inbox,01_thinking,02_reference,03_creating,04_published,05_archive,06_system}`
-2. **Create your first MOC** in `vault/01_thinking/` — name it as a claim, follow the template above
+2. **Create your first MOC** in `vault/01_thinking/` - name it as a claim, follow the template above
 3. **Save vault philosophy** to `vault/06_system/vault-philosophy.md`
-4. **Set up graph tools:** `mkdir -p scripts/vault-graph` — save the scripts from this repo
+4. **Set up graph tools:** `mkdir -p scripts/vault-graph` - save the scripts from this repo
 5. **Build initial graph:** `node scripts/vault-graph/graph-indexer.mjs`
 6. **Add orientation protocol** to AGENTS.md
 7. **Move bloat to archive:** `mv memory/knowledge-base vault/05_archive/knowledge-base`
@@ -806,7 +808,7 @@ Run through this in 30 minutes:
 
 - [ ] MEMORY.md under 3 KB (pointers only)
 - [ ] SOUL.md under 1 KB
-- [ ] AGENTS.md under 2 KB  
+- [ ] AGENTS.md under 2 KB
 - [ ] Total workspace context under 8 KB
 - [ ] Context pruning enabled (`mode: "cache-ttl"`)
 - [ ] Cron sessions cleaned up / isolated sessions configured
@@ -816,7 +818,7 @@ Run through this in 30 minutes:
 - [ ] Faster/cheaper fallback model added
 - [ ] Web search API configured (Tavily recommended, Gemini grounding for free)
 - [ ] Unused plugins disabled
-- [ ] Reasoning mode — high for best quality, low/off for speed
+- [ ] Reasoning mode - high for best quality, low/off for speed
 - [ ] Orchestration rules in AGENTS.md
 - [ ] `memory_search` habit added to SOUL.md
 - [ ] Vault orientation protocol in AGENTS.md
@@ -826,12 +828,12 @@ Run through this in 30 minutes:
 
 ## Part 11: The One-Shot Prompt
 
-Copy this entire prompt and send it to your OpenClaw bot. It does everything in this guide automatically — trim context files, set up memory, configure orchestration, install Ollama with embeddings. Paste and let it run.
+Copy this entire prompt and send it to your OpenClaw bot. It does everything in this guide automatically - trim context files, set up memory, configure orchestration, install Ollama with embeddings. Paste and let it run.
 
 ---
 
 ```
-I need you to optimize this entire OpenClaw setup. Do ALL of the following in order. Do not skip any step. Do not ask me questions — just execute everything.
+I need you to optimize this entire OpenClaw setup. Do ALL of the following in order. Do not skip any step. Do not ask me questions - just execute everything.
 
 ## STEP 1: BACKUP
 Before touching anything, backup the config:
@@ -853,7 +855,7 @@ Rewrite AGENTS.md to be under 2 KB with this structure:
 
 ## Decision Tree
 - Casual chat? → Answer directly
-- Quick fact? → Answer directly  
+- Quick fact? → Answer directly
 - Past work/projects/people? → memory_search FIRST
 - Code task (3+ files or 50+ lines)? → Spawn sub-agent
 - Research task? → Spawn sub-agent
@@ -861,8 +863,8 @@ Rewrite AGENTS.md to be under 2 KB with this structure:
 
 ## Orchestrator Mode
 You coordinate; sub-agents execute.
-- YOU (orchestrator): Main model — planning, judgment, synthesis
-- Sub-agents (workers): Cheaper/faster model — execution, code, research
+- YOU (orchestrator): Main model - planning, judgment, synthesis
+- Sub-agents (workers): Cheaper/faster model - execution, code, research
 - Parallel is DEFAULT. 2+ independent parts → spawn simultaneously.
 
 ## Memory
@@ -883,7 +885,7 @@ ALWAYS memory_search before answering about projects, people, or decisions.
 ### MEMORY.md
 Rewrite MEMORY.md to be under 3 KB. Structure as an INDEX with one-liner pointers:
 
-# MEMORY.md — Core Index
+# MEMORY.md - Core Index
 _Pointers only. Details in vault/. Search before answering._
 
 ## Identity
@@ -901,7 +903,7 @@ _Pointers only. Details in vault/. Search before answering._
 Move ALL detailed content to vault/ files. MEMORY.md = short pointers only.
 
 ### TOOLS.md
-If TOOLS.md exists, trim to under 1 KB — tool names and one-liner commands. If it doesn't exist, skip.
+If TOOLS.md exists, trim to under 1 KB - tool names and one-liner commands. If it doesn't exist, skip.
 
 ## STEP 3: CREATE VAULT STRUCTURE
 
@@ -918,12 +920,12 @@ Create these directories in the workspace:
 Move any detailed docs from MEMORY.md into the appropriate vault/ subdirectory.
 
 Create vault/06_system/vault-philosophy.md with these principles:
-1. The Network Is The Knowledge — answers are paths through connected notes
-2. Notes Named As Claims — filename IS the knowledge
-3. Links Woven Into Sentences — not footnotes
-4. Agent Orients Before Acting — scan MOCs → read → follow links → respond
-5. Agent Leaves Breadcrumbs — update Agent Notes after every session
-6. Capture First, Structure Later — dump in 00_inbox/, organize later
+1. The Network Is The Knowledge - answers are paths through connected notes
+2. Notes Named As Claims - filename IS the knowledge
+3. Links Woven Into Sentences - not footnotes
+4. Agent Orients Before Acting - scan MOCs → read → follow links → respond
+5. Agent Leaves Breadcrumbs - update Agent Notes after every session
+6. Capture First, Structure Later - dump in 00_inbox/, organize later
 
 ## STEP 4: INSTALL OLLAMA + EMBEDDING MODEL
 
@@ -954,8 +956,8 @@ After all changes:
 4. Report what you changed with before/after file sizes
 
 ## IMPORTANT RULES
-- Do NOT delete any config — only trim and reorganize
-- Keep all original content — just move it to vault/
+- Do NOT delete any config - only trim and reorganize
+- Keep all original content - just move it to vault/
 - If a file doesn't exist, skip it
 - Total workspace context (all .md files in root) should be under 8 KB when done
 - Restart the gateway AFTER all changes, not during
@@ -970,13 +972,13 @@ That's it. One paste, your bot does everything. If anything fails, your config b
 ## Troubleshooting
 
 **One-shot prompt only partially completed:**
-Re-paste just the steps that didn't complete. The prompt is idempotent — running a step twice won't break anything.
+Re-paste just the steps that didn't complete. The prompt is idempotent - running a step twice won't break anything.
 
 **memory_search not working:**
 Make sure Ollama is running (`ollama ps`) and nomic-embed-text is pulled. OpenClaw auto-detects on localhost:11434.
 
 **Bot still feels slow after trimming:**
-Check total workspace file sizes. If over 10KB, files weren't trimmed. Also check reasoning mode — `high` adds 2-5 seconds per message.
+Check total workspace file sizes. If over 10KB, files weren't trimmed. Also check reasoning mode - `high` adds 2-5 seconds per message.
 
 **Sub-agents not spawning:**
 Make sure your model supports `sessions_spawn` and you have a fallback model configured.
@@ -1002,15 +1004,15 @@ No. Your expensive model PLANS and JUDGES. Execution (code, research, analysis) 
 Architecture works with any model supporting `memory_search` and `sessions_spawn` in OpenClaw. Tested on Opus 4.6; most frontier models should handle the one-shot prompt.
 
 **How is this different from other memory solutions?**
-Most add external databases or cloud services. This gives you 90% of the benefit with 10% of the parts — local files + vector search. Nothing to install except Ollama. Nothing leaves your machine.
+Most add external databases or cloud services. This gives you 90% of the benefit with 10% of the parts - local files + vector search. Nothing to install except Ollama. Nothing leaves your machine.
 
 ---
 
 ## About
 
-*Built by [Terp — Terp AI Labs](https://x.com/OnlyTerp)*
+*Built by [Terp - Terp AI Labs](https://x.com/OnlyTerp)*
 
-The definitive optimization guide for OpenClaw — covering speed, memory, context management, model selection, web search, orchestration, vault architecture, and spec-driven development. Battle-tested daily on a production setup.
+The definitive optimization guide for OpenClaw - covering speed, memory, context management, model selection, web search, orchestration, vault architecture, and spec-driven development. Battle-tested daily on a production setup.
 
 **Saved you tokens/time?** Drop a ⭐ on this repo or ping [@OnlyTerp](https://x.com/OnlyTerp) on X with your before/after numbers.
 
@@ -1020,4 +1022,4 @@ The definitive optimization guide for OpenClaw — covering speed, memory, conte
 - [OpenClaw Documentation](https://docs.openclaw.ai)
 - [OpenClaw GitHub](https://github.com/openclaw/openclaw)
 - [OpenClaw Discord Community](https://discord.gg/clawd)
-- [ClawHub — Skills Marketplace](https://clawhub.com)
+- [ClawHub - Skills Marketplace](https://clawhub.com)
