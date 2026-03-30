@@ -1,0 +1,5 @@
+- [2026-03-15] OpenClaw hot-swaps models — NO gateway restart needed, NO new session needed
+- [2026-03-20] Always run memory_search before answering about past work — 45ms, $0, prevents wrong answers
+- [2026-03-21] Use hybrid retrieval (vector + keyword) — 31% higher precision than pure vector
+- [2026-03-22] Local 7B models beat API on latency and cost for agent loops
+- [2026-03-23] Preload CONTEXT.md with memory-bridge before spawning Codex — 74% fewer knowledge gaps

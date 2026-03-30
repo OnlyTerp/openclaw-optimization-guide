@@ -30,6 +30,21 @@ Weekly (cron, $0):
 - **Week 4**: Best learnings promoted to AGENTS.md. They're now permanent rules, loaded every message. The agent is measurably smarter than week 1.
 - **Week 8**: 30+ corrections avoided automatically. System compounds.
 
+### Why Existing Approaches Fail
+
+Most "self-improving" agent setups just dump full session summaries into a vector database. This naive approach fails because:
+
+- **Problem 1: No filtering** — every message, typo, and false start gets embedded, drowning real insights in noise. Signal-to-noise ratio collapses.
+- **Problem 2: No promotion** — a critical architecture fix from yesterday sits next to "lunch was good" in the same flat vector space. High-impact learnings never rise to prominence.
+- **Problem 3: No decay** — a correction from 3 months ago ("always run on r6g.2xlarge") persists even after infrastructure changes, actively poisoning decisions.
+
+The micro-learning loop fixes this with:
+
+- **Selective capture**: Only log 4 events: user corrections, tool failures, discovered insights, stated preferences.
+- **Tiered promotion**: Entries flow from raw logs → HOT.md → AGENTS.md/SOUL.md → vault based on usage and impact.
+- **Active decay**: Unused entries automatically demote and eventually archive, keeping the active memory lean and current.
+
+
 ### Setup
 
 **Step 1: Create the learnings directory**

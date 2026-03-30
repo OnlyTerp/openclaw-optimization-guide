@@ -24,6 +24,10 @@
 14. [Quick Checklist](#part-14-quick-checklist) - 30-minute setup checklist
 15. [The One-Shot Prompt](#part-15-the-one-shot-prompt) - Copy-paste automation prompt
 
+**📊 [Benchmarks](./benchmarks/)** — Real numbers from a production system (context savings, search latency, reindex results, SWE-bench rankings)
+
+**📁 [Example Vault](./examples/)** — Populated mini-vault showing MOCs, wiki-links, Agent Notes, and .learnings/ after 2 weeks of use
+
 ---
 
 ## The Problem

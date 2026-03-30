@@ -1,0 +1,8 @@
+- [2026-03-15] Said gateway restart needed for model change → NOT needed, hot-swaps
+- [2026-03-16] Claimed Opus is always best → local models win on speed/cost for simple tasks
+- [2026-03-17] Used full context dump for recall → switched to memory_search, 180ms → 45ms
+- [2026-03-18] Used require() in ESM project → always use import/export
+- [2026-03-19] Set up pure vector search → added FTS5 keyword layer, precision +31%
+- [2026-03-20] Named file session-notes.md → now use claim-named files like inference-caching-reduces-llm-costs.md
+- [2026-03-21] Skipped Agent Notes → now log every session, enables cross-context recall
+- [2026-03-22] Ran Codex without preflight → now use memory-bridge, knowledge gaps ↓74%
