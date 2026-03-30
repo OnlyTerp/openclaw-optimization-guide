@@ -19,8 +19,10 @@
 9. [Vault Memory System](#part-9-vault-memory-system-stop-losing-knowledge-between-sessions) - Structured knowledge graph, MOCs, cross-session continuity
 10. [State-of-the-Art Embeddings](./part10-state-of-the-art-embeddings.md) - Upgrade from nomic to Qwen3-VL, Stark Edition server, Windows gotchas
 11. [Auto-Capture Hook](./part11-auto-capture-hook.md) - Automatic knowledge extraction after every session, no manual memory writes
-12. [Quick Checklist](#part-12-quick-checklist) - 30-minute setup checklist
-13. [The One-Shot Prompt](#part-13-the-one-shot-prompt) - Copy-paste automation prompt
+12. [Self-Improving System](./part12-self-improving-system.md) - Micro-learning loop that compounds forever, $0/day
+13. [Memory Bridge](./part13-memory-bridge.md) - Give coding agents (Codex/Claude Code) access to your vault knowledge
+14. [Quick Checklist](#part-14-quick-checklist) - 30-minute setup checklist
+15. [The One-Shot Prompt](#part-15-the-one-shot-prompt) - Copy-paste automation prompt
 
 ---
 
@@ -802,7 +804,7 @@ Your primary search path (`memory/` + `vault/01_thinking/`) should contain only 
 
 ---
 
-## Part 10: Quick Checklist
+## Part 14: Quick Checklist
 
 Run through this in 30 minutes:
 
@@ -823,10 +825,15 @@ Run through this in 30 minutes:
 - [ ] `memory_search` habit added to SOUL.md
 - [ ] Vault orientation protocol in AGENTS.md
 - [ ] For big tasks: research first, spec second, build third (Part 8)
+- [ ] `.learnings/` directory created with HOT.md, corrections.md, ERRORS.md (Part 12)
+- [ ] Micro-learning loop added to AGENTS.md (Part 12)
+- [ ] Daily learnings promotion cron set up — $0 on Cerebras (Part 12)
+- [ ] Memory Bridge scripts installed — `preflight-context.js` + `memory-query.js` (Part 13)
+- [ ] AGENTS.md updated: run preflight before every Codex spawn (Part 13)
 
 ---
 
-## Part 11: The One-Shot Prompt
+## Part 15: The One-Shot Prompt
 
 Copy this entire prompt and send it to your OpenClaw bot. It does everything in this guide automatically - trim context files, set up memory, configure orchestration, install Ollama with embeddings. Paste and let it run.
 
