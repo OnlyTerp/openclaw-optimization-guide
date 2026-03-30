@@ -22,6 +22,7 @@
 12. [Self-Improving System](./part12-self-improving-system.md) - Micro-learning loop that compounds forever, $0/day
 13. [Memory Bridge](./part13-memory-bridge.md) - Give coding agents (Codex/Claude Code) access to your vault knowledge
 14. [Quick Checklist](#part-14-quick-checklist) - 30-minute setup checklist
+15. [Infrastructure Hardening](./part15-infrastructure-hardening.md) - Compaction crash loops, GPU contention, Gemini Flash purge, Tavily migration
 15. [The One-Shot Prompt](#part-15-the-one-shot-prompt) - Copy-paste automation prompt
 
 **📊 [Benchmarks](./benchmarks/)** — Real numbers from a production system (context savings, search latency, reindex results, SWE-bench rankings)
