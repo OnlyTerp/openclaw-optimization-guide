@@ -164,7 +164,7 @@ ollama ps        # Check what's loaded
 ollama stop modelname  # Unload idle big models
 ```
 
-The only model you need loaded for memory search is `nomic-embed-text` (300 MB).
+The default model for memory search is `nomic-embed-text` (300 MB). If you have a GPU with 16GB+ VRAM, upgrade to Qwen3-VL-Embedding-8B for dramatically better search quality — see [Part 10](./part10-state-of-the-art-embeddings.md).
 
 ---
 
@@ -324,6 +324,8 @@ ollama pull nomic-embed-text
 
 OpenClaw detects Ollama on localhost:11434 automatically. No config needed.
 
+> **GPU users:** For a major quality upgrade (768-dim → 4096-dim vectors), see [Part 10: State-of-the-Art Embeddings](./part10-state-of-the-art-embeddings.md).
+
 **Step 2: Create the directory structure**
 
 ```
@@ -392,6 +394,16 @@ You are the ORCHESTRATOR. You coordinate; sub-agents execute.
 
 Your expensive model decides WHAT to build. The cheap model builds it. Right model, right job.
 
+### Give Coding Agents Your Brain
+
+Before spawning any coding sub-agent, run the Memory Bridge preflight to inject relevant vault knowledge into the project directory:
+
+```bash
+node scripts/memory-bridge/preflight-context.js --task "Build auth middleware" --workdir ./my-project
+```
+
+This writes a `CONTEXT.md` that the coding agent reads automatically — giving it access to your past decisions, error patterns, and architecture choices. See [Part 13](./part13-memory-bridge.md) for the full setup.
+
 ---
 
 ## Part 6: Models (What to Actually Use)
@@ -403,7 +415,8 @@ Your expensive model decides WHAT to build. The cheap model builds it. Right mod
 | **Orchestrator** | Plans, judges, coordinates | Claude Opus 4.6 | Best complex reasoning + tool use |
 | **Daily driver** | General assistant | Claude Sonnet 4.6, Gemini 3.1 Pro | Great quality, lower cost |
 | **Sub-agents** | Execute delegated tasks | Gemini 3 Flash, Kimi K2.5, MiMo V2 Pro | Fast, cheap, capable enough |
-| **Coding** | Write/refactor code | GPT-5.3 Codex, Claude Sonnet | Purpose-built for code |
+| **Coding (hard)** | Architecture, complex bugs | Claude Opus 4.6 | #1 SWE-bench (1549) — best coding model alive |
+| **Coding (batch)** | Scaffolding, CRUD, refactors | GPT-5.4 Codex | Fast, $0 on subscription, good with Memory Bridge |
 | **Research** | Web search, analysis | Gemini 2.5 Flash + Tavily | Built-in grounding |
 | **Free tier** | Zero-cost operations | Gemini (all variants), Groq open models | $0 with generous limits |
 
@@ -482,7 +495,9 @@ Main: Sonnet 4.6 (membership) | Fallback: Gemini 3.1 Pro | Sub-agents: Flash / K
 
 **Power (~$100/month - Claude Max):**
 ```
-Main: Opus 4.6 (membership) | Fallback: Sonnet | Sub-agents: Kimi / MiMo / Flash | Code: Codex
+Main: Opus 4.6 (membership) | Fallback: Gemini 3.1 Pro | Sub-agents: Kimi / MiMo / Flash
+Code (hard): Opus directly | Code (batch): Codex + Memory Bridge
+Self-improving: .learnings/ micro-loop ($0) | Memory: Qwen3-VL on local GPU
 ```
 
 ### Pro Tips
@@ -613,7 +628,10 @@ sessions_spawn({
 })
 ```
 
-- **Send to a coding model.** Your main model plans, not builds.
+- **Run Memory Bridge preflight first.** Before spawning any coding agent, inject vault context:
+  `node scripts/memory-bridge/preflight-context.js --task "..." --workdir <project>`
+  This writes a CONTEXT.md with relevant past decisions and patterns. See [Part 13](./part13-memory-bridge.md).
+- **Send to a coding model.** Your main model plans, not builds. For hard architecture work, Opus can code directly (#1 SWE-bench).
 - **Include everything in one prompt.** If you're thinking "I'll clarify later," you haven't researched enough.
 - **Attach reference images** for vision-capable models.
 
@@ -707,7 +725,7 @@ A MOC connects related notes with `[[wiki-links]]`. Example:
 
 ## Key Facts
 - 358 memory files in memory/, mostly date-named
-- Vector search (nomic-embed-text, 45ms, $0) finds similar, not connected
+- Vector search (Qwen3-VL or nomic-embed-text, 45ms, $0) finds similar, not connected
 - MEMORY.md must stay under 5K - injected on every message
 
 ## Connected Topics
@@ -954,13 +972,43 @@ In openclaw.json, find your main agent config and add a fallback model. Use a fa
 
 In openclaw.json, any plugin not actively used → set "enabled": false.
 
-## STEP 7: VERIFY
+## STEP 7: SET UP SELF-IMPROVING SYSTEM (Part 12)
+
+Create the learnings directory:
+- workspace/.learnings/HOT.md (empty, header: "# HOT Learnings")
+- workspace/.learnings/corrections.md (header: "# User Corrections Log")
+- workspace/.learnings/ERRORS.md (header: "# Error Log")
+- workspace/.learnings/LEARNINGS.md (header: "# General Learnings")
+- workspace/.learnings/FEATURE_REQUESTS.md (header: "# Feature Requests")
+- workspace/.learnings/projects/ (empty dir)
+- workspace/.learnings/domains/ (empty dir)
+- workspace/.learnings/archive/ (empty dir)
+
+Add the micro-learning loop to AGENTS.md (insert before the decision tree):
+
+### Micro-Learning Loop (EVERY MESSAGE — silent, <100 tokens)
+After EVERY response, silently check:
+  1. Did user correct me? → append 1-line to .learnings/corrections.md
+  2. Did a command/tool fail? → append 1-line to .learnings/ERRORS.md
+  3. Did I discover something? → append 1-line to .learnings/LEARNINGS.md
+Format: "- [YYYY-MM-DD] what happened → what to do instead"
+
+## STEP 8: INSTALL MEMORY BRIDGE (Part 13)
+
+Clone or copy the Memory Bridge scripts:
+- git clone https://github.com/OnlyTerp/memory-bridge.git scripts/memory-bridge
+- Or manually create scripts/memory-bridge/memory-query.js and preflight-context.js
+
+Add to AGENTS.md coding workflow: "Before spawning Codex, run: node scripts/memory-bridge/preflight-context.js --task '...' --workdir <dir>"
+
+## STEP 9: VERIFY
 
 After all changes:
 1. Restart the gateway: openclaw gateway stop && openclaw gateway start
 2. Run: openclaw doctor
 3. Test memory_search by asking about something in your vault files
-4. Report what you changed with before/after file sizes
+4. Test Memory Bridge: node scripts/memory-bridge/memory-query.js "test query"
+5. Report what you changed with before/after file sizes
 
 ## IMPORTANT RULES
 - Do NOT delete any config - only trim and reorganize
