@@ -176,6 +176,81 @@ Tavily is built for AI agents — structured results, `search_depth=advanced`, n
 
 ---
 
+## Secret Leak Prevention: Your AI Is Leaking Your Keys
+
+### The Problem
+
+GitGuardian's 2026 report found that **Claude Code-assisted commits leak secrets at 3.2%** — roughly **double the GitHub baseline**. Two CVEs were published against Claude Code for API key exfiltration. If you're using AI coding agents to make commits, your API keys, passwords, and tokens are statistically more likely to end up in your git history.
+
+This isn't theoretical. Anthropic themselves just shipped their entire Claude Code source code in a `.map` file on npm (March 31, 2026). If a $10B AI safety company can't keep their own files out of public packages, what chance do the rest of us have without explicit safeguards?
+
+### Where Secrets Hide in OpenClaw
+
+| File | Risk | Contains |
+|------|------|----------|
+| `openclaw.json` | 🔴 CRITICAL | API keys for every provider (Anthropic, OpenRouter, Google, xAI, Cerebras) |
+| `auth-profiles.json` | 🔴 CRITICAL | OAuth tokens, refresh tokens, account IDs |
+| `agents/*/sessions/*.jsonl` | 🟡 HIGH | Full conversation transcripts — may contain keys discussed in chat |
+| `memory/*.md` | 🟡 HIGH | Session summaries — may contain passwords, IPs, credentials mentioned in sessions |
+| `*.sqlite` | 🟠 MEDIUM | Vector DB with text chunks from all indexed files — searchable for secrets |
+
+### The Fixes
+
+**1. Add `.gitignore` to your `.openclaw/` directory:**
+
+```gitignore
+# Secrets - NEVER commit
+openclaw.json
+openclaw.json.*
+auth-profiles.json
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+
+# Session transcripts contain secrets in conversation
+agents/*/sessions/*.jsonl
+agents/*/sessions/*.jsonl.*
+
+# Clobbered config backups
+openclaw.json.clobbered.*
+```
+
+**2. Stop writing credentials into memory files.**
+
+Add this rule to every agent's AGENTS.md:
+```markdown
+Never write credentials (API keys, passwords, tokens, IP+port+password combos) into memory files, session summaries, or vault entries. Reference them as "see auth config" instead.
+```
+
+**3. Scan your existing commits:**
+
+```bash
+# Check all repos for leaked secrets
+git log --all -p | grep -E "sk-ant-|sk-or-v1-|AIzaSy|xai-[a-zA-Z0-9]{20}|password.*=|apiKey.*:"
+```
+
+If you find anything, rotate those keys immediately. Git history is permanent — even if you delete the file, the key is in the commit history unless you force-push a rewritten history.
+
+**4. Consider a secrets proxy.**
+
+After the Claude Code leak, a developer built [secretgate](https://github.com/nickcaglar/secretgate) — a local proxy that intercepts outbound AI traffic and redacts secrets before they leave your machine. Early stage (v0.6, ~170 regex patterns) but addresses the root cause: secrets shouldn't leave your machine in API calls.
+
+### Gateway Crash Loop Fix
+
+While we're hardening — if your gateway enters a crash loop because a stale process is blocking the port (we had a 10-hour outage from this), add a pre-start cleanup to your `gateway.cmd`:
+
+```batch
+rem Kill any stale node processes holding the gateway port
+for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":18789 " ^| findstr "LISTENING"') do (
+    taskkill /F /PID %%a >nul 2>&1
+)
+timeout /t 2 /nobreak >nul
+```
+
+This kills any orphaned gateway process before starting a new one. Without this, the Scheduled Task will keep spawning and crashing every ~4 minutes indefinitely.
+
+---
+
 ## The Hardening Checklist
 
 - [ ] Compaction model set explicitly (not defaulting to Flash)
@@ -184,6 +259,10 @@ Tavily is built for AI agents — structured results, `search_depth=advanced`, n
 - [ ] Embedding server on dedicated GPU (not shared with gaming/inference)
 - [ ] Embedding model quantized to INT8 if VRAM-constrained
 - [ ] No Gemini Flash in any infrastructure role
+- [ ] `.gitignore` in `.openclaw/` blocking secrets, sqlite, sessions
+- [ ] No credentials written in memory/session files (rule in AGENTS.md)
+- [ ] Existing git history scanned for leaked secrets
+- [ ] Gateway startup script has stale-process cleanup
 - [ ] Config backed up before changes
 - [ ] Gateway restarted after config changes
 
@@ -196,4 +275,4 @@ Select-String -Path C:\tmp\openclaw\openclaw-*.log -Pattern "429|quota exceeded|
 
 ---
 
-*Added 2026-03-30 — learned the hard way so you don't have to.*
+*Added 2026-03-30. Updated 2026-03-31 with secret leak prevention (3.2% stat from GitGuardian) and gateway crash-loop fix.*
