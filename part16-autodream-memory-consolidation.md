@@ -20,26 +20,32 @@ The key insight: **you don't need a new script or cron job. Your agent IS the co
 
 ## How It Works
 
-### The 3-Gate Trigger
+### The 3-Gate Trigger (Cheapest-First)
 
-autoDream doesn't run every session — that would waste time on casual chats. It uses three gates that ALL must pass:
+autoDream doesn't run every session — that would waste time on casual chats. It uses gates checked in **cheapest-first order** (stop at first failure):
 
-| Gate | Condition | Why |
-|------|-----------|-----|
-| **TIME** | ≥24 hours since last dream | Don't consolidate too often |
-| **SESSION** | ≥5 sessions since last dream | Ensure enough new material |
-| **USER** | User's first message isn't urgent | Don't delay someone who needs help NOW |
+| Gate | Condition | Cost | Why |
+|------|-----------|------|-----|
+| **TIME** | ≥24 hours since last dream | 1 read | Don't consolidate too often |
+| **SCAN THROTTLE** | ≥10 minutes since last gate check | 1 read | Prevent thrashing when time passes but sessions haven't accumulated |
+| **SESSION** | ≥5 sessions since last dream (excluding current) | 1 read | Ensure enough new material |
+| **USER** | User's first message isn't urgent | Judgment | Don't delay someone who needs help NOW |
+
+The scan throttle is key — without it, every single message re-checks the session count once the time gate passes. Claude Code's actual implementation uses `SESSION_SCAN_INTERVAL_MS = 10 * 60 * 1000` (10 minutes) for this.
 
 State is tracked in `memory/.dream-state.json`:
 ```json
 {
   "lastDreamAt": "2026-03-31T15:47:00Z",
   "sessionsSinceDream": 0,
+  "lastScanAt": null,
   "totalDreams": 1,
   "lastDreamResult": "success",
   "lastProcessedFiles": ["2026-03-31-session.md"]
 }
 ```
+
+**Failure recovery:** If a dream crashes mid-execution, reset `lastDreamAt` to its previous value so the time gate passes again on the next attempt. This is Claude Code's "lock rollback" pattern — don't let a failed dream block all future dreams.
 
 ### The 4-Phase Execution
 
@@ -50,9 +56,10 @@ When gates pass, the agent runs a consolidation pass (2-3 minutes max) before re
 - List memory files modified since last dream
 
 **Phase 2 — Gather** (60s)
-- Read each new session memory file
-- Identify durable knowledge: decisions, lessons, project changes, infrastructure updates
+- Do NOT exhaustively read every session file — grep narrowly for things that matter
+- Scan memory files modified since last dream for durable knowledge: decisions, lessons, project changes, infrastructure updates
 - Skip ephemeral stuff (casual chat, temporary debugging)
+- Session transcripts (`.jsonl` files) are **last resort** — only grep for narrow terms if you suspect something specific. Claude Code's actual prompt says: *"Don't exhaustively read transcripts. Look only for things you already suspect matter."*
 
 **Phase 3 — Consolidate** (60s)
 - Write durable knowledge to organized files (or vault if you have one)
@@ -60,10 +67,20 @@ When gates pass, the agent runs a consolidation pass (2-3 minutes max) before re
 - Convert relative dates ("yesterday") to absolute dates ("2026-03-31")
 
 **Phase 4 — Prune & Index** (30s)
-- Rebuild MEMORY.md as a clean, auto-generated index
-- Keep MEMORY.md under **200 lines / 25KB** (Claude Code's proven limits)
+- Rebuild MEMORY.md as a **pure index** — NOT a content dump
+- Each entry: `- [Title](file.md) — one-line hook` (under ~150 chars per line)
+- Never write memory content directly into MEMORY.md — detail belongs in topic files
+- Keep MEMORY.md under **200 lines AND ~25KB** (Claude Code hard-enforces both caps with truncation warnings)
+- Fix contradictions at the source — edit the old file, don't just note the conflict
 - Update dream-state.json
 - Tell the user: "🌙 Memory consolidated — processed N files"
+
+> From the actual Claude Code source (`memdir.ts`):
+> ```typescript
+> export const MAX_ENTRYPOINT_LINES = 200
+> export const MAX_ENTRYPOINT_BYTES = 25_000
+> ```
+> If MEMORY.md exceeds either limit, it gets truncated with a warning: *"Only part of it was loaded. Keep index entries to one line under ~200 chars; move detail into topic files."*
 
 ---
 
@@ -143,9 +160,9 @@ This is the entire implementation — no scripts, no hooks, no cron jobs. Just i
 
 ### Dream Execution (max 3 minutes)
 **Phase 1 — Orient**: Read MEMORY.md, list memory files since last dream
-**Phase 2 — Gather**: Read new files, extract durable knowledge (decisions, lessons, infra changes)
-**Phase 3 — Consolidate**: Write to topics/ files, update contradictions, fix relative dates
-**Phase 4 — Prune**: Rebuild MEMORY.md as auto-generated index (<200 lines, <25KB), update dream-state
+**Phase 2 — Gather**: Grep narrowly for durable knowledge. Don't read every file. Transcripts = last resort.
+**Phase 3 — Consolidate**: Write to topics/ files, update contradictions at the source, fix relative dates to absolute
+**Phase 4 — Prune**: Rebuild MEMORY.md as pure link index (<200 lines, <25KB). Each line: `- [Title](file.md) — hook`. Update dream-state. On failure, rollback lastDreamAt so it retries.
 
 ### Rules
 - Don't modify source code or config during dreams
@@ -287,13 +304,29 @@ The agent boots up, reads a tight 80-line MEMORY.md, and knows exactly where to 
 
 ---
 
-## Inspiration
+## Inspiration & Source
 
-This pattern is adapted from Claude Code's `autoDream` system, discovered in the [March 31, 2026 source code leak](https://cybersecuritynews.com/claude-code-source-code-leaked/). Their implementation uses:
-- A forked subagent process
-- Read-only bash access during dreams
-- The same 3-gate trigger and 4-phase execution
-- MEMORY.md kept under 200 lines / 25KB
+This pattern is adapted from Claude Code's `autoDream` system, discovered in the [March 31, 2026 source code leak](https://cybersecuritynews.com/claude-code-source-code-leaked/). We read the **actual source files** (`autoDream.ts`, `consolidationPrompt.ts`, `memdir.ts`) before the repos were taken down. Key details from the real implementation:
+
+**From `autoDream.ts`:**
+- Forked subagent process (separate from main agent)
+- Gate order is cheapest-first: time (1 stat) → scan throttle (10min cooldown) → sessions (dir listing) → lock
+- Current session excluded from session count
+- `SESSION_SCAN_INTERVAL_MS = 10 * 60 * 1000` prevents re-scanning every turn
+- Lock rollback on failure so dreams retry automatically
+- `skipTranscript: true` — dream conversations don't save as sessions
+
+**From `consolidationPrompt.ts`:**
+- *"You are performing a dream — a reflective pass over your memory files"*
+- *"Don't exhaustively read transcripts. Look only for things you already suspect matter."*
+- *"Deleting contradicted facts — if today's investigation disproves an old memory, fix it at the source"*
+- Read-only bash, write via file tools only to memory directory
+
+**From `memdir.ts`:**
+- `MAX_ENTRYPOINT_LINES = 200`, `MAX_ENTRYPOINT_BYTES = 25_000` — hard enforced with truncation
+- MEMORY.md is a **link index**: `- [Title](file.md) — one-line hook` (never content)
+- Memory files use YAML frontmatter with `name`, `description`, `type` fields
+- Four memory types: user, feedback, project, reference
 
 Our adaptation replaces the forked subagent with **agent instructions** — simpler, zero maintenance, and works with any OpenClaw model (you don't need Opus). The consolidation quality depends on your model choice, but even a fast model like Cerebras or Flash can handle the gather→consolidate→prune workflow.
 
