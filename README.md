@@ -23,6 +23,7 @@
 13. [Memory Bridge](./part13-memory-bridge.md) - Give coding agents (Codex/Claude Code) access to your vault knowledge
 14. [Quick Checklist](#part-14-quick-checklist) - 30-minute setup checklist
 15. [Infrastructure Hardening](./part15-infrastructure-hardening.md) - Compaction crash loops, GPU contention, Gemini Flash purge, Tavily migration
+16. [autoDream Memory Consolidation](./part16-autodream-memory-consolidation.md) - Automatic memory cleanup inspired by Claude Code's leaked source. Works with any OpenClaw setup — no custom embeddings needed
 15. [The One-Shot Prompt](#part-15-the-one-shot-prompt) - Copy-paste automation prompt
 
 **📊 [Benchmarks](./benchmarks/)** — Real numbers from a production system (context savings, search latency, reindex results, SWE-bench rankings)
