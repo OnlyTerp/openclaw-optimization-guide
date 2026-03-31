@@ -404,6 +404,50 @@ You are the ORCHESTRATOR. You coordinate; sub-agents execute.
 
 Your expensive model decides WHAT to build. The cheap model builds it. Right model, right job.
 
+### PreCompletion Verification (from LangChain's +13.7 point harness improvement)
+
+LangChain's coding agent went from outside the Top 30 to **Top 5 on Terminal Bench 2.0** by only changing the harness — not the model. Their #1 improvement: **force verification before exit.**
+
+Add this to your AGENTS.md:
+
+```markdown
+## PreCompletion Verification
+Before finishing ANY task, STOP and verify:
+1. Re-read the user's original request
+2. Compare your output against what was actually asked
+3. If there's a gap, fix it before responding
+4. For code: run tests — don't just re-read your own code and say "looks good"
+```
+
+Why this works: Agents are biased toward their first plausible solution. They write code, re-read it, say "looks good", and stop. Forcing a verification pass against the *original request* (not their own output) catches the gap.
+
+**Also add loop detection:**
+```markdown
+## Loop Detection
+If you edit the same file 5+ times without progress, STOP.
+Step back, reconsider your approach entirely.
+Don't make small variations to the same broken approach — that's a doom loop.
+```
+
+LangChain uses a `LoopDetectionMiddleware` that tracks per-file edit counts and injects "consider reconsidering your approach" after N edits. Simple but effective.
+
+### Long-Running Projects (Multi-Session Work)
+
+From [Anthropic's own engineering blog](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents): for projects spanning multiple sessions, use the **initializer + progress file** pattern:
+
+```markdown
+## Multi-Session Protocol
+- Work on ONE feature at a time — don't one-shot everything
+- Create/update a `progress.txt` in the project dir:
+  - What's DONE (with dates)
+  - What's IN PROGRESS (with blockers)
+  - What's NEXT (prioritized)
+- Start each session: read progress.txt → git log → run basic test → THEN start work
+- End each session: commit with descriptive message, update progress.txt
+```
+
+Use JSON for feature tracking when you need structured state (model is less likely to accidentally modify JSON vs markdown). Anthropic found this solved two critical failure modes: agents trying to one-shot everything, and agents declaring victory too early.
+
 ### The 4-Phase Coordinator Protocol (Advanced)
 
 For complex multi-step tasks, use the coordinator pattern from [Claude Code's leaked source](./part16-autodream-memory-consolidation.md):
@@ -420,6 +464,8 @@ For complex multi-step tasks, use the coordinator pattern from [Claude Code's le
 - Never say "based on your findings" — read the actual findings and write specific specs
 - Workers can't see your conversation — every prompt must be self-contained
 - Include a purpose statement: "This research will inform a PR — focus on user-facing changes"
+- **Exclusive file ownership** (from [Zerg](https://zerg-ai.com/)): each worker's spec lists which files it owns. No two workers edit the same file. Eliminates merge conflicts entirely.
+- Workers self-verify before reporting done: "Run tests and typecheck, then commit and report the hash"
 
 **Continue vs Spawn fresh?**
 | Situation | Action |
@@ -896,6 +942,9 @@ Run through this in 30 minutes:
 - [ ] Config protection: "only ops writes openclaw.json" rule in all agent workspaces
 - [ ] `.gitignore` in `.openclaw/` blocking `openclaw.json`, `auth-profiles.json`, `*.sqlite`
 - [ ] Gateway crash-loop fix: stale PID cleanup in `gateway.cmd` (Part 15)
+- [ ] PreCompletion verification rule in AGENTS.md (Part 5)
+- [ ] Loop detection rule in AGENTS.md (Part 5)
+- [ ] Multi-session projects: `progress.txt` pattern in AGENTS.md (Part 5)
 
 ---
 
@@ -1041,7 +1090,20 @@ After EVERY response, silently check:
   3. Did I discover something? → append 1-line to .learnings/LEARNINGS.md
 Format: "- [YYYY-MM-DD] what happened → what to do instead"
 
-## STEP 8: SET UP AUTODREAM MEMORY CONSOLIDATION (Part 16)
+## STEP 8: ADD HARNESS ENGINEERING PATTERNS
+
+Add these to AGENTS.md (insert before decision tree):
+
+### PreCompletion Verification
+Before finishing ANY task: re-read original request, compare output, fix gaps. For code: run tests.
+
+### Loop Detection  
+If editing same file 5+ times without progress, STOP and reconsider approach entirely.
+
+### Multi-Session Projects
+One feature at a time. Create progress.txt (done/in-progress/next). Start sessions by reading it.
+
+## STEP 9: SET UP AUTODREAM MEMORY CONSOLIDATION (Part 16)
 
 Create the dream state file:
 - Create memory/.dream-state.json with: {"lastDreamAt":null,"sessionsSinceDream":0,"lastScanAt":null,"totalDreams":0,"lastDreamResult":null,"lastProcessedFiles":[]}
@@ -1056,7 +1118,7 @@ On every new session, check gates (cheapest first):
 3. Update dream-state.json. On failure, rollback lastDreamAt.
 4. Tell user: "🌙 Memory consolidated — processed N files"
 
-## STEP 9: CONFIG PROTECTION + SECURITY
+## STEP 10: CONFIG PROTECTION + SECURITY
 
 Add to AGENTS.md in every agent workspace:
 "You are NOT allowed to write openclaw.json. Only the ops agent can. Propose changes as a message."
@@ -1070,7 +1132,7 @@ auth-profiles.json
 agents/*/sessions/*.jsonl
 ```
 
-## STEP 10: INSTALL MEMORY BRIDGE (Part 13)
+## STEP 11: INSTALL MEMORY BRIDGE (Part 13)
 
 Clone or copy the Memory Bridge scripts:
 - git clone https://github.com/OnlyTerp/memory-bridge.git scripts/memory-bridge
@@ -1078,7 +1140,7 @@ Clone or copy the Memory Bridge scripts:
 
 Add to AGENTS.md coding workflow: "Before spawning Codex, run: node scripts/memory-bridge/preflight-context.js --task '...' --workdir <dir>"
 
-## STEP 11: VERIFY
+## STEP 12: VERIFY
 
 After all changes:
 1. Restart the gateway: openclaw gateway stop && openclaw gateway start
