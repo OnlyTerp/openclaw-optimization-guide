@@ -63,7 +63,7 @@ When gates pass, the agent runs a consolidation pass (2-3 minutes max) before re
 
 **Phase 3 — Consolidate** (60s)
 - Write durable knowledge to organized files (or vault if you have one)
-- Update contradicted information (e.g., "server on port 3000" → "moved to port 8100")
+- **Treat written entries as immutable** (from [Letta/MemGPT](https://docs.letta.com/) architecture): if a fact changes, write a NEW entry that supersedes the old one and link to it — don't silently edit old files. This preserves the decision trail so you can see WHY something changed, not just what.
 - Convert relative dates ("yesterday") to absolute dates ("2026-03-31")
 
 **Phase 4 — Prune & Index** (30s)

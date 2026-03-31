@@ -463,6 +463,35 @@ From [Anthropic's own engineering blog](https://www.anthropic.com/engineering/ef
 
 Use JSON for feature tracking when you need structured state (model is less likely to accidentally modify JSON vs markdown). Anthropic found this solved two critical failure modes: agents trying to one-shot everything, and agents declaring victory too early.
 
+### The Ralph Wiggum Loop (Autonomous Tasks)
+
+Named after the Simpsons character, this is one of the most powerful patterns for overnight/autonomous agent work. Core idea: when an agent tries to stop, force it to keep working until tests actually pass.
+
+```bash
+# The original 5-line Ralph loop
+while true; do
+  cat prompt.md | claude --print | tee output.txt
+  if ./run_tests.sh; then break; fi
+done
+```
+
+The insight: agents love to declare "done" before work is actually done. External verification (tests, linters, type checkers) **can't lie** — the agent can. The loop forces build→test→fix cycles until reality matches expectations.
+
+Add to your AGENTS.md for autonomous tasks:
+
+```markdown
+## Ralph Loop (Autonomous Tasks)
+For overnight/unattended work:
+- Don't trust "looks good" — run REAL tests
+- Loop: implement → test → if fail → fix → test again
+- Only done when tests ACTUALLY PASS
+- 10+ iterations without progress → stop and report failure
+```
+
+**Common traps:** Loop never ends (criteria too strict), loop ends too early (agent fakes the completion promise), quality degrades over iterations (random changes hoping something sticks). Fix: strengthen verification to run BEFORE accepting the promise.
+
+*Source: [ghuntley.com/loop](https://ghuntley.com/loop/), [Letta Code /ralph command](https://docs.letta.com/letta-code/ralph-mode/), [LangChain PreCompletionChecklistMiddleware](https://blog.langchain.com/improving-deep-agents-with-harness-engineering/)*
+
 ### The 4-Phase Coordinator Protocol (Advanced)
 
 For complex multi-step tasks, use the coordinator pattern from [Claude Code's leaked source](./part16-autodream-memory-consolidation.md):
