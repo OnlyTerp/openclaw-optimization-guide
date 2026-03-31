@@ -206,6 +206,21 @@ Just because a model *advertises* 1M context doesn't mean it *performs well* at 
 
 **Tool spam is the worst offender.** A single `exec` returning a large file = 20K+ tokens permanently in your session. Five tool calls = 100K tokens of context the model re-reads every message.
 
+### The Numbers That Matter
+
+Production agents consume **100 tokens of context for every 1 token generated.** Your context window IS your performance budget.
+
+**Compression targets** (from Maxim AI production data):
+- Historical context: **3:1 to 5:1** compression ratio
+- Tool outputs: **10:1 to 20:1** compression ratio
+- If your agent is at **>60% context utilization before the user speaks**, you're in trouble
+
+**The 60% Rule:** If system prompt + workspace files + memory search results exceed 60% of your context window before the user even sends a message, apply these in order:
+1. Summarize conversation history
+2. Filter retrieval results (fewer, more relevant chunks)
+3. Route tools dynamically (only load tool definitions the agent needs this turn)
+4. Compress step results from previous tool calls
+
 ### The Cost Math
 
 ```
