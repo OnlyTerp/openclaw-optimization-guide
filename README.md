@@ -22,9 +22,9 @@
 12. [Self-Improving System](./part12-self-improving-system.md) - Micro-learning loop that compounds forever, $0/day
 13. [Memory Bridge](./part13-memory-bridge.md) - Give coding agents (Codex/Claude Code) access to your vault knowledge
 14. [Quick Checklist](#part-14-quick-checklist) - 30-minute setup checklist
-15. [Infrastructure Hardening](./part15-infrastructure-hardening.md) - Compaction crash loops, GPU contention, Gemini Flash purge, Tavily migration
-16. [autoDream Memory Consolidation](./part16-autodream-memory-consolidation.md) - Automatic memory cleanup inspired by Claude Code's leaked source. Works with any OpenClaw setup — no custom embeddings needed
-15. [The One-Shot Prompt](#part-15-the-one-shot-prompt) - Copy-paste automation prompt
+15. [Infrastructure Hardening](./part15-infrastructure-hardening.md) - Compaction crash loops, GPU contention, Gemini Flash purge, Tavily migration, gateway crash-loop fix
+16. [autoDream Memory Consolidation](./part16-autodream-memory-consolidation.md) - Automatic memory cleanup inspired by Claude Code's leaked source. 3-gate trigger, 4-phase execution, works with any OpenClaw setup
+17. [The One-Shot Prompt](#part-17-the-one-shot-prompt) - Copy-paste automation prompt that does the entire setup
 
 **📊 [Benchmarks](./benchmarks/)** — Real numbers from a production system (context savings, search latency, reindex results, SWE-bench rankings)
 
@@ -134,10 +134,10 @@ New approach: MEMORY.md is a slim index of pointers. Full details live in vault/
 | File | Target Size | What Goes In It | Why This Size |
 |------|------------|-----------------|---------------|
 | SOUL.md | < 1 KB | Personality, tone, core rules | Injected EVERY message - every byte costs latency |
-| AGENTS.md | < 2 KB | Decision tree, tool routing | Needs to fit in working memory |
+| AGENTS.md | 2-10 KB | Decision tree, tool routing, operational protocols (autoDream, coordinator) | Operational protocols are worth the context cost — they replace manual prompting |
 | MEMORY.md | < 3 KB | **Pointers only** - NOT full docs | Vector search replaces big files |
 | TOOLS.md | < 1 KB | Tool names + one-liner usage | Just reminders, not documentation |
-| **Total** | **< 8 KB** | Everything injected per message | Down from 15KB+ = 50-66% faster |
+| **Total** | **8-15 KB** | Everything injected per message | With operational protocols (autoDream, coordinator), 8-15KB is acceptable — these replace manual prompting that would cost more |
 
 **Rule:** If it's longer than a tweet thread, it's too long for a workspace file. Move the details to vault/.
 
@@ -362,6 +362,10 @@ _Pointers only. Search before answering._
 
 Every detailed document → vault/. Leave a one-liner pointer in MEMORY.md or memory/.
 
+**Step 5: Set up autoDream consolidation**
+
+Session memory files pile up fast — 200+ files in a month. [Part 16](./part16-autodream-memory-consolidation.md) adds automatic consolidation that extracts durable knowledge from session files into organized topic files, and rebuilds MEMORY.md as a clean index. No scripts needed — just instructions in AGENTS.md.
+
 ### The Golden Rule
 
 Add this to your SOUL.md:
@@ -400,6 +404,31 @@ You are the ORCHESTRATOR. You coordinate; sub-agents execute.
 
 Your expensive model decides WHAT to build. The cheap model builds it. Right model, right job.
 
+### The 4-Phase Coordinator Protocol (Advanced)
+
+For complex multi-step tasks, use the coordinator pattern from [Claude Code's leaked source](./part16-autodream-memory-consolidation.md):
+
+| Phase | Who | Purpose |
+|-------|-----|---------|
+| **Research** | Workers (parallel) | Investigate codebase, find files, understand problem |
+| **Synthesis** | Coordinator (you) | Read ALL findings, craft specific implementation specs |
+| **Implementation** | Workers (parallel) | Execute specs, commit changes |
+| **Verification** | Workers (parallel) | Test changes, prove they work |
+
+**Key rules:**
+- "Parallelism is your superpower" — launch independent workers concurrently
+- Never say "based on your findings" — read the actual findings and write specific specs
+- Workers can't see your conversation — every prompt must be self-contained
+- Include a purpose statement: "This research will inform a PR — focus on user-facing changes"
+
+**Continue vs Spawn fresh?**
+| Situation | Action |
+|-----------|--------|
+| Worker researched the exact files to edit | Continue (has context) |
+| Research was broad, implementation narrow | Spawn fresh (avoid noise) |
+| Correcting a failure | Continue (has error context) |
+| Verifying another worker's code | Spawn fresh (no bias) |
+
 ### Give Coding Agents Your Brain
 
 Before spawning any coding sub-agent, run the Memory Bridge preflight to inject relevant vault knowledge into the project directory:
@@ -419,12 +448,13 @@ This writes a `CONTEXT.md` that the coding agent reads automatically — giving 
 | Role | What It Does | Best Model(s) | Why |
 |------|-------------|----------------|-----|
 | **Orchestrator** | Plans, judges, coordinates | Claude Opus 4.6 | Best complex reasoning + tool use |
-| **Daily driver** | General assistant | Claude Sonnet 4.6, Gemini 3.1 Pro | Great quality, lower cost |
 | **Sub-agents** | Execute delegated tasks | Gemini 3 Flash, Kimi K2.5, MiMo V2 Pro | Fast, cheap, capable enough |
+| **Infrastructure** | Compaction, fallbacks, bulk work | Cerebras gpt-oss-120b | $0.60/M, 3000 tok/s, reliable |
 | **Coding (hard)** | Architecture, complex bugs | Claude Opus 4.6 | #1 SWE-bench (1549) — best coding model alive |
 | **Coding (batch)** | Scaffolding, CRUD, refactors | GPT-5.4 Codex | Fast, $0 on subscription, good with Memory Bridge |
-| **Research** | Web search, analysis | Gemini 2.5 Flash + Tavily | Built-in grounding |
-| **Free tier** | Zero-cost operations | Gemini (all variants), Groq open models | $0 with generous limits |
+| **Research** | Web search, analysis | Gemini 3 Flash + Tavily | Built-in grounding |
+| **Local inference** | $0 forever, private, no rate limits | QwOpus (27B), TerpBot (Nemotron 30B), Nemotron Nano 4B | Ollama on any GPU |
+| **Free tier** | Zero-cost operations | Gemini (all variants), Cerebras free tier, OpenRouter free models | $0 with generous limits |
 
 ### Model Deep Dive
 
@@ -434,9 +464,15 @@ This writes a `CONTEXT.md` that the coding agent reads automatically — giving 
 - 1M context window with prompt caching (up to 90% savings on cached tokens)
 - **Cost:** $5/M input, $25/M output, $0.50/M cached | **Max ($100/mo):** included - best value for heavy use
 
-**Claude Sonnet 4.6** - The Sweet Spot
-- 80% of Opus quality at 20% of the cost. Strong at coding
+**Claude Sonnet 4.6** - Solid But Not the Best
+- 80% of Opus quality at 20% of the cost. Strong at coding.
+- **Note:** Some power users (including the author) have dropped Sonnet entirely in favor of Opus for orchestration + Cerebras/Gemini for sub-agents. The quality gap matters when your agent makes architectural decisions.
 - **Cost:** $3/M input, $15/M output | **Pro ($20/mo):** included
+
+**Cerebras gpt-oss-120b** - Infrastructure Workhorse
+- 3000 tok/s, $0.60/M input+output. Perfect for compaction, fallbacks, and bulk work where speed matters more than nuance.
+- Free tier: 1M tokens/day (insufficient for heavy use, but good for testing).
+- We use this as the fallback for every agent and as the compaction model.
 
 > **💡 Pro tip:** Don't pay API rates for Claude if you have a subscription. Pro ($20/mo) covers Sonnet, Max ($100/mo) covers Opus. For power users, Max is the best value in AI right now.
 
@@ -474,7 +510,8 @@ This writes a `CONTEXT.md` that the coding agent reads automatically — giving 
 
 If you have a GPU, local models via Ollama = unlimited inference at zero cost.
 
-- **Qwopus (Qwen 3.5 27B + Claude Opus reasoning distilled)** - Opus-style thinking on a single 4090. `ollama pull qwopus`
+- **QwOpus (Qwen 3.5 27B + Opus reasoning distilled)** - Opus-style thinking locally. 63 tok/s on RTX 5090, 1M context with Q4 KV cache. `ollama pull qwopus`
+- **TerpBot (Nemotron 30B fine-tuned)** - Custom fine-tune on clean 9.4K examples. 235 tok/s on 5090, 91.93% MMLU-Pro Math. Not public — but Nemotron 30B base is: `ollama pull nemotron-30b`
 - **NVIDIA Nemotron Nano 4B** - Punches above its weight, 128K context, fits on any GPU. `ollama pull nemotron-nano`
 
 ### Using Anthropic Membership (The Best Way)
@@ -854,6 +891,11 @@ Run through this in 30 minutes:
 - [ ] Daily learnings promotion cron set up — $0 on Cerebras (Part 12)
 - [ ] Memory Bridge scripts installed — `preflight-context.js` + `memory-query.js` (Part 13)
 - [ ] AGENTS.md updated: run preflight before every Codex spawn (Part 13)
+- [ ] autoDream: `memory/.dream-state.json` created with null state (Part 16)
+- [ ] autoDream: consolidation protocol added to AGENTS.md (Part 16)
+- [ ] Config protection: "only ops writes openclaw.json" rule in all agent workspaces
+- [ ] `.gitignore` in `.openclaw/` blocking `openclaw.json`, `auth-profiles.json`, `*.sqlite`
+- [ ] Gateway crash-loop fix: stale PID cleanup in `gateway.cmd` (Part 15)
 
 ---
 
@@ -999,7 +1041,36 @@ After EVERY response, silently check:
   3. Did I discover something? → append 1-line to .learnings/LEARNINGS.md
 Format: "- [YYYY-MM-DD] what happened → what to do instead"
 
-## STEP 8: INSTALL MEMORY BRIDGE (Part 13)
+## STEP 8: SET UP AUTODREAM MEMORY CONSOLIDATION (Part 16)
+
+Create the dream state file:
+- Create memory/.dream-state.json with: {"lastDreamAt":null,"sessionsSinceDream":0,"lastScanAt":null,"totalDreams":0,"lastDreamResult":null,"lastProcessedFiles":[]}
+- Create memory/topics/ directory (or use vault/ if Part 9 is set up)
+
+Add autoDream protocol to AGENTS.md (insert after orchestrator rules):
+
+### autoDream — Memory Consolidation
+On every new session, check gates (cheapest first):
+1. TIME: ≥24h since lastDreamAt? SESSION: ≥5 sessions? USER: not urgent?
+2. If all pass: Orient (read MEMORY.md) → Gather (grep new files, don't read everything) → Consolidate (write topics/vault) → Prune (rebuild MEMORY.md as pure index, <200 lines, <25KB)
+3. Update dream-state.json. On failure, rollback lastDreamAt.
+4. Tell user: "🌙 Memory consolidated — processed N files"
+
+## STEP 9: CONFIG PROTECTION + SECURITY
+
+Add to AGENTS.md in every agent workspace:
+"You are NOT allowed to write openclaw.json. Only the ops agent can. Propose changes as a message."
+
+Create .gitignore in ~/.openclaw/:
+```
+openclaw.json
+openclaw.json.*
+auth-profiles.json
+*.sqlite
+agents/*/sessions/*.jsonl
+```
+
+## STEP 10: INSTALL MEMORY BRIDGE (Part 13)
 
 Clone or copy the Memory Bridge scripts:
 - git clone https://github.com/OnlyTerp/memory-bridge.git scripts/memory-bridge
@@ -1007,7 +1078,7 @@ Clone or copy the Memory Bridge scripts:
 
 Add to AGENTS.md coding workflow: "Before spawning Codex, run: node scripts/memory-bridge/preflight-context.js --task '...' --workdir <dir>"
 
-## STEP 9: VERIFY
+## STEP 11: VERIFY
 
 After all changes:
 1. Restart the gateway: openclaw gateway stop && openclaw gateway start
