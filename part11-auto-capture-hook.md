@@ -6,6 +6,8 @@
 
 The vault system from Part 9 is powerful, but there's a gap: you have to manually write knowledge to vault files. In practice, after a long session, you forget. Insights from debugging sessions, configuration discoveries, architectural decisions — they disappear when the context compacts or you reset.
 
+> **⚠️ This is NOT the same as OpenClaw's built-in `session-memory` hook.** The built-in hook just dumps raw conversation text to a dated markdown file. It does NOT extract knowledge — no decisions, no lessons, no claim-named files. If you enabled `session-memory` and thought you were done, you're not. You need THIS custom hook for real auto-capture. The built-in one is a session saver, not a knowledge extractor.
+
 ByteRover (a community plugin on ClawHub) solves this with an `afterTurn` hook that curates every conversation turn. But it depends on an external `brv` binary that inherits your full environment and conversation content. We built the same thing natively using OpenClaw's hook system — no external binary, no trust issues, your own models.
 
 ---
@@ -48,19 +50,36 @@ Or clone this repo and symlink:
 ln -s /path/to/openclaw-optimization-guide/hooks/auto-capture ~/.openclaw/hooks/auto-capture
 ```
 
-### 3. Update the vault path
+### 3. Set environment variables
 
-Open `handler.ts` and update `INBOX_PATH` to match your vault location:
-```typescript
-const INBOX_PATH = '/path/to/your/workspace/vault/00_inbox';
-// Windows: 'C:\\Users\\YourName\\.openclaw\\workspace\\vault\\00_inbox'
+The handler reads config from environment variables. Set these before starting your gateway:
+
+**Option A: Cerebras (free, recommended)**
+```bash
+# Get a free key at https://cloud.cerebras.ai/
+export CEREBRAS_API_KEY="csk-your-key-here"
 ```
 
-### 4. Update the API key (optional)
+**Option B: Anthropic (if you're on Claude Max and don't want another provider)**
+```bash
+export AUTOCAPTURE_API_URL="https://api.anthropic.com/v1/messages"
+export AUTOCAPTURE_API_KEY="sk-ant-your-key-here"
+export AUTOCAPTURE_MODEL="claude-sonnet-4-20250514"
+```
 
-The handler uses Cerebras by default. If you have your own Cerebras key, update `CEREBRAS_API_KEY`. If you want to use a different provider, swap out the `extractNotes()` function.
+**Option C: Any OpenAI-compatible API**
+```bash
+export AUTOCAPTURE_API_URL="https://your-provider.com/v1/chat/completions"
+export AUTOCAPTURE_API_KEY="your-key"
+export AUTOCAPTURE_MODEL="model-name"
+```
 
-### 5. Enable and restart
+The inbox path auto-detects to `~/.openclaw/workspace/vault/00_inbox`. Override with:
+```bash
+export AUTOCAPTURE_INBOX="/custom/path/to/vault/00_inbox"
+```
+
+### 4. Enable and restart
 
 ```bash
 openclaw hooks enable auto-capture

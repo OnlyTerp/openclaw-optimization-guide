@@ -1,10 +1,28 @@
-# Part 10: State-of-the-Art Embeddings (Stop Using nomic-embed-text)
+# Part 10: State-of-the-Art Embeddings (Pick the Right Local Model)
 
 *By Terp - [Terp AI Labs](https://x.com/OnlyTerp)*
 
 ---
 
-The previous guide recommends `nomic-embed-text` via Ollama. That works fine to get started. But if you have a GPU and want genuinely high-quality semantic search, you've been leaving performance on the table.
+The main guide's one-shot prompt installs a local embedding model via Ollama. Pick the right tier for your hardware:
+
+### Embedding Model Tiers
+
+| Tier | Model | Dims | RAM | Speed | Quality | Best For |
+|------|-------|------|-----|-------|---------|----------|
+| **Budget** | `nomic-embed-text` | 768 | ~300MB | Fast | Good | Minimal hardware, getting started |
+| **Recommended** | `qwen3-embedding:0.6b` | 1024 | ~500MB | Fast | Great | Most setups (Mac Mini, laptops) |
+| **Power** | `qwen3-embedding:4b` | 2048 | ~3GB | Medium | Excellent | 32GB+ RAM, want best local quality |
+| **GPU Beast** | Qwen3-VL-Embedding-8B | 4096 | ~16GB VRAM | Fast | SOTA | Dedicated GPU (RTX 3090+, 5090) |
+| **Cloud** ⚠️ | Gemini, OpenAI, Voyage | varies | 0 | **SLOW (2-5s)** | Excellent | **NOT recommended** — latency kills UX |
+
+> **⚠️ Do not use cloud embeddings as your primary provider.** Every memory search round-trips to an API server, adding 2-5 seconds of latency PER QUERY. This defeats the entire purpose of fast memory search. Local embeddings respond in <100ms. Use cloud only as a fallback if you have no local option at all.
+
+The `qwen3-embedding:0.6b` model is the sweet spot for most users — it's from the same Qwen3 family that holds #1 on MTEB, runs on anything, and blows away nomic on quality. Install via `ollama pull qwen3-embedding:0.6b`.
+
+If you have a dedicated GPU with 16GB+ VRAM, read on for the power user setup with Qwen3-VL-Embedding-8B.
+
+---
 
 Here's everything we learned building a production embedding system on a Windows RTX 5090.
 

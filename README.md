@@ -965,7 +965,7 @@ Run through this in 30 minutes:
 - [ ] Total workspace context under 8 KB
 - [ ] Context pruning enabled (`mode: "cache-ttl"`)
 - [ ] Cron sessions cleaned up / isolated sessions configured
-- [ ] Ollama installed + `nomic-embed-text` pulled
+- [ ] Ollama installed + embedding model pulled (`qwen3-embedding:0.6b` recommended, see Part 10 for tiers)
 - [ ] vault/ directory structure created
 - [ ] Model strategy chosen (orchestrator + sub-agents + fallbacks)
 - [ ] Faster/cheaper fallback model added
@@ -989,6 +989,12 @@ Run through this in 30 minutes:
 - [ ] PreCompletion verification rule in AGENTS.md (Part 5)
 - [ ] Loop detection rule in AGENTS.md (Part 5)
 - [ ] Multi-session projects: `progress.txt` pattern in AGENTS.md (Part 5)
+- [ ] **Auto-capture hook installed** (NOT the built-in session-memory — the custom one from Part 11)
+- [ ] Auto-capture API key set (CEREBRAS_API_KEY or AUTOCAPTURE_API_KEY env var)
+- [ ] **Telegram/Discord users:** session rotation configured (manual `/new` daily or cron every 4h)
+- [ ] **Telegram/Discord users:** session continuity rule in SOUL.md (don't announce resets)
+- [ ] Temporal decay: 60 days for vault, 30 days for session memory
+- [ ] **NOT using cloud embeddings as primary** (must be local Ollama, <100ms search)
 
 ---
 
@@ -1102,8 +1108,12 @@ Check if Ollama is installed:
   - Mac: brew install ollama
   - Linux: curl -fsSL https://ollama.com/install.sh | sh
 
-Pull the embedding model:
-- ollama pull nomic-embed-text
+Pull the embedding model (pick ONE based on your hardware):
+- **16GB+ RAM (recommended):** ollama pull qwen3-embedding:0.6b (best quality-to-size ratio, 1024 dims, 32K context, same family as MTEB #1 model)
+- **32GB+ RAM or dedicated GPU:** ollama pull qwen3-embedding:4b (higher quality, ~3GB RAM)
+- **Low RAM or potato hardware:** ollama pull nomic-embed-text (768 dims, smallest footprint)
+
+Do NOT use cloud embeddings (Gemini, OpenAI, Voyage) as your primary — 2-5 second round-trip latency per search vs <100ms local. Cloud embeddings defeat the entire purpose of fast memory search.
 
 ## STEP 5: ADD FALLBACK MODEL
 
@@ -1184,7 +1194,52 @@ Clone or copy the Memory Bridge scripts:
 
 Add to AGENTS.md coding workflow: "Before spawning Codex, run: node scripts/memory-bridge/preflight-context.js --task '...' --workdir <dir>"
 
-## STEP 12: VERIFY
+## STEP 12: INSTALL AUTO-CAPTURE HOOK (Part 11) — CRITICAL
+
+⚠️ This is NOT the same as the built-in session-memory hook. The built-in one just dumps raw conversation text. This custom hook extracts actual knowledge (decisions, lessons, facts) into claim-named files.
+
+1. Create the hook directory: mkdir -p ~/.openclaw/hooks/auto-capture
+2. Copy hooks/auto-capture/HOOK.md and hooks/auto-capture/handler.ts from this repo into ~/.openclaw/hooks/auto-capture/
+3. Set your extraction model API key (pick one):
+   - Cerebras (free, fast): export CEREBRAS_API_KEY="your-key" (get one at https://cloud.cerebras.ai/)
+   - Or use your existing model: export AUTOCAPTURE_API_URL="your-provider-url" AUTOCAPTURE_API_KEY="your-key" AUTOCAPTURE_MODEL="model-name"
+4. Enable: openclaw hooks enable auto-capture
+
+Without this hook, your vault/00_inbox/ never gets populated automatically and your memory system depends entirely on autoDream mining raw chat logs — which is slow, expensive, and lossy.
+
+## STEP 13: SESSION MANAGEMENT FOR LONG-RUNNING CHATS (Telegram, Discord, etc.)
+
+If you use Telegram, Discord, or any channel where you chat in one long continuous thread:
+
+⚠️ One endless session = context fills up → compaction fires → older knowledge gets summarized away → bot "forgets." This is the #1 cause of "my bot doesn't remember anything."
+
+**Understanding /new:** The `/new` command resets the bot's context window, NOT your chat history. Your Telegram/Discord messages stay exactly where they are — fully scrollable, forever. `/new` just tells the bot to start fresh so it's not dragging hours of old conversation through its context.
+
+**Option A: Manual /new (simplest)**
+- Type `/new` once a day (morning, or when you switch topics)
+- The session-memory hook + auto-capture hook save everything important before reset
+
+**Option B: Automatic session rotation (recommended for Telegram users)**
+- Add a cron job that runs `/new` every 4 hours
+- Add to SOUL.md or AGENTS.md:
+  ```
+  ## Session Continuity
+  When a new session starts, DO NOT announce it. DO NOT say "new session" or "how can I help."
+  Instead, silently read MEMORY.md and your most recent memory/ file to understand what was being discussed.
+  Continue the conversation naturally as if nothing happened.
+  The user should never know a session rotation occurred.
+  ```
+- This keeps context lean while the memory system handles persistence
+- The user never notices — the bot just stays fast and remembers everything through vault + memory search
+
+## STEP 14: TEMPORAL DECAY TUNING
+
+If your embedding config has temporal decay:
+- Set vault documents (vault/**) to 60-day half-life — curated knowledge shouldn't decay fast
+- Set session files (memory/**) to 30-day half-life — these are raw and get consolidated by autoDream
+- Don't set decay below 30 days for anything — it makes the bot forget things it just learned
+
+## STEP 15: VERIFY
 
 After all changes:
 1. Restart the gateway: openclaw gateway stop && openclaw gateway start
@@ -1213,7 +1268,13 @@ That's it. One paste, your bot does everything. If anything fails, your config b
 Re-paste just the steps that didn't complete. The prompt is idempotent - running a step twice won't break anything.
 
 **memory_search not working:**
-Make sure Ollama is running (`ollama ps`) and nomic-embed-text is pulled. OpenClaw auto-detects on localhost:11434.
+Make sure Ollama is running (`ollama serve` or `ollama ps`) and your embedding model is pulled (qwen3-embedding:0.6b or nomic-embed-text). OpenClaw auto-detects on localhost:11434. If search takes 2+ seconds, you're hitting a cloud embedding provider instead of local — check your embedding config in openclaw.json.
+
+**Auto-capture hook not working:**
+The built-in `session-memory` hook is NOT the auto-capture hook. The built-in one just dumps raw text. Check `openclaw hooks list` for 🧠 auto-capture. If it's missing, you need to install the custom hook from this repo's hooks/auto-capture/ directory. Also verify your API key is set: the handler needs CEREBRAS_API_KEY or AUTOCAPTURE_API_KEY as an environment variable.
+
+**Bot forgets everything on Telegram/Discord:**
+You're probably running one long continuous session. Context fills up, compaction summarizes away details, and the bot "forgets." Use `/new` daily or set up automatic session rotation (Step 13). `/new` does NOT delete your chat history — it only resets the bot's working memory.
 
 **Bot still feels slow after trimming:**
 Check total workspace file sizes. If over 10KB, files weren't trimmed. Also check reasoning mode - `high` adds 2-5 seconds per message.

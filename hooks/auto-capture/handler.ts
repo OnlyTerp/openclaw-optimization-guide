@@ -1,10 +1,18 @@
 import fs from 'fs';
 import path from 'path';
 
-const CEREBRAS_URL = 'https://api.cerebras.ai/v1/chat/completions';
-const CEREBRAS_API_KEY =
-  'csk-452ytxyjrcd4wxww6pedkr59p9c28pery53pvr52tpn2kep8';
-const INBOX_PATH = 'C:\\Users\\tworo\\.openclaw\\workspace\\vault\\00_inbox';
+// --- CONFIGURE THESE ---
+// Extraction model: Cerebras is free and fast (~3s). Or use any OpenAI-compatible API.
+// Get a free Cerebras key at: https://cloud.cerebras.ai/
+// If you don't have Cerebras, use your existing provider (Anthropic, OpenRouter, etc.)
+const EXTRACTION_URL = process.env.AUTOCAPTURE_API_URL || 'https://api.cerebras.ai/v1/chat/completions';
+const EXTRACTION_API_KEY = process.env.AUTOCAPTURE_API_KEY || process.env.CEREBRAS_API_KEY || '';
+const EXTRACTION_MODEL = process.env.AUTOCAPTURE_MODEL || 'qwen-3-235b-a22b-instruct-2507';
+// Set this to your workspace vault inbox path
+const INBOX_PATH = process.env.AUTOCAPTURE_INBOX || path.join(
+  process.env.HOME || process.env.USERPROFILE || '~',
+  '.openclaw', 'workspace', 'vault', '00_inbox'
+);
 const MAX_MESSAGES = 30;
 const MIN_USER_MESSAGES = 4;
 const REQUEST_TIMEOUT_MS = 20_000;
@@ -183,14 +191,18 @@ async function extractNotes(conversation: string): Promise<ExtractedNotesRespons
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
-    const response = await fetch(CEREBRAS_URL, {
+    if (!EXTRACTION_API_KEY) {
+      throw new Error('No API key configured. Set AUTOCAPTURE_API_KEY or CEREBRAS_API_KEY env var.');
+    }
+
+    const response = await fetch(EXTRACTION_URL, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${CEREBRAS_API_KEY}`,
+        Authorization: `Bearer ${EXTRACTION_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'qwen-3-235b-a22b-instruct-2507',
+        model: EXTRACTION_MODEL,
         temperature: 0,
         max_tokens: 2000,
         messages: [
