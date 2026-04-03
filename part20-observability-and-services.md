@@ -137,16 +137,29 @@ Invoke-RestMethod -Uri "http://localhost:5678/webhook/your-workflow-id" -Method 
 
 All services run in Docker on your main machine. Zero GPU usage — all CPU + RAM.
 
-```
-Docker Stack:
-├── Neo4j       (~500MB-1GB RAM)  — Knowledge graph for LightRAG
-├── LangFuse    (~300MB RAM)      — Agent observability
-├── n8n         (~200MB RAM)      — Workflow automation
-└── Supporting  (~500MB RAM)      — Postgres, Redis, etc.
-    Total: ~1.5-2GB RAM
+```mermaid
+flowchart TB
+    subgraph GPU ["GPU (VRAM)"]
+        EMB["Embedding Server\nport 8100\n~8GB VRAM"]
+    end
+    subgraph Docker ["Docker Stack (~2GB RAM, zero GPU)"]
+        NEO["Neo4j\nport 7474/7687\n~500MB-1GB RAM"]
+        LF["LangFuse\nport 3100\n~300MB RAM"]
+        N8N["n8n\nport 5678\n~200MB RAM"]
+        PG["Postgres + Redis\n+ ClickHouse + MinIO"]
+    end
+    subgraph Apps ["Application Layer"]
+        OC["OpenClaw Gateway\nport 18789"]
+        LR["LightRAG Server\nport 9621"]
+    end
+    OC --> EMB
+    OC --> LR
+    LR --> EMB
+    LR --> NEO
+    LF --> PG
 ```
 
-Your GPU is untouched — only the embedding server and reranker use VRAM.
+Your GPU is untouched by Docker — only the embedding server uses VRAM (~8GB).
 
 ---
 

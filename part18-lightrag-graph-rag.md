@@ -44,9 +44,17 @@ LightRAG does vector DB + knowledge graph **in parallel** during ingestion. One 
 ## How It Works
 
 ### Ingestion
-```
-Document → Chunks → Embedding Model → Vector Database
-                 → LLM → Entity Extraction → Knowledge Graph
+
+```mermaid
+flowchart LR
+    D[Document] --> C[Chunking]
+    C --> E[Embedding Model]
+    C --> L[LLM Entity Extraction]
+    E --> VDB[(Vector Database)]
+    L --> KG[(Knowledge Graph)]
+    KG -.->|entities| N1((Terp))
+    KG -.->|entities| N2((5090 PC))
+    N1 ---|"owns"| N2
 ```
 
 For each document, LightRAG:
@@ -55,10 +63,14 @@ For each document, LightRAG:
 3. Stores both in parallel — vectors for similarity, graph for structure
 
 ### Query (Dual-Level Retrieval)
-```
-Question → Vector Search → Top-K similar chunks
-        → Graph Traversal → Connected entities + relationships
-        → Merged + Reranked → Answer with citations
+
+```mermaid
+flowchart LR
+    Q[Question] --> VS[Vector Search]
+    Q --> GT[Graph Traversal]
+    VS --> |Top-K chunks| M[Merge + Rerank]
+    GT --> |Connected entities| M
+    M --> A[Answer with Citations]
 ```
 
 Four query modes:
@@ -186,6 +198,17 @@ Create OpenClaw skills for these four operations:
 
 LightRAG **complements** your existing memory system — it doesn't replace it:
 
+```mermaid
+flowchart TD
+    U[User Question] --> D{Question Type?}
+    D -->|Quick fact, current session| MS[memory_search\n~2s, vector only]
+    D -->|Past decisions, relationships,\nmulti-doc reasoning| LR[LightRAG Query\n~5s, graph + vector]
+    D -->|Explore connections visually| WUI[LightRAG Web UI\nlocalhost:9621/webui]
+    MS --> R[Response]
+    LR --> R
+    WUI --> R
+```
+
 1. **memory_search** (fast, vector-only) → first pass for simple lookups
 2. **LightRAG query** (graph + vector) → when you need relationships or memory_search returns weak results
 3. **Web UI** (visual) → when you want to explore the knowledge graph visually
@@ -260,6 +283,16 @@ After ingesting a vault of 700+ files (decisions, lessons, projects, people, res
 | "What failed and why?" | Random mix of error files | Connected chain: failure → root cause → fix → lesson extracted |
 
 The difference is most visible on **relational queries** — anything that requires connecting information across multiple documents.
+
+### Real Side-by-Side (Actual Production Test)
+
+**Question:** "What embedding system do we use and how has it changed over time?"
+
+**Vector-only (memory_search):** Returned 6 snippets — one about Cerebras speed research, one about a clipper vision project, one about tool-augmented agents, one about a Cerebras speed breakthrough, and two completely unrelated files. None answered the question. Total: useless.
+
+**LightRAG (hybrid mode):** Returned a coherent narrative: started with nomic-embed-text on Ollama → upgraded to Qwen3-VL-Embedding-8B → migrated to Qwen3-Embedding-8B (non-VL) → moved from 5090 to 5080 → INT8 quantized at ~8GB VRAM → 4096 dims, 45ms latency, zero cost. Full migration story with reasoning at each step. Cited 5 vault sources.
+
+**Verdict:** Not even close. For any question that requires connecting information across documents, LightRAG is a different league.
 
 ---
 

@@ -92,6 +92,16 @@ exec: repowise dead-code --path <project_path>
 
 ### The Pattern: Repowise → Then Coding Agent
 
+```mermaid
+flowchart LR
+    T[Coding Task] --> R1[repowise search]
+    T --> R2[repowise dead-code]
+    R1 --> CTX[Rich Context:\ndependencies, owners,\narchitecture decisions]
+    R2 --> CTX
+    CTX --> S[Spawn Coding Agent\nwith full context]
+    S --> |"Knows 47 dependents,\nprior decisions,\nhidden coupling"| C[Clean Code Output]
+```
+
 1. **Always query Repowise BEFORE spawning a coding agent**
 2. Include Repowise output in the agent's task description
 3. The coding agent starts with full context instead of blind grepping
