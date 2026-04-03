@@ -81,6 +81,14 @@ Four query modes:
 
 ---
 
+## What It Looks Like
+
+> LightRAG Web UI showing 713 vault files ingested, all completed. Each document gets entity extraction, chunking, and knowledge graph integration.
+
+![LightRAG Document Dashboard](./screenshots/lightrag-webui.png)
+
+---
+
 ## Setup
 
 ### Install

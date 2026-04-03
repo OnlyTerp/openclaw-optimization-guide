@@ -1,8 +1,9 @@
 # OpenClaw Optimization Guide
-### Make Your OpenClaw AI Agent Faster, Smarter, and Actually Useful
-#### Speed optimization, memory architecture, context management, model selection, and one-shot development for OpenClaw
 
-> **Tested on OpenClaw 2026.4.2 — Last updated April 3, 2026** · Parts 1–20 · Battle-tested daily on a production 14+ agent deployment
+> **Tested on OpenClaw 2026.4.2 — April 3, 2026** · 20 parts · Battle-tested on a 14+ agent production deployment
+
+### Make Your OpenClaw AI Agent Faster, Smarter, and Actually Useful
+#### Speed optimization, memory architecture, context management, model selection, graph RAG, codebase intelligence, and agent observability
 
 *By Terp - [Terp AI Labs](https://x.com/OnlyTerp)*
 

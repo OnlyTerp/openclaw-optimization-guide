@@ -44,6 +44,10 @@ docker compose up -d
 - **Failure detection** — find errors, timeouts, and silent failures
 - **Performance metrics** — average latency, token patterns, model comparison
 
+> LangFuse dashboard at localhost:3100 — self-hosted, all data stays on your machine.
+
+![LangFuse Dashboard](./screenshots/langfuse-dashboard.png)
+
 ### OpenClaw Integration
 
 Add tracing via the LangFuse Python SDK in your scripts, or use the REST API:
