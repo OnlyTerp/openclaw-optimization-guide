@@ -44,9 +44,7 @@ docker compose up -d
 - **Failure detection** — find errors, timeouts, and silent failures
 - **Performance metrics** — average latency, token patterns, model comparison
 
-> LangFuse dashboard at localhost:3100 — self-hosted, all data stays on your machine.
-
-![LangFuse Dashboard](./screenshots/langfuse-dashboard.png)
+> LangFuse runs at localhost:3100 — self-hosted, all data stays on your machine. Once you start tracing agent calls, the dashboard shows costs, latency, errors, and token usage across all your agents.
 
 ### OpenClaw Integration
 
