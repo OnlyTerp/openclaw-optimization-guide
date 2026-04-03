@@ -13,7 +13,7 @@ The main guide's one-shot prompt installs a local embedding model via Ollama. Pi
 | **Budget** | `nomic-embed-text` | 768 | ~300MB | Fast | Good | Minimal hardware, getting started |
 | **Recommended** | `qwen3-embedding:0.6b` | 1024 | ~500MB | Fast | Great | Most setups (Mac Mini, laptops) |
 | **Power** | `qwen3-embedding:4b` | 2048 | ~3GB | Medium | Excellent | 32GB+ RAM, want best local quality |
-| **GPU Beast** | Qwen3-VL-Embedding-8B | 4096 | ~16GB VRAM | Fast | SOTA | Dedicated GPU (RTX 3090+, 5090) |
+| **GPU Beast** | Qwen3-Embedding-8B | 4096 | ~8GB VRAM (INT8) | Fast | SOTA | Dedicated GPU (RTX 3090+, 5080+) |
 | **Cloud** ⚠️ | Gemini, OpenAI, Voyage | varies | 0 | **SLOW (2-5s)** | Excellent | **NOT recommended** — latency kills UX |
 
 > **⚠️ Do not use cloud embeddings as your primary provider.** Every memory search round-trips to an API server, adding 2-5 seconds of latency PER QUERY. This defeats the entire purpose of fast memory search. Local embeddings respond in <100ms. Use cloud only as a fallback if you have no local option at all.
@@ -30,18 +30,20 @@ Here's everything we learned building a production embedding system on a Windows
 
 ## Why nomic-embed-text Hits a Ceiling
 
-| | nomic-embed-text | Qwen3-VL-Embedding-8B |
+| | nomic-embed-text | Qwen3-Embedding-8B |
 |---|---|---|
 | **Dimensions** | 768 | 4096 |
-| **MMEB Rank** | ~Top 20 | **#1** |
-| **Multimodal** | No | Yes (text + image) |
-| **Context** | 512 tokens | 4096 tokens |
-| **Serving** | Ollama (GGUF) | vLLM / custom server |
-| **VRAM** | ~300MB | ~16GB |
+| **MTEB Rank** | ~Top 20 | **#1 family** |
+| **Multimodal** | No | No (text-only, which is what you need for memory) |
+| **Context** | 512 tokens | 8192 tokens |
+| **Serving** | Ollama (GGUF) | FastAPI custom server (INT8 quantized) |
+| **VRAM** | ~300MB | ~8GB (INT8) |
 
 768-dim vectors mean less expressiveness. You get fuzzy matches where you wanted exact hits, and the model misses subtle distinctions between concepts.
 
-Qwen3-VL-Embedding-8B is the current #1 on the MMEB leaderboard. 4096 dimensions, multimodal capable (text + images), long context. If you have a 5090 or similar GPU with 16GB+ VRAM, this is the upgrade.
+Qwen3-Embedding-8B is from the Qwen3 family that holds #1 on MTEB. 4096 dimensions, 8K context, text-focused. If you have a GPU with 8GB+ VRAM, this is the upgrade.
+
+> **Note:** We originally used Qwen3-**VL**-Embedding-8B (the vision-language variant) but switched to the non-VL text-only version. Same 4096 dims, same cache compatibility, but more stable and we don't need multimodal embeddings for markdown files. The migration from VL → non-VL was seamless — no re-indexing needed.
 
 ---
 

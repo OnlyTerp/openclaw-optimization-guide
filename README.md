@@ -173,7 +173,7 @@ ollama ps        # Check what's loaded
 ollama stop modelname  # Unload idle big models
 ```
 
-The default model for memory search is `nomic-embed-text` (300 MB). If you have a GPU with 16GB+ VRAM, upgrade to Qwen3-VL-Embedding-8B for dramatically better search quality — see [Part 10](./part10-state-of-the-art-embeddings.md).
+The default model for memory search is `nomic-embed-text` (300 MB). If you have a GPU with 8GB+ VRAM, upgrade to Qwen3-Embedding-8B for dramatically better search quality — see [Part 10](./part10-state-of-the-art-embeddings.md). If you have 500+ vault files, also add [LightRAG (Part 18)](./part18-lightrag-graph-rag.md) for knowledge graph retrieval that blows away basic vector search.
 
 ---
 
@@ -545,6 +545,7 @@ This writes a `CONTEXT.md` that the coding agent reads automatically — giving 
 | **Orchestrator** | Plans, judges, coordinates | Claude Opus 4.6 | Best complex reasoning + tool use |
 | **Sub-agents** | Execute delegated tasks | Gemini 3 Flash, Kimi K2.5, MiMo V2 Pro | Fast, cheap, capable enough |
 | **Infrastructure** | Compaction, fallbacks, bulk work | Cerebras gpt-oss-120b | $0.60/M, 3000 tok/s, reliable |
+| **Knowledge Graph RAG** | Entity extraction, graph queries | Cerebras qwen-3-235b | 1400 tok/s, high accuracy for entity extraction |
 | **Coding (hard)** | Architecture, complex bugs | Claude Opus 4.6 | #1 SWE-bench (1549) — best coding model alive |
 | **Coding (batch)** | Scaffolding, CRUD, refactors | GPT-5.4 Codex | Fast, $0 on subscription, good with Memory Bridge |
 | **Research** | Web search, analysis | Gemini 3 Flash + Tavily | Built-in grounding |
@@ -568,6 +569,12 @@ This writes a `CONTEXT.md` that the coding agent reads automatically — giving 
 - 3000 tok/s, $0.60/M input+output. Perfect for compaction, fallbacks, and bulk work where speed matters more than nuance.
 - Free tier: 1M tokens/day (insufficient for heavy use, but good for testing).
 - We use this as the fallback for every agent and as the compaction model.
+- **⚠️ Don't use for knowledge graph entity extraction** — hallucination risk is too high for memory-critical tasks. Use Qwen3 235B instead (still 1400 tok/s on Cerebras, much more accurate).
+
+**Cerebras qwen-3-235b** - Knowledge Graph & Quality Tasks
+- 1400 tok/s, still faster than most providers serve 8B models.
+- Use for: LightRAG entity extraction, complex analysis, anything where accuracy matters more than raw speed.
+- The 235B beats 120B on structured extraction tasks where hallucinated relationships would poison your knowledge graph.
 
 > **💡 Pro tip:** Don't pay API rates for Claude if you have a subscription. Pro ($20/mo) covers Sonnet, Max ($100/mo) covers Opus. For power users, Max is the best value in AI right now.
 
@@ -635,7 +642,9 @@ Main: Sonnet 4.6 (membership) | Fallback: Gemini 3.1 Pro | Sub-agents: Flash / K
 ```
 Main: Opus 4.6 (membership) | Fallback: Gemini 3.1 Pro | Sub-agents: Kimi / MiMo / Flash
 Code (hard): Opus directly | Code (batch): Codex + Memory Bridge
-Self-improving: .learnings/ micro-loop ($0) | Memory: Qwen3-VL on local GPU
+Self-improving: .learnings/ micro-loop ($0) | Memory: Qwen3-Embedding-8B on local GPU
+Knowledge Graph: LightRAG + Cerebras qwen-3-235b (Part 18)
+Codebase Intel: Repowise (Part 19) | Observability: LangFuse (Part 20)
 ```
 
 ### Pro Tips
@@ -1318,6 +1327,9 @@ Architecture works with any model supporting `memory_search` and `sessions_spawn
 
 **How is this different from other memory solutions?**
 Most add external databases or cloud services. This gives you 90% of the benefit with 10% of the parts - local files + vector search. Nothing to install except Ollama. Nothing leaves your machine.
+
+**Should I use LightRAG or the basic vault system?**
+Start with the basic vault system (Parts 4, 9). It works well up to ~500 files. Once you cross that threshold and start getting irrelevant search results, upgrade to [LightRAG (Part 18)](./part18-lightrag-graph-rag.md). LightRAG builds a knowledge graph on top of your existing vault — same files, dramatically better retrieval. In our testing, basic vector search returned 6 unrelated snippets for a question that LightRAG answered perfectly with a synthesized narrative citing multiple sources.
 
 ---
 
