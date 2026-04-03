@@ -25,6 +25,9 @@
 15. [Infrastructure Hardening](./part15-infrastructure-hardening.md) - Compaction crash loops, GPU contention, Gemini Flash purge, Tavily migration, gateway crash-loop fix
 16. [autoDream Memory Consolidation](./part16-autodream-memory-consolidation.md) - Automatic memory cleanup inspired by Claude Code's leaked source. 3-gate trigger, 4-phase execution, works with any OpenClaw setup
 17. [The One-Shot Prompt](#part-17-the-one-shot-prompt) - Copy-paste automation prompt that does the entire setup
+18. [LightRAG — Graph RAG](./part18-lightrag-graph-rag.md) - Upgrade from vector-only to graph RAG. Entities + relationships, not just text similarity. Built-in Web UI, REST API, LangFuse tracing. The single biggest intelligence upgrade.
+19. [Repowise — Codebase Intelligence](./part19-repowise-codebase-intelligence.md) - 60% fewer tokens, 4x faster coding agents. Dependency graphs, git analytics, dead code detection, architectural decisions.
+20. [Agent Observability](./part20-observability-and-services.md) - LangFuse for tracing all agent calls. n8n for workflow automation. Reranker for better search quality.
 
 **📊 [Benchmarks](./benchmarks/)** — Real numbers from a production system (context savings, search latency, reindex results, SWE-bench rankings)
 
@@ -521,7 +524,9 @@ For complex multi-step tasks, use the coordinator pattern from [Claude Code's le
 
 ### Give Coding Agents Your Brain
 
-Before spawning any coding sub-agent, run the Memory Bridge preflight to inject relevant vault knowledge into the project directory:
+**Codebase Intelligence (NEW — [Part 19](./part19-repowise-codebase-intelligence.md)):** Before spawning coding agents, use [Repowise](https://github.com/repowise-dev/repowise) to give them full codebase context — dependency graphs, git ownership, architectural decisions, dead code detection. 60% fewer tokens, 4x faster task completion. `pip install repowise && repowise init --path /project --index-only`
+
+**Memory Bridge:** Before spawning any coding sub-agent, run the Memory Bridge preflight to inject relevant vault knowledge into the project directory:
 
 ```bash
 node scripts/memory-bridge/preflight-context.js --task "Build auth middleware" --workdir ./my-project
@@ -995,6 +1000,15 @@ Run through this in 30 minutes:
 - [ ] **Telegram/Discord users:** session continuity rule in SOUL.md (don't announce resets)
 - [ ] Temporal decay: 60 days for vault, 30 days for session memory
 - [ ] **NOT using cloud embeddings as primary** (must be local Ollama, <100ms search)
+- [ ] **LightRAG installed** for graph RAG on 500+ doc vaults (Part 18)
+- [ ] LightRAG `.env` configured with LLM + embedding endpoints
+- [ ] Vault files ingested into LightRAG (batch script or Web UI)
+- [ ] OpenClaw skill for LightRAG query/upload (exec-based API calls)
+- [ ] **Repowise installed** on active codebases (Part 19)
+- [ ] Coding workflow: Repowise BEFORE spawning coding agents
+- [ ] **LangFuse deployed** for agent observability (Part 20)
+- [ ] **Reranker running** alongside embedding server (~50MB VRAM)
+- [ ] **n8n deployed** for workflow automation (Part 20)
 
 ---
 
