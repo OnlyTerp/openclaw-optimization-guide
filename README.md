@@ -1314,6 +1314,58 @@ Make sure your model supports `sessions_spawn` and you have a fallback model con
 **Gateway won't restart:**
 Run `openclaw doctor --fix`. If needed, restore backup: `cp ~/.openclaw/openclaw.json.bak ~/.openclaw/openclaw.json`
 
+---
+
+### Parts 18-21 Troubleshooting (LightRAG, Repowise, Services, Watcher)
+
+**LightRAG pipeline hangs / queries return nothing:**
+LightRAG depends on your embedding server. If the embedding server goes down, LightRAG's pipeline hangs indefinitely waiting for embeddings. Fix: restart the embedding server first, then restart LightRAG. Check with `curl http://localhost:8100/health` before touching LightRAG.
+
+**Embedding server keeps crashing:**
+The #1 cause is `pip install` upgrading `sentence-transformers` or `openai` to an incompatible version. `lightrag-hku` and `repowise` both pull newer versions of `openai` that can break your embedding server. Fix: after installing new packages, test the embedding server immediately. If it crashes on startup, check the error — common causes:
+- `SentenceTransformer.__init__() got multiple values for keyword argument 'device'` → remove `device` from `config_kwargs` (sentence-transformers 5.x changed the API)
+- `got an unexpected keyword argument 'use_safetensors'` → remove `use_safetensors` from constructor args
+- Unicode encoding error on Windows (`cp1252`) → set `PYTHONIOENCODING=utf-8` before launching
+
+**Zombie Python processes blocking GPU:**
+If you launch servers via background processes (Start-Process, nohup) and they crash, the Python process can stay alive holding GPU memory. Your new server launch fails silently because the GPU is full. Fix: check `nvidia-smi` for orphaned processes, or check Task Manager for Python processes using lots of memory. Kill them manually, then restart services.
+
+**LightRAG DELETE endpoint wiped everything:**
+⚠️ `DELETE /documents` with a body of `{"ids":[...]}` performs a FULL WIPE of all storage, not a selective delete. This is a LightRAG API gotcha — the batch delete is nuclear. If you need to delete a single document, use the individual document endpoint. If you accidentally wipe, re-run your ingestion script (it tracks state so it won't re-upload already-processed files if you keep the state file).
+
+**LightRAG ingestion stuck on huge files:**
+Files over 100KB (especially 1MB+) can clog the pipeline for hours as the LLM tries to extract entities from hundreds of chunks. Fix: add a size guard to your ingestion script — skip files over 100KB. Those monster files produce noisy graphs anyway. The 95% of value comes from your normal-sized vault files.
+
+**Repowise crashes on Windows:**
+Common Windows issues:
+- `cp1252 encoding error` → set `PYTHONIOENCODING=utf-8` environment variable
+- `repowise init` creates a global DB but `repowise mcp` expects a repo-local `.repowise/wiki.db` → always run `init` from inside the project directory
+- `py -m repowise` doesn't work → use the full path: `C:\Python312\Scripts\repowise.exe`
+- `openai` package conflict → repowise requires openai<2 but lightrag installs openai 2.x. If both are installed, one will break. Consider using separate virtual environments.
+
+**Docker ClickHouse fails on Windows:**
+ClickHouse throws filesystem rename permission errors on Windows bind mounts. Fix: use Docker named volumes for ClickHouse instead of host bind mounts. Other services (Neo4j, Postgres, n8n) work fine with bind mounts.
+
+**File watcher not syncing:**
+Check: (1) is the watcher process running? `python lightrag-watcher.py --status` (2) is LightRAG healthy? The watcher queues files when LightRAG is down and auto-flushes when it comes back. (3) Check the log at `scripts/lightrag-watcher.log` for errors.
+
+**Everything is slow after installing new services:**
+The embedding server, LightRAG, and file watcher all run as separate Python processes. If your machine is RAM-constrained, they compete for resources. Monitor with Task Manager:
+- Embedding server: ~2-4GB RAM + ~8GB VRAM
+- LightRAG: ~500MB RAM (spikes during ingestion)
+- File watcher: ~50MB RAM
+- Docker stack: ~2GB RAM total
+Total: ~5-7GB RAM + ~8GB VRAM. If you're tight on RAM, stop services you're not actively using.
+
+**Best practice: Create a startup script**
+Don't rely on manually starting services. Create a single `.cmd` or `.ps1` that starts everything in the right order:
+1. Embedding server (must be up first — LightRAG depends on it)
+2. LightRAG server (depends on embeddings)
+3. File watcher (depends on LightRAG)
+4. Docker services auto-restart on their own
+
+---
+
 **One-shot prompt struggles on your model:**
 Do these 3 things manually instead:
 1. Copy files from `/templates` into your workspace root
