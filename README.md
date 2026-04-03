@@ -1,6 +1,6 @@
 # OpenClaw Optimization Guide
 
-> **Tested on OpenClaw 2026.4.2 — April 3, 2026** · 20 parts · Battle-tested on a 14+ agent production deployment
+> **Tested on OpenClaw 2026.4.2 — April 3, 2026** · 21 parts · Battle-tested on a 14+ agent production deployment
 
 ### Make Your OpenClaw AI Agent Faster, Smarter, and Actually Useful
 #### Speed optimization, memory architecture, context management, model selection, graph RAG, codebase intelligence, and agent observability
@@ -31,6 +31,7 @@
 18. [LightRAG — Graph RAG](./part18-lightrag-graph-rag.md) - Upgrade from vector-only to graph RAG. Entities + relationships, not just text similarity. Built-in Web UI, REST API, LangFuse tracing. The single biggest intelligence upgrade.
 19. [Repowise — Codebase Intelligence](./part19-repowise-codebase-intelligence.md) - 60% fewer tokens, 4x faster coding agents. Dependency graphs, git analytics, dead code detection, architectural decisions.
 20. [Agent Observability](./part20-observability-and-services.md) - LangFuse for tracing all agent calls. n8n for workflow automation. Reranker for better search quality.
+21. [Real-Time Knowledge Sync](./part21-realtime-knowledge-sync.md) - Event-driven file watcher that syncs vault changes to LightRAG in under 6 seconds. No cron. Self-healing offline queue. The final piece that makes the knowledge graph always current.
 
 **📊 [Benchmarks](./benchmarks/)** — Real numbers from a production system (context savings, search latency, reindex results, SWE-bench rankings)
 
@@ -1021,6 +1022,8 @@ Run through this in 30 minutes:
 - [ ] **LangFuse deployed** for agent observability (Part 20)
 - [ ] **Reranker running** alongside embedding server (~50MB VRAM)
 - [ ] **n8n deployed** for workflow automation (Part 20)
+- [ ] **LightRAG file watcher running** for real-time knowledge sync (Part 21)
+- [ ] Test: write a vault file → confirm it's queryable in LightRAG within 10 seconds
 
 ---
 
