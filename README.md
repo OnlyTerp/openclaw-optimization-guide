@@ -1,6 +1,6 @@
 # OpenClaw Optimization Guide
 
-> **Tested on OpenClaw 2026.4.2 — April 3, 2026** · 21 parts · Battle-tested on a 14+ agent production deployment
+> **Tested on OpenClaw 2026.4.5 — April 7, 2026** · 22 parts · Battle-tested on a 14+ agent production deployment
 
 ### Make Your OpenClaw AI Agent Faster, Smarter, and Actually Useful
 #### Speed optimization, memory architecture, context management, model selection, graph RAG, codebase intelligence, and agent observability
@@ -32,6 +32,7 @@
 19. [Repowise — Codebase Intelligence](./part19-repowise-codebase-intelligence.md) - 60% fewer tokens, 4x faster coding agents. Dependency graphs, git analytics, dead code detection, architectural decisions.
 20. [Agent Observability](./part20-observability-and-services.md) - LangFuse for tracing all agent calls. n8n for workflow automation. Reranker for better search quality.
 21. [Real-Time Knowledge Sync](./part21-realtime-knowledge-sync.md) - Event-driven file watcher that syncs vault changes to LightRAG in under 6 seconds. No cron. Self-healing offline queue. The final piece that makes the knowledge graph always current.
+22. [Built-In Dreaming (memory-core)](#part-22-built-in-dreaming) - OpenClaw's official memory consolidation system. 3-phase sweep: Light, Deep, REM. Automatic promotion to MEMORY.md. The native replacement for our custom autoDream.
 
 **📊 [Benchmarks](./benchmarks/)** — Real numbers from a production system (context savings, search latency, reindex results, SWE-bench rankings)
 
@@ -1388,6 +1389,141 @@ Most add external databases or cloud services. This gives you 90% of the benefit
 
 **Should I use LightRAG or the basic vault system?**
 Start with the basic vault system (Parts 4, 9). It works well up to ~500 files. Once you cross that threshold and start getting irrelevant search results, upgrade to [LightRAG (Part 18)](./part18-lightrag-graph-rag.md). LightRAG builds a knowledge graph on top of your existing vault — same files, dramatically better retrieval. In our testing, basic vector search returned 6 unrelated snippets for a question that LightRAG answered perfectly with a synthesized narrative citing multiple sources.
+
+---
+
+## Part 22: Built-In Dreaming
+
+> **OpenClaw 2026.4+** — The official memory consolidation system built into memory-core. This is the native version of what our custom autoDream (Part 16) prototyped.
+
+### What Changed
+
+Our [autoDream implementation (Part 16)](./part16-autodream-memory-consolidation.md) was a custom AGENTS.md-driven workaround we built by reverse-engineering Claude Code's memory consolidation pattern. It worked, but it required you to set up triggers, state tracking, and consolidation logic manually.
+
+OpenClaw 2026.4+ ships a **built-in dreaming system** inside memory-core that does all of this natively. If you're on 2026.4+, use the built-in version instead.
+
+### How It Works
+
+Dreaming runs a 3-phase sweep on a cron schedule (default: 3am daily):
+
+| Phase | What It Does | Writes to MEMORY.md? |
+|-------|-------------|---------------------|
+| **Light** | Sorts and stages recent short-term material. Dedupes daily signals. | No |
+| **Deep** | Scores candidates and promotes durable entries to MEMORY.md using weighted ranking. | Yes |
+| **REM** | Extracts themes and reflective patterns. Builds reflection summaries. | No |
+
+Plus a **Dream Diary** — a human-readable narrative entry in DREAMS.md written by a background subagent turn after each sweep.
+
+### Deep Ranking Signals
+
+Deep phase decides what becomes long-term memory using 6 weighted signals:
+
+| Signal | Weight | What It Measures |
+|--------|--------|-----------------|
+| Frequency | 0.24 | How many short-term signals the entry accumulated |
+| Relevance | 0.30 | Average retrieval quality for the entry |
+| Query diversity | 0.15 | Distinct query/day contexts that surfaced it |
+| Recency | 0.15 | Time-decayed freshness score |
+| Consolidation | 0.10 | Multi-day recurrence strength |
+| Conceptual richness | 0.06 | Concept-tag density from snippet/path |
+
+Entries must pass `minScore`, `minRecallCount`, and `minUniqueQueries` thresholds to be promoted.
+
+### Quick Start
+
+```json
+{
+  "plugins": {
+    "entries": {
+      "memory-core": {
+        "config": {
+          "dreaming": {
+            "enabled": true
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+### Custom Cadence
+
+```json
+{
+  "plugins": {
+    "entries": {
+      "memory-core": {
+        "config": {
+          "dreaming": {
+            "enabled": true,
+            "timezone": "America/New_York",
+            "frequency": "0 */6 * * *"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+### Slash Commands
+
+```
+/dreaming status    — Check current state, last run, next scheduled run
+/dreaming on        — Enable dreaming
+/dreaming off       — Disable dreaming
+/dreaming help      — Show usage info
+```
+
+### CLI Commands
+
+```bash
+# Preview what would be promoted (dry run)
+openclaw memory promote
+
+# Apply promotions to MEMORY.md
+openclaw memory promote --apply
+
+# Limit to top N candidates
+openclaw memory promote --limit 5
+
+# Explain why a specific candidate would/wouldn't promote
+openclaw memory promote-explain "router vlan"
+
+# Preview REM reflections without writing
+openclaw memory rem-harness
+
+# JSON output for scripting
+openclaw memory promote --json
+openclaw memory rem-harness --json
+```
+
+### What Gets Written
+
+| Location | Content |
+|----------|---------|
+| `memory/.dreams/` | Machine state — recall store, phase signals, ingestion checkpoints, locks |
+| `DREAMS.md` | Human-readable Dream Diary entries + phase summaries |
+| `memory/dreaming/<phase>/YYYY-MM-DD.md` | Optional phase reports |
+| `MEMORY.md` | Long-term promoted entries (Deep phase only) |
+
+### Dreams UI
+
+The Gateway Dreams tab shows:
+- Current enabled/disabled state
+- Phase-level status and managed-sweep presence
+- Short-term, long-term, and promoted-today counts
+- Next scheduled run timing
+- Expandable Dream Diary reader
+
+### Should You Use This or Part 16?
+
+**Use Part 22 (built-in dreaming)** if you're on OpenClaw 2026.4+. It's the official, supported implementation with proper scoring, phase management, and a UI.
+
+**Use Part 16 (custom autoDream)** only if you're on an older version or need custom consolidation logic that the built-in system doesn't support.
+
+*Source: [OpenClaw Dreaming Documentation](https://docs.openclaw.ai/concepts/dreaming)*
 
 ---
 

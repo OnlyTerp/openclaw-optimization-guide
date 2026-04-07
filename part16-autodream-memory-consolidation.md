@@ -1,5 +1,7 @@
 # Part 16: autoDream — Automatic Memory Consolidation
 
+> **Note:** OpenClaw 2026.4+ has a [built-in dreaming system (Part 22)](./README.md#part-22-built-in-dreaming) inside memory-core. If you're on 2026.4+, use that instead — it's the official, supported version with proper scoring, phase management, and a UI. This part is kept for older versions and custom implementations.
+
 *Your agent's memory grows forever. Session files pile up. MEMORY.md gets stale. Knowledge gets buried. autoDream fixes this by teaching your agent to consolidate its own memory — automatically, on every session start.*
 
 ---
