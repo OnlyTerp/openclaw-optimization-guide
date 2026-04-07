@@ -20,7 +20,7 @@
 7. [Web Search](#part-7-web-search-give-your-agent-eyes-on-the-internet) - Tavily, Brave, Serper, Gemini grounding
 8. [One-Shotting Big Tasks](#part-8-one-shotting-big-tasks-stop-iterating-start-researching) - Research-first methodology
 9. [Vault Memory System](#part-9-vault-memory-system-stop-losing-knowledge-between-sessions) - Structured knowledge graph, MOCs, cross-session continuity
-10. [State-of-the-Art Embeddings](./part10-state-of-the-art-embeddings.md) - Upgrade from nomic to Qwen3-VL, Stark Edition server, Windows gotchas
+10. [State-of-the-Art Embeddings](./part10-state-of-the-art-embeddings.md) - Upgrade from nomic to qwen3-embedding, SOTA quality, Windows gotchas
 11. [Auto-Capture Hook](./part11-auto-capture-hook.md) - Automatic knowledge extraction after every session, no manual memory writes
 12. [Self-Improving System](./part12-self-improving-system.md) - Micro-learning loop that compounds forever, $0/day
 13. [Memory Bridge](./part13-memory-bridge.md) - Give coding agents (Codex/Claude Code) access to your vault knowledge
@@ -178,7 +178,7 @@ ollama ps        # Check what's loaded
 ollama stop modelname  # Unload idle big models
 ```
 
-The default model for memory search is `nomic-embed-text` (300 MB). If you have a GPU with 8GB+ VRAM, upgrade to Qwen3-Embedding-8B for dramatically better search quality — see [Part 10](./part10-state-of-the-art-embeddings.md). If you have 500+ vault files, also add [LightRAG (Part 18)](./part18-lightrag-graph-rag.md) for knowledge graph retrieval that blows away basic vector search.
+The default model for memory search should be `qwen3-embedding:0.6b` (500 MB, 1024 dims) — same Qwen3 family that holds #1 on MTEB, runs on anything, and blows away nomic on quality. Pull it: `ollama pull qwen3-embedding:0.6b`. If you have a GPU with 8GB+ VRAM, upgrade to Qwen3-Embedding-8B for dramatically better search quality — see [Part 10](./part10-state-of-the-art-embeddings.md). If you have 500+ vault files, also add [LightRAG (Part 18)](./part18-lightrag-graph-rag.md) for knowledge graph retrieval that blows away basic vector search.
 
 ---
 
@@ -385,9 +385,9 @@ _Pointers only. Search before answering._
 
 Every detailed document → vault/. Leave a one-liner pointer in MEMORY.md or memory/.
 
-**Step 5: Set up autoDream consolidation**
+**Step 5: Set up memory consolidation**
 
-Session memory files pile up fast — 200+ files in a month. [Part 16](./part16-autodream-memory-consolidation.md) adds automatic consolidation that extracts durable knowledge from session files into organized topic files, and rebuilds MEMORY.md as a clean index. No scripts needed — just instructions in AGENTS.md.
+Session memory files pile up fast — 200+ files in a month. OpenClaw 2026.4+ has built-in dreaming ([Part 22](#part-22-built-in-dreaming)) — enable it in memory-core config and it auto-consolidates on a daily schedule. For older versions, use the custom autoDream approach in [Part 16](./part16-autodream-memory-consolidation.md).
 
 ### The Golden Rule
 
@@ -548,12 +548,12 @@ This writes a `CONTEXT.md` that the coding agent reads automatically — giving 
 | Role | What It Does | Best Model(s) | Why |
 |------|-------------|----------------|-----|
 | **Orchestrator** | Plans, judges, coordinates | Claude Opus 4.6 | Best complex reasoning + tool use |
-| **Sub-agents** | Execute delegated tasks | Gemini 3 Flash, Kimi K2.5, MiMo V2 Pro | Fast, cheap, capable enough |
+| **Sub-agents** | Execute delegated tasks | Kimi K2.5, MiMo V2 Pro, Gemini Flash | Fast, cheap, capable enough |
 | **Infrastructure** | Compaction, fallbacks, bulk work | Cerebras gpt-oss-120b | $0.60/M, 3000 tok/s, reliable |
 | **Knowledge Graph RAG** | Entity extraction, graph queries | Cerebras qwen-3-235b | 1400 tok/s, high accuracy for entity extraction |
 | **Coding (hard)** | Architecture, complex bugs | Claude Opus 4.6 | #1 SWE-bench (1549) — best coding model alive |
 | **Coding (batch)** | Scaffolding, CRUD, refactors | GPT-5.4 Codex | Fast, $0 on subscription, good with Memory Bridge |
-| **Research** | Web search, analysis | Gemini 3 Flash + Tavily | Built-in grounding |
+| **Research** | Web search, analysis | Kimi K2.5 + Tavily | Cheap, fast, good at research synthesis |
 | **Local inference** | $0 forever, private, no rate limits | QwOpus (27B), TerpBot (Nemotron 30B), Nemotron Nano 4B | Ollama on any GPU |
 | **Free tier** | Zero-cost operations | Gemini (all variants), Cerebras free tier, OpenRouter free models | $0 with generous limits |
 
@@ -565,7 +565,7 @@ This writes a `CONTEXT.md` that the coding agent reads automatically — giving 
 - 1M context window with prompt caching (up to 90% savings on cached tokens)
 - **Cost:** $5/M input, $25/M output, $0.50/M cached | **Max ($100/mo):** included - best value for heavy use
 
-**Claude Sonnet 4.6** - Solid But Not the Best
+**Claude Sonnet 4** - Solid Workhorse
 - 80% of Opus quality at 20% of the cost. Strong at coding.
 - **Note:** Some power users (including the author) have dropped Sonnet entirely in favor of Opus for orchestration + Cerebras/Gemini for sub-agents. The quality gap matters when your agent makes architectural decisions.
 - **Cost:** $3/M input, $15/M output | **Pro ($20/mo):** included
@@ -635,12 +635,12 @@ Your Claude Pro/Max subscription includes API access. OpenClaw can use it direct
 
 **Budget ($0/month):**
 ```
-Main: Gemini 3.1 Pro (free) | Sub-agents: Gemini 3 Flash | Local: Nemotron Nano 4B
+Main: Gemini 3.1 Pro (free tier) | Sub-agents: Gemini Flash (free tier) | Local: Qwen 3.5 Opus Distilled
 ```
 
 **Balanced (~$20/month - Claude Pro):**
 ```
-Main: Sonnet 4.6 (membership) | Fallback: Gemini 3.1 Pro | Sub-agents: Flash / Kimi K2.5
+Main: Sonnet 4 (membership) | Fallback: Gemini 3.1 Pro | Sub-agents: MiMo V2 Pro / Kimi K2.5
 ```
 
 **Power (~$100/month - Claude Max):**
@@ -877,7 +877,7 @@ A MOC connects related notes with `[[wiki-links]]`. Example:
 
 ## Key Facts
 - 358 memory files in memory/, mostly date-named
-- Vector search (Qwen3-VL or nomic-embed-text, 45ms, $0) finds similar, not connected
+- Vector search (qwen3-embedding or nomic-embed-text, ~45ms local, $0) finds similar, not connected
 - MEMORY.md must stay under 5K - injected on every message
 
 ## Connected Topics
@@ -1139,9 +1139,10 @@ Check if Ollama is installed:
   - Linux: curl -fsSL https://ollama.com/install.sh | sh
 
 Pull the embedding model (pick ONE based on your hardware):
-- **16GB+ RAM (recommended):** ollama pull qwen3-embedding:0.6b (best quality-to-size ratio, 1024 dims, 32K context, same family as MTEB #1 model)
+- **Most setups (recommended):** ollama pull qwen3-embedding:0.6b (best quality-to-size ratio, 1024 dims, 32K context, same family as MTEB #1 model)
 - **32GB+ RAM or dedicated GPU:** ollama pull qwen3-embedding:4b (higher quality, ~3GB RAM)
-- **Low RAM or potato hardware:** ollama pull nomic-embed-text (768 dims, smallest footprint)
+- **RTX 3090+ or 5080+ with 16GB+ VRAM:** Use Qwen3-Embedding-8B via Fireworks or local vLLM (4096 dims, SOTA quality — see Part 10)
+- **Low RAM or potato hardware:** ollama pull nomic-embed-text (768 dims, smallest footprint — noticeably worse quality)
 
 Do NOT use cloud embeddings (Gemini, OpenAI, Voyage) as your primary — 2-5 second round-trip latency per search vs <100ms local. Cloud embeddings defeat the entire purpose of fast memory search.
 
@@ -1187,20 +1188,30 @@ If editing same file 5+ times without progress, STOP and reconsider approach ent
 ### Multi-Session Projects
 One feature at a time. Create progress.txt (done/in-progress/next). Start sessions by reading it.
 
-## STEP 9: SET UP AUTODREAM MEMORY CONSOLIDATION (Part 16)
+## STEP 9: SET UP MEMORY CONSOLIDATION
 
-Create the dream state file:
+**OpenClaw 2026.4+ (recommended):** Enable built-in dreaming in openclaw.json:
+```json
+{
+  "plugins": {
+    "entries": {
+      "memory-core": {
+        "config": {
+          "dreaming": {
+            "enabled": true
+          }
+        }
+      }
+    }
+  }
+}
+```
+That's it. Dreaming runs daily at 3am automatically. See Part 22 for full config.
+
+**Older versions (< 2026.4):** Use the custom autoDream approach from Part 16:
 - Create memory/.dream-state.json with: {"lastDreamAt":null,"sessionsSinceDream":0,"lastScanAt":null,"totalDreams":0,"lastDreamResult":null,"lastProcessedFiles":[]}
 - Create memory/topics/ directory (or use vault/ if Part 9 is set up)
-
-Add autoDream protocol to AGENTS.md (insert after orchestrator rules):
-
-### autoDream — Memory Consolidation
-On every new session, check gates (cheapest first):
-1. TIME: ≥24h since lastDreamAt? SESSION: ≥5 sessions? USER: not urgent?
-2. If all pass: Orient (read MEMORY.md) → Gather (grep new files, don't read everything) → Consolidate (write topics/vault) → Prune (rebuild MEMORY.md as pure index, <200 lines, <25KB)
-3. Update dream-state.json. On failure, rollback lastDreamAt.
-4. Tell user: "🌙 Memory consolidated — processed N files"
+- Add autoDream protocol to AGENTS.md (see Part 16 for full instructions)
 
 ## STEP 10: CONFIG PROTECTION + SECURITY
 
@@ -1370,7 +1381,7 @@ Don't rely on manually starting services. Create a single `.cmd` or `.ps1` that 
 **One-shot prompt struggles on your model:**
 Do these 3 things manually instead:
 1. Copy files from `/templates` into your workspace root
-2. Run `ollama pull nomic-embed-text`
+2. Run `ollama pull qwen3-embedding:0.6b`
 3. Restart gateway: `openclaw gateway stop && openclaw gateway start`
 
 ## FAQ
