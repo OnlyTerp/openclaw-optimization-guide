@@ -130,7 +130,7 @@ The pattern is simple. The discipline is everything.
 
 ## See Also
 
-- [Part 2 — Context Engineering](./README.md#part-2-context-engineering-the-discipline) — why the hot path has a budget.
+- [Part 2 — Context Engineering](./README.md#part-2-context-engineering--the-discipline) — why the hot path has a budget.
 - [Part 4 — Memory](./README.md#part-4-memory-stop-forgetting-everything) — the three memory stores and how they compose.
 - [Part 9 — Vault Memory System](./part9-vault-memory.md) — the filesystem layout for the raw-sources tier.
 - [Part 11 — Auto-Capture Hook](./part11-auto-capture-hook.md) — how generated artifacts re-enter the raw layer safely.

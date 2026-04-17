@@ -101,7 +101,7 @@ Full reasoning and update rules in **[Part 31 — The LLM Wiki Pattern In OpenCl
 ## Who This Is For
 
 - **Running any OpenClaw agent in production.** If your bot handles real work, the speed, memory, and security parts are non-optional.
-- **Just hit "why is my agent slow?" for the first time.** [Part 1](#part-1-speed-stop-being-slow) and [Part 2](#part-2-context-engineering-the-discipline) are where to start.
+- **Just hit "why is my agent slow?" for the first time.** [Part 1](#part-1-speed-stop-being-slow) and [Part 2](#part-2-context-engineering--the-discipline) are where to start.
 - **Coming from v3.x or early v4.0.** Start with [Part 26 — Migration Guide](./part26-migration-guide.md), then [Part 25 — Architecture Overview](./part25-architecture-overview.md).
 - **Building multi-agent systems.** [Part 5 — Orchestration](#part-5-orchestration-stop-doing-everything-yourself) and [Part 24 — Task Brain](./part24-task-brain-control-plane.md) are your backbone.
 - **Already read half the guide and forget what's where.** Jump to [Part 27 — Gotchas & FAQ](./part27-gotchas-and-faq.md) or the themed map below.
@@ -133,7 +133,7 @@ Full numbers in **[benchmarks/](./benchmarks/)**.
 
 ## Companion resources shipped with the guide
 
-Alongside the 28 parts themselves, this repo now includes the tooling that turns "I read the guide" into "I can audit and reproduce the results":
+Alongside the 32 parts themselves, this repo now includes the tooling that turns "I read the guide" into "I can audit and reproduce the results":
 
 - **[SCORECARD.md](./SCORECARD.md)** — The OpenClaw Production Readiness Scorecard. 50 items across Speed / Memory / Orchestration / Security / Observability, 2 points each, max 100. Designed to be copy-pasted into your own repo and shared publicly.
 - **[AWESOME.md](./AWESOME.md)** — A curated, opinionated list of OpenClaw resources: skills worth installing, memory and orchestration tools, observability stacks, research papers, talks, communities, adjacent ecosystems.
@@ -208,7 +208,7 @@ Not every part applies to every reader. Jump directly to the pillar that matches
 
 | I want to… | Start with |
 |-------------|-----------|
-| **Make my agent faster** | [1 Speed](#part-1-speed-stop-being-slow) · [2 Context Engineering](#part-2-context-engineering-the-discipline) · [3 Cron Bloat](#part-3-cron-session-bloat-the-hidden-killer) · [6 Models](#part-6-models-what-to-actually-use) |
+| **Make my agent faster** | [1 Speed](#part-1-speed-stop-being-slow) · [2 Context Engineering](#part-2-context-engineering--the-discipline) · [3 Cron Bloat](#part-3-cron-session-bloat-the-hidden-killer) · [6 Models](#part-6-models-what-to-actually-use) |
 | **Stop it forgetting things** | [4 Memory](#part-4-memory-stop-forgetting-everything) · [9 Vault](#part-9-vault-memory-system-stop-losing-knowledge-between-sessions) · [10 Embeddings](./part10-state-of-the-art-embeddings.md) · [22 Built-In Dreaming](#part-22-built-in-dreaming) · [31 LLM Wiki Pattern](./part31-the-llm-wiki-pattern-in-openclaw.md) |
 | **Reduce cost** | [5 Orchestration](#part-5-orchestration-stop-doing-everything-yourself) · [6 Models](#part-6-models-what-to-actually-use) · [8 One-Shotting](#part-8-one-shotting-big-tasks-stop-iterating-start-researching) · [22 Memory you can afford](#part-22-built-in-dreaming) |
 | **Handle real codebases** | [18 LightRAG](./part18-lightrag-graph-rag.md) · [19 Repowise](./part19-repowise-codebase-intelligence.md) · [21 Real-time Sync](./part21-realtime-knowledge-sync.md) |
@@ -235,7 +235,7 @@ Not every part applies to every reader. Jump directly to the pillar that matches
 
 **⚡ Speed & context**
 1. [Speed — Stop Being Slow](#part-1-speed-stop-being-slow) — trim context, add fallbacks, reasoning mode, `localModelLean`
-2. [Context Engineering — The Discipline](#part-2-context-engineering-the-discipline) — quadratic scaling, pruning, compaction, 5-min cache TTL trap
+2. [Context Engineering — The Discipline](#part-2-context-engineering--the-discipline) — quadratic scaling, pruning, compaction, 5-min cache TTL trap
 3. [Cron Session Bloat — The Hidden Killer](#part-3-cron-session-bloat-the-hidden-killer) — session file accumulation, cleanup
 
 **🧠 Memory**

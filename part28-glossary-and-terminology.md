@@ -29,7 +29,7 @@ The 2026.3.31-beta.1+ replacement for name-based tool allowlisting. Tools regist
 
 The per-workspace file that holds **operational rules** for the agent: decision tree, tool routing, when to spawn sub-agents, memory-write rules, config-protection rules. Injected on every message. Target size: 2–10 KB.
 
-- **Covered in:** [Part 2 — Context Bloat](./README.md#part-2-context-bloat-the-silent-performance-killer), [Part 5 — Orchestration](./README.md#part-5-orchestration-stop-doing-everything-yourself).
+- **Covered in:** [Part 2 — Context Engineering](./README.md#part-2-context-engineering--the-discipline), [Part 5 — Orchestration](./README.md#part-5-orchestration-stop-doing-everything-yourself).
 
 ## Auto-capture hook
 
@@ -54,7 +54,7 @@ The architectural alternative to running OpenClaw on your own box: **delegate th
 
 The discipline — named by Karpathy and picked up by Gartner in the week of April 10-17, 2026 — of **treating every token in the context window as a budgeted resource**. Includes pruning, progressive disclosure (keep big things out of the default prompt until activated), cache-friendly ordering, and explicit file-hierarchy tiers (SOUL/AGENTS/MEMORY/skills). Part 2 is this guide's practical treatment of the discipline.
 
-- **Covered in:** [Part 2 — Context Engineering](./README.md#part-2-context-engineering-the-discipline), [Part 31 — The LLM Wiki Pattern](./part31-the-llm-wiki-pattern-in-openclaw.md).
+- **Covered in:** [Part 2 — Context Engineering](./README.md#part-2-context-engineering--the-discipline), [Part 31 — The LLM Wiki Pattern](./part31-the-llm-wiki-pattern-in-openclaw.md).
 
 ## Canvas UI
 
@@ -84,7 +84,7 @@ Official OpenClaw skills marketplace, launched with **v4.1 (March 15, 2026)**. 1
 
 The process of summarizing older chat history when context gets close to the model's limit. Runs a secondary model (the **compaction model**). Pre-2026.4.15 it could infinite-loop on 16K-context local models; now the `reserveTokens` floor is capped to the model's context window.
 
-- **Covered in:** [Part 2 — Context Bloat](./README.md#part-2-context-bloat-the-silent-performance-killer), [Part 15 — Infrastructure Hardening](./part15-infrastructure-hardening.md).
+- **Covered in:** [Part 2 — Context Engineering](./README.md#part-2-context-engineering--the-discipline), [Part 15 — Infrastructure Hardening](./part15-infrastructure-hardening.md).
 
 ## Coordinator protocol
 
@@ -241,13 +241,13 @@ The **persistent spec** a Ralph Loop reads and writes every iteration. Contains 
 
 The context-engineering principle of **keeping big context out of the default prompt until a condition activates it** (a skill fires, a file is opened, a sub-agent spawns). Opposing anti-pattern: stuffing everything into CLAUDE.md / AGENTS.md and blowing the budget on every message. Five independent April 2026 writeups ([MindStudio Apr 15](https://www.mindstudio.ai/blog/progressive-disclosure-ai-agents-context-management/), among others) named this as the single biggest lever for long-session cost.
 
-- **Covered in:** [Part 2 — Context Engineering](./README.md#part-2-context-engineering-the-discipline), [Part 31 — The LLM Wiki Pattern](./part31-the-llm-wiki-pattern-in-openclaw.md).
+- **Covered in:** [Part 2 — Context Engineering](./README.md#part-2-context-engineering--the-discipline), [Part 31 — The LLM Wiki Pattern](./part31-the-llm-wiki-pattern-in-openclaw.md).
 
 ## Prompt cache TTL (5-minute trap)
 
 Anthropic's prompt-cache default TTL silently dropped from **1 hour to 5 minutes** in March 2026. Most operators missed the release note; bills quietly went up 2-4× for cache-heavy workloads because cache hits stopped materializing. Fix: pass an explicit `ttl` when writing cache checkpoints, or accept the new default and rebuild cache affinity.
 
-- **Covered in:** [Part 2 — Context Engineering](./README.md#part-2-context-engineering-the-discipline).
+- **Covered in:** [Part 2 — Context Engineering](./README.md#part-2-context-engineering--the-discipline).
 
 ## Ralph loop
 
@@ -307,7 +307,7 @@ The runtime error OpenClaw raises when a hook exits with code `2`. Unlike a norm
 
 The per-workspace personality / tone / core-rules file. Injected on every message. Target size: **< 1 KB** — every byte costs latency.
 
-- **Covered in:** [Part 2 — Context Bloat](./README.md#part-2-context-bloat-the-silent-performance-killer), [Part 4 — Memory](./README.md#part-4-memory-stop-forgetting-everything).
+- **Covered in:** [Part 2 — Context Engineering](./README.md#part-2-context-engineering--the-discipline), [Part 4 — Memory](./README.md#part-4-memory-stop-forgetting-everything).
 
 ## Task Brain
 

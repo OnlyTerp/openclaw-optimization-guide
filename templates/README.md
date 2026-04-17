@@ -9,10 +9,10 @@ A working-by-default starter bundle that matches the patterns documented in the 
 | File | What it is | Target size | Introduced in |
 |---|---|---|---|
 | `openclaw.example.json` | Reference config. Copy to `~/.openclaw/openclaw.json` (or your project root), replace `${...}` env var refs with real credentials, edit to taste. | ~2 KB | [Part 15](../part15-infrastructure-hardening.md), [Part 24](../part24-task-brain-control-plane.md) |
-| `SOUL.md` | Agent personality file (tone + anti-patterns). Injected every message. | **< 1 KB** | [Part 2](../README.md#part-2-context-bloat-the-silent-performance-killer) |
+| `SOUL.md` | Agent personality file (tone + anti-patterns). Injected every message. | **< 1 KB** | [Part 2](../README.md#part-2-context-engineering--the-discipline) |
 | `AGENTS.md` | Operating rules: decision tree, orchestration, approval categories, safety. Injected every message. | **< 2 KB** | [Part 5](../README.md#part-5-orchestration-stop-doing-everything-yourself) |
 | `MEMORY.md` | Pure index with links into `vault/`. Injected every message. | **< 3 KB** | [Part 4](../README.md#part-4-memory-stop-forgetting-everything) |
-| `TOOLS.md` | Tool name + one-liner per line. Stops model re-reading full tool schemas. | **< 1 KB** | [Part 2](../README.md#part-2-context-bloat-the-silent-performance-killer) |
+| `TOOLS.md` | Tool name + one-liner per line. Stops model re-reading full tool schemas. | **< 1 KB** | [Part 2](../README.md#part-2-context-engineering--the-discipline) |
 | `vault/projects/` | Project-level notes directory (one folder per active project). | — | [Part 9](../part9-vault-memory.md) |
 
 Combined injected-context footprint target: **< 8 KB**. Compare against [benchmarks/](../benchmarks/).
@@ -40,7 +40,7 @@ Full setup in [setup.sh](../setup.sh) / [setup.ps1](../setup.ps1) at the repo ro
 
 ## Philosophy (one screen)
 
-1. **Target < 8 KB of injected context.** Every KB above that pays tax on every turn. See [Part 1 — Speed](../README.md#part-1-speed-stop-being-slow) and [Part 2 — Context Bloat](../README.md#part-2-context-bloat-the-silent-performance-killer).
+1. **Target < 8 KB of injected context.** Every KB above that pays tax on every turn. See [Part 1 — Speed](../README.md#part-1-speed-stop-being-slow) and [Part 2 — Context Engineering](../README.md#part-2-context-engineering--the-discipline).
 2. **MEMORY.md is an index, not a store.** Details go in `vault/`. Memory-core's built-in dreaming keeps it small automatically. See [Part 4](../README.md#part-4-memory-stop-forgetting-everything) + [Part 22](../README.md#part-22-built-in-dreaming).
 3. **Orchestrator + workers, not a megamind.** Frontier model plans, cheap workers execute. See [Part 5](../README.md#part-5-orchestration-stop-doing-everything-yourself) + [Part 24](../part24-task-brain-control-plane.md).
 4. **Semantic approvals, not name allowlists.** Read-only allow, execution ask, write.network ask, control-plane deny. See [Part 24](../part24-task-brain-control-plane.md).
