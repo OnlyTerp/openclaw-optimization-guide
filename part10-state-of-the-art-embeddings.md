@@ -14,9 +14,32 @@ The main guide's one-shot prompt installs a local embedding model via Ollama. Pi
 | **Recommended** | `qwen3-embedding:0.6b` | 1024 | ~500MB | Fast | Great | Most setups (Mac Mini, laptops) |
 | **Power** | `qwen3-embedding:4b` | 2048 | ~3GB | Medium | Excellent | 32GB+ RAM, want best local quality |
 | **GPU Beast** | Qwen3-Embedding-8B | 4096 | ~8GB VRAM (INT8) | Fast | SOTA | Dedicated GPU (RTX 3090+, 5080+) |
-| **Cloud** ⚠️ | Gemini, OpenAI, Voyage | varies | 0 | **SLOW (2-5s)** | Excellent | **NOT recommended** — latency kills UX |
+| **Cloud** ⚠️ | Gemini, OpenAI, Voyage, Copilot | varies | 0 | **SLOW (2-5s)** | Excellent | **NOT recommended** — latency kills UX |
 
 > **⚠️ Do not use cloud embeddings as your primary provider.** Every memory search round-trips to an API server, adding 2-5 seconds of latency PER QUERY. This defeats the entire purpose of fast memory search. Local embeddings respond in <100ms. Use cloud only as a fallback if you have no local option at all.
+
+### GitHub Copilot Embeddings (new in OpenClaw 2026.4.15-beta.1)
+
+OpenClaw 2026.4.15-beta.1 added a `copilot` memory-search provider. If your org already pays for Copilot Business/Enterprise, this reuses that seat for embeddings:
+
+```json5
+{
+  "agents": {
+    "defaults": {
+      "memorySearch": {
+        "provider": "copilot",
+        "model": "copilot-text-embedding"
+      }
+    }
+  }
+}
+```
+
+**When it makes sense:** a corporate deployment already standardized on Copilot that doesn't want another vendor (OpenAI, Voyage, etc.) in procurement.
+
+**When it doesn't:** a personal/power-user setup. The latency is still cloud-cloud (2-5s round trip), you lose offline capability, and you're still better off with a local Ollama `qwen3-embedding:0.6b` that answers in <100ms for free.
+
+**Gotcha:** Copilot embeddings share rate limits with Copilot chat completions. If you also use Copilot as an agent model, heavy memory-search traffic can starve chat \u2014 watch the new Model Auth card in Control UI for rate-limit pressure and keep a local fallback configured.
 
 The `qwen3-embedding:0.6b` model is the sweet spot for most users — it's from the same Qwen3 family that holds #1 on MTEB, runs on anything, and blows away nomic on quality. Install via `ollama pull qwen3-embedding:0.6b`.
 
