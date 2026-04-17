@@ -6,6 +6,9 @@
 
 The main guide's one-shot prompt installs a local embedding model via Ollama. Pick the right tier for your hardware:
 
+> **Read this if** you care about retrieval quality, you're running local embeddings, or you want to evaluate the GitHub Copilot embedding provider added in 2026.4.15-beta.1.
+> **Skip if** you're using cloud embeddings behind a managed memory service and don't mind the latency/cost — the defaults are fine for casual single-user setups.
+
 ## Embedding Model Tiers
 
 | Tier | Model | Dims | RAM | Speed | Quality | Best For |
@@ -39,7 +42,7 @@ OpenClaw 2026.4.15-beta.1 added a `copilot` memory-search provider. If your org 
 
 **When it doesn't:** a personal/power-user setup. The latency is still cloud-cloud (2-5s round trip), you lose offline capability, and you're still better off with a local Ollama `qwen3-embedding:0.6b` that answers in <100ms for free.
 
-**Gotcha:** Copilot embeddings share rate limits with Copilot chat completions. If you also use Copilot as an agent model, heavy memory-search traffic can starve chat \u2014 watch the new Model Auth card in Control UI for rate-limit pressure and keep a local fallback configured.
+**Gotcha:** Copilot embeddings share rate limits with Copilot chat completions. If you also use Copilot as an agent model, heavy memory-search traffic can starve chat — watch the new Model Auth card in Control UI for rate-limit pressure and keep a local fallback configured.
 
 The `qwen3-embedding:0.6b` model is the sweet spot for most users — it's from the same Qwen3 family that holds #1 on MTEB, runs on anything, and blows away nomic on quality. Install via `ollama pull qwen3-embedding:0.6b`.
 

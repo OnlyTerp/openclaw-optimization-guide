@@ -1,6 +1,9 @@
 # Part 25: Architecture Overview (v4.0+)
 
-> New primer in the 2026.4.15-beta.1 refresh. If you came in after v4.0 shipped, the architecture underneath OpenClaw is probably different from the one you learned. This part is the shortest possible map of how the current system actually fits together \u2014 read it once, then the rest of the guide makes more sense.
+> New primer in the 2026.4.15-beta.1 refresh. If you came in after v4.0 shipped, the architecture underneath OpenClaw is probably different from the one you learned. This part is the shortest possible map of how the current system actually fits together — read it once, then the rest of the guide makes more sense.
+
+> **Read this if** you're newish to OpenClaw v4.0+, or you've been following the guide part-by-part without a map of where each piece fits.
+> **Skip if** you already know the gateway daemon / Canvas / memory-core / Task Brain / ClawHub pieces and just want to tune a specific one — jump straight to the targeted part.
 
 ## The Five Moving Parts
 
@@ -60,10 +63,10 @@ If the gateway is the heart, Task Brain ([Part 24](./part24-task-brain-control-p
 
 The thing that actually runs a model and pushes a conversation forward. Two shapes:
 
-- **Main agent** \u2014 your interactive session. High-quality model, full tool access, human in the loop.
-- **Sub-agent workers** \u2014 spawned via `sessions_spawn`. Cheaper/faster model, narrower tool scope, no interactive input. [Part 5](./README.md#part-5-orchestration-stop-doing-everything-yourself) is the full pattern.
+- **Main agent** — your interactive session. High-quality model, full tool access, human in the loop.
+- **Sub-agent workers** — spawned via `sessions_spawn`. Cheaper/faster model, narrower tool scope, no interactive input. [Part 5](./README.md#part-5-orchestration-stop-doing-everything-yourself) is the full pattern.
 
-All spawns go through the Task Brain ledger now \u2014 meaning you can see, audit, and revoke them in one place.
+All spawns go through the Task Brain ledger now — meaning you can see, audit, and revoke them in one place.
 
 ### 3. Memory Layer
 
@@ -75,15 +78,15 @@ Three stores with different jobs. They're complementary, not alternatives:
 | **memory-lancedb** | Vector index over session files + vault | `memory_search` tool call | [4](./README.md#part-4-memory-stop-forgetting-everything), [10](./part10-state-of-the-art-embeddings.md) |
 | **LightRAG** | Knowledge graph (entities + relationships) | Graph queries on complex questions | [18](./part18-lightrag-graph-rag.md), [21](./part21-realtime-knowledge-sync.md) |
 
-The vault ([Part 9](./part9-vault-memory.md)) is the filesystem layout that makes all three of these useful \u2014 it's not a fourth store, it's the structure they all index over.
+The vault ([Part 9](./part9-vault-memory.md)) is the filesystem layout that makes all three of these useful — it's not a fourth store, it's the structure they all index over.
 
 ### 4. Skills / Plugins
 
 Where agent capabilities come from. Three sources:
 
-- **ClawHub skills** \u2014 community marketplace. High capability, high attack surface. [Part 23](./part23-clawhub-skills-marketplace.md).
-- **Local plugins** \u2014 things you wrote or configured directly in `openclaw.json`.
-- **Hooks** \u2014 lifecycle callbacks (session-start, session-end, etc.). The auto-capture hook ([Part 11](./part11-auto-capture-hook.md)) and the file watcher ([Part 21](./part21-realtime-knowledge-sync.md)) are the two most useful.
+- **ClawHub skills** — community marketplace. High capability, high attack surface. [Part 23](./part23-clawhub-skills-marketplace.md).
+- **Local plugins** — things you wrote or configured directly in `openclaw.json`.
+- **Hooks** — lifecycle callbacks (session-start, session-end, etc.). The auto-capture hook ([Part 11](./part11-auto-capture-hook.md)) and the file watcher ([Part 21](./part21-realtime-knowledge-sync.md)) are the two most useful.
 
 All three register tools with the gateway, which classifies them into semantic approval categories ([Part 24](./part24-task-brain-control-plane.md)).
 
@@ -91,12 +94,12 @@ All three register tools with the gateway, which classifies them into semantic a
 
 The things you, a human, actually click or type in:
 
-- **CLI / IDE** \u2014 `openclaw` commands, editor integrations.
-- **Canvas UI** \u2014 the browser UI introduced in v4.0. Interactive chat + task ledger view + Model Auth status card (new 2026.4.15-beta.1).
-- **ACP callers** \u2014 anything that calls into an agent procedure programmatically (webhooks, scripts, other agents).
-- **Cron jobs** \u2014 scheduled runs. Native in v4.0+ (was a plugin before).
+- **CLI / IDE** — `openclaw` commands, editor integrations.
+- **Canvas UI** — the browser UI introduced in v4.0. Interactive chat + task ledger view + Model Auth status card (new 2026.4.15-beta.1).
+- **ACP callers** — anything that calls into an agent procedure programmatically (webhooks, scripts, other agents).
+- **Cron jobs** — scheduled runs. Native in v4.0+ (was a plugin before).
 
-All four surfaces are interchangeable from the gateway's point of view \u2014 they all produce Task Brain tasks.
+All four surfaces are interchangeable from the gateway's point of view — they all produce Task Brain flows.
 
 ## What Changed In Each Major Version
 
@@ -105,13 +108,14 @@ Short form, so you know what era a given piece of advice applies to:
 | Version | Date | Headline change | Why you care |
 |---------|------|-----------------|--------------|
 | **v3.x** | pre-2026 | Multiple processes, plugin-based cron | Legacy. Most of this guide does not apply. |
-| **v4.0** | early 2026 | Ground-up rewrite: gateway daemon, Canvas UI, native cron, 15+ messaging platforms | The architecture the rest of this guide assumes. |
-| **v4.1 / ClawHub** | 2026-03-15 | Official skills marketplace | 13K+ skills in a month, also 1,184 malicious ones. See [Part 23](./part23-clawhub-skills-marketplace.md). |
-| **v2026.3.31-beta.1** | 2026-03-31 | Task Brain control plane + semantic approvals | Structural response to March CVE wave. See [Part 24](./part24-task-brain-control-plane.md). |
-| **v2026.4.x** | 2026-04 | memory-core built-in dreaming; plus rolling fixes | Part 22 replaces the custom autoDream from Part 16. |
-| **v2026.4.15-beta.1** | 2026-04-15 | memory-lancedb cloud storage, Copilot embeddings, `localModelLean`, compaction reserve-token cap, gateway auth hot-reload, approvals secret redaction, `memory_get` canonical-only | This guide's current baseline. |
+| **v4.0 — "The Agent OS"** | 2026-02-20 | Ground-up rewrite: gateway daemon, Canvas UI, native cron scheduling, 15+ messaging platforms (WhatsApp, Telegram, Discord, Slack, iMessage, WeChat, Line, Signal, Matrix, Teams…), new plugin API | The architecture the rest of this guide assumes. |
+| **v4.1 — ClawHub** | 2026-03-15 | Official skills marketplace, Claude Code ACP harness, Soul.md semantic memory | 13K+ skills in a week; also the ClawHavoc supply-chain incident (1,184 malicious skills confirmed by Antiy CERT). See [Part 23](./part23-clawhub-skills-marketplace.md). |
+| **v4.2 — ACP** | 2026-03-28 | Agent Communication Protocol, thread-bound persistent sessions, sub-agent spawning, `session_status` tool | Protocol-level multi-agent plumbing. |
+| **v2026.3.31-beta.1 — Task Brain** | 2026-03-31 | Control plane, semantic approval categories, fail-closed plugin installs, gateway auth tightening | Structural response to the Feb–Mar CVE wave. See [Part 24](./part24-task-brain-control-plane.md). |
+| **v2026.4.x** | early 2026-04 | memory-core built-in dreaming; rolling fixes | Part 22 replaces the custom autoDream pattern. |
+| **v2026.4.15-beta.1** | 2026-04-15 | memory-lancedb cloud storage, GitHub Copilot embedding provider, `agents.defaults.experimental.localModelLean`, compaction reserve-token cap, `models.authStatus` gateway method + Canvas Model Auth card, approvals secret redaction, `memory_get` canonical-only | This guide's current baseline. |
 
-If you're on something older than v4.0, the first upgrade is not reading this guide \u2014 it's moving to v4.0+. See [Part 26 \u2014 Migration Guide](./part26-migration-guide.md).
+If you're on something older than v4.0, the first upgrade is not reading this guide — it's moving to v4.0+. See [Part 26 — Migration Guide](./part26-migration-guide.md).
 
 ## The Data Flow Of A Typical Request
 
@@ -146,11 +150,11 @@ sequenceDiagram
 
 Every arrow in that diagram is a point where you can configure something that this guide covers:
 
-- The gateway \u2014 context pruning, compaction, auth, approval policy.
-- The main agent \u2014 model, reasoning mode, orchestration rules.
-- Memory \u2014 which embeddings, how big the vault, do you have LightRAG.
-- The spawn \u2014 what worker model, what tool scope, what approval categories.
-- The tool \u2014 which skills, how trusted, how scoped.
+- The gateway — context pruning, compaction, auth, approval policy.
+- The main agent — model, reasoning mode, orchestration rules.
+- Memory — which embeddings, how big the vault, do you have LightRAG.
+- The spawn — what worker model, what tool scope, what approval categories.
+- The tool — which skills, how trusted, how scoped.
 
 Knowing which arrow you're tuning is usually more important than knowing which specific flag to flip.
 

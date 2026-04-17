@@ -4,6 +4,9 @@ Your OpenClaw setup probably has hidden landmines that cause crash loops, GPU co
 
 ---
 
+> **Read this if** you're running OpenClaw in production, have more than one user on it, or have ever hit a gateway crash loop, GPU contention, or a secret leak in an approval prompt.
+> **Skip if** you're experimenting on a single-user dev box and don't mind restarting every few hours.
+
 ## The Compaction Crash Loop
 
 ### The Problem
@@ -243,7 +246,7 @@ After the Claude Code leak, a developer built [secretgate](https://github.com/ni
 
 ### Gateway Auth Hot-Reload (new in 2026.4.15-beta.1)
 
-Before 2026.4.15-beta.1, rotating a gateway auth secret required a full gateway restart \u2014 every agent, every running sub-agent, every in-flight cron job got dropped. That made rotation so painful that most operators just\u2026 didn't. Expired OAuth tokens quietly degraded half the setup.
+Before 2026.4.15-beta.1, rotating a gateway auth secret required a full gateway restart — every agent, every running sub-agent, every in-flight cron job got dropped. That made rotation so painful that most operators just… didn't. Expired OAuth tokens quietly degraded half the setup.
 
 2026.4.15-beta.1 adds `secrets.reload`: drop a new value into your secret store and the gateway picks it up without restarting. New requests use the new secret; in-flight requests finish on the old one.
 
@@ -251,7 +254,7 @@ Before 2026.4.15-beta.1, rotating a gateway auth secret required a full gateway 
 # Example: rotate an Anthropic key without killing the gateway
 # (exact command depends on how your secrets are wired)
 openclaw secrets set ANTHROPIC_API_KEY "sk-ant-new-key-here"
-openclaw secrets reload
+openclaw secrets reload   # verb varies across 2026.4.x betas—check `openclaw --help`
 openclaw doctor  # confirm new key picked up
 ```
 
@@ -259,11 +262,11 @@ openclaw doctor  # confirm new key picked up
 
 ### Approvals Secret Redaction (new in 2026.4.15-beta.1)
 
-When a tool call required approval, the approval prompt used to echo the full argument payload to the approver \u2014 including any API keys, tokens, or passwords the tool was about to send. A reviewer clicking "approve" on a `curl` call was reading the raw `Authorization: Bearer \u2026` header.
+When a tool call required approval, the approval prompt used to echo the full argument payload to the approver — including any API keys, tokens, or passwords the tool was about to send. A reviewer clicking "approve" on a `curl` call was reading the raw `Authorization: Bearer …` header.
 
-2026.4.15-beta.1 redacts secret-shaped strings (`sk-*`, `sk-ant-*`, `AIza*`, `xai-*`, `Bearer *`, `password=*`, etc.) from approval prompts before they reach the reviewer. The tool still receives the real values \u2014 only the approval UI sees placeholders.
+2026.4.15-beta.1 redacts secret-shaped strings (`sk-*`, `sk-ant-*`, `AIza*`, `xai-*`, `Bearer *`, `password=*`, etc.) from approval prompts before they reach the reviewer. The tool still receives the real values — only the approval UI sees placeholders.
 
-**Practical impact:** if you run OpenClaw with human-in-the-loop approvals (most multi-user deployments should \u2014 see [Part 24](./part24-task-brain-control-plane.md)), upgrade. Before this fix, every approval was a credential leak to the approver.
+**Practical impact:** if you run OpenClaw with human-in-the-loop approvals (most multi-user deployments should — see [Part 24](./part24-task-brain-control-plane.md)), upgrade. Before this fix, every approval was a credential leak to the approver.
 
 ### Gateway Crash Loop Fix
 
@@ -294,7 +297,7 @@ This kills any orphaned gateway process before starting a new one. Without this,
 - [ ] No credentials written in memory/session files (rule in AGENTS.md)
 - [ ] Existing git history scanned for leaked secrets
 - [ ] Gateway startup script has stale-process cleanup
-- [ ] Gateway auth hot-reload tested (2026.4.15-beta.1+): rotate a test key via `openclaw secrets reload` without a gateway restart
+- [ ] Gateway auth hot-reload tested (2026.4.15-beta.1+): rotate a test key and confirm the Canvas **Model Auth status card** picks up the new credential without a full gateway restart (backed by the `models.authStatus` gateway method)
 - [ ] Approval prompts show redacted secrets, not raw values (2026.4.15-beta.1+)
 - [ ] Config backed up before changes
 - [ ] Gateway restarted after config changes

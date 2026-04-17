@@ -4,6 +4,9 @@
 
 ---
 
+> **Read this if** your vault has 500+ files, plain vector search is returning junk, or you want the agent to reason about *relationships between entities* rather than retrieving snippets.
+> **Skip if** you have a small vault and vector search (Parts 4/10) is already giving you good answers.
+
 ## The Problem With Basic Vector Search
 
 Part 4 and Part 9 gave you memory. Part 10 gave you better embeddings. But vector search has a fundamental ceiling: **it finds what's similar, not what's connected.**

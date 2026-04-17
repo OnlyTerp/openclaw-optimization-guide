@@ -2,6 +2,9 @@
 
 > New in the 2026.4.15-beta.1 refresh. Every "I wasted a day on this" distilled into one page. Skim this before you debug; half your questions are answered here.
 
+> **Read this if** something is broken, confusing, or behaving weirdly and you want to check the common-causes list before deep-diving.
+> **Skip if** nothing is broken — come back when it is.
+
 ## Gotchas, Grouped By Symptom
 
 ### "memory_search returns nothing / takes 5 seconds"
@@ -41,15 +44,15 @@
 |-------|-----|
 | Compaction model rate-limited | Set explicit compaction model (not Flash). [Part 15](./part15-infrastructure-hardening.md). |
 | `reserveTokens` larger than model context window | Upgrade to 2026.4.15-beta.1 (cap auto-applied) or manually set `reserveTokens` under the window. |
-| Compaction set to a reasoning model | Use an instruct model for compaction \u2014 reasoning burns tokens you're trying to save. |
+| Compaction set to a reasoning model | Use an instruct model for compaction — reasoning burns tokens you're trying to save. |
 
 ### "Gateway keeps restarting / port 18789 in use"
 
 | Cause | Fix |
 |-------|-----|
 | Stale gateway process holding the port | Add cleanup to your startup script. See the [Gateway Crash Loop Fix](./part15-infrastructure-hardening.md#gateway-crash-loop-fix) in Part 15. |
-| Auth token expired | Run `openclaw doctor`. Rotate via `openclaw secrets reload` (2026.4.15-beta.1+). |
-| Config file has JSON syntax error after edit | `openclaw.json.clobbered.*` will exist \u2014 diff against your backup and fix. |
+| Auth token expired | Check the Canvas **Model Auth status card** (added 2026.4.15-beta.1). Rotate the underlying credential, then refresh; the gateway's `models.authStatus` method picks it up without a full restart. |
+| Config file has JSON syntax error after edit | `openclaw.json.clobbered.*` will exist — diff against your backup and fix. |
 
 ### "Sub-agent spawns suddenly require approval"
 
@@ -75,7 +78,7 @@
 | Knowledge graph has fewer than ~500 documents | Normal. LightRAG shines at scale. Keep writing. See [Part 18](./part18-lightrag-graph-rag.md). |
 | File watcher not running | Start it. See [Part 21](./part21-realtime-knowledge-sync.md). |
 | LightRAG service not reachable | Check the service is up, the port is right, and the config points at it. |
-| Embeddings changed recently | Re-index \u2014 LightRAG needs a consistent embedding dimensionality. |
+| Embeddings changed recently | Re-index — LightRAG needs a consistent embedding dimensionality. |
 
 ### "My expensive model keeps getting rate-limited"
 
@@ -98,7 +101,7 @@
 
 ### Is any of this still relevant if I only run one agent?
 
-Yes \u2014 Parts 1 through 10 are mostly single-agent. The orchestration, task brain, and skills parts are where multi-agent deployments pull ahead, but even a single-agent setup benefits from context hygiene, memory architecture, and proper approvals.
+Yes — Parts 1 through 10 are mostly single-agent. The orchestration, task brain, and skills parts are where multi-agent deployments pull ahead, but even a single-agent setup benefits from context hygiene, memory architecture, and proper approvals.
 
 ### Do I need all of LightRAG, Repowise, and memory-lancedb?
 
@@ -110,7 +113,7 @@ Skills are genuinely useful, but the marketplace has a malware problem. Our reco
 
 ### Local models: good idea or not?
 
-Both. For the **orchestrator** you want a frontier model (Claude, GPT, Gemini Pro) \u2014 the quality difference is huge on planning. For **workers**, local models on a decent GPU are absolutely viable and save real money. See [Part 6](./README.md#part-6-models-what-to-actually-use) for tier-by-tier guidance.
+Both. For the **orchestrator** you want a frontier model (Claude, GPT, Gemini Pro) — the quality difference is huge on planning. For **workers**, local models on a decent GPU are absolutely viable and save real money. See [Part 6](./README.md#part-6-models-what-to-actually-use) for tier-by-tier guidance.
 
 ### How do I know if I should use reasoning mode?
 
@@ -122,18 +125,18 @@ Not yet, and not with a broad approval policy. You can safely run a narrow-scope
 
 ### Does this guide work outside Windows?
 
-Yes. Most examples show both PowerShell and bash; the config files are identical. Setup scripts are provided as both `setup.ps1` and `setup.sh`. The Windows-specific gotcha to know is [Part 10](./part10-state-of-the-art-embeddings.md)'s embedding install path \u2014 go read it before you pull the big models.
+Yes. Most examples show both PowerShell and bash; the config files are identical. Setup scripts are provided as both `setup.ps1` and `setup.sh`. The Windows-specific gotcha to know is [Part 10](./part10-state-of-the-art-embeddings.md)'s embedding install path — go read it before you pull the big models.
 
-### I've never used OpenClaw before \u2014 where do I start?
+### I've never used OpenClaw before — where do I start?
 
-1. Read [Part 25 \u2014 Architecture Overview](./part25-architecture-overview.md) first (15 min).
+1. Read [Part 25 — Architecture Overview](./part25-architecture-overview.md) first (15 min).
 2. Then the [Quick Checklist](./README.md#part-14-quick-checklist) in the README.
 3. Then pick a pillar that matches what you care about (speed / memory / security / observability) and read the parts in it.
 4. Don't try to read the whole guide in one sitting. It's a reference.
 
-### I'm on v3.x \u2014 how much of this applies?
+### I'm on v3.x — how much of this applies?
 
-Very little. v4.0 was a rewrite. Start with [Part 26 \u2014 Migration Guide](./part26-migration-guide.md) \u2014 get to v4.0 first, then come back.
+Very little. v4.0 was a rewrite. Start with [Part 26 — Migration Guide](./part26-migration-guide.md) — get to v4.0 first, then come back.
 
 ### What if I find something in this guide that's wrong?
 
@@ -145,4 +148,4 @@ The repo is MIT-licensed. Attribution is appreciated (link back, mention Terp AI
 
 ### How often does this guide get updated?
 
-Continuously when OpenClaw ships something material. Check the version line at the top of the README \u2014 if it matches your OpenClaw version, you're current. If it's behind, open an issue.
+Continuously when OpenClaw ships something material. Check the version line at the top of the README — if it matches your OpenClaw version, you're current. If it's behind, open an issue.

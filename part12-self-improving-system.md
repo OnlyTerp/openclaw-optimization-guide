@@ -4,6 +4,9 @@ Your agent makes a mistake Monday. You correct it. Tuesday, same mistake. Wednes
 
 **The fix: a micro-learning loop that costs <100 tokens/message and compounds forever.**
 
+> **Read this if** you correct the same mistakes every week, or want your agent to compound learnings over months instead of forgetting them at the next `/new`.
+> **Skip if** you only use your agent for one-off tasks where pattern memory isn't worth the infra.
+
 ## The Architecture
 
 ```

@@ -2,6 +2,9 @@
 
 > Added for OpenClaw 2026.4.15-beta.1. Covers Task Brain, introduced in v2026.3.31-beta.1 and hardened across the 2026.4.x line in response to the March 2026 CVE wave.
 
+> **Read this if** you're on OpenClaw v2026.3.31-beta.1 or later (you are, if you're up to date), run sub-agents, use approvals, or do anything in production.
+> **Skip if** you're on a pre-Task-Brain build — but in that case you should upgrade first (see [Part 26](./part26-migration-guide.md)).
+
 ## What Task Brain Is
 
 Before 2026.3.31-beta.1, OpenClaw had four separate ways to run something:
@@ -13,23 +16,25 @@ Before 2026.3.31-beta.1, OpenClaw had four separate ways to run something:
 
 Each had its own execution path, its own audit trail (or lack of one), and its own approval semantics. Getting a complete picture of "what is this OpenClaw instance actually doing right now?" meant grepping four different log locations.
 
-Task Brain unified all of it. Every non-trivial action in OpenClaw \u2014 regardless of who kicked it off \u2014 is now a **task** in a single ledger. You can see it with:
+Task Brain unified all of it onto a **SQLite-backed task flow registry**. Every non-trivial action in OpenClaw — regardless of who kicked it off — is now a flow in one ledger. You see it with:
 
 ```bash
-openclaw tasks list
-openclaw tasks show <task-id>
-openclaw tasks audit --since 24h
+openclaw flows list
+openclaw flows show <flow-id>
+openclaw flows cancel <flow-id>
 ```
 
-Think of it as the Kubernetes control plane, but for AI agent actions: unified lifecycle, unified auth, unified observability.
+> The release notes call this the **task flow registry**. Internal design docs from earlier betas called it the "task ledger" / "tasks" — if you read anything from before April 2026, the nouns don't match, but the object model does. The published CLI as of 2026.4.15-beta.1 is `openclaw flows`.
 
-## The March CVE Wave (Why This Matters)
+Think of it as the Kubernetes control plane, but for AI agent actions: unified lifecycle, heartbeat monitoring with automatic recovery of lost tasks, parent-record tracking so subtask results trace back to the originating conversation, and blocked-state persistence so tasks retry on the same flow instead of fragmenting.
 
-Task Brain wasn't a gentle roadmap item. It shipped as the structural response to nine security CVEs published against OpenClaw in March 2026. The common thread across most of them:
+## The February–March CVE Wave (Why This Matters)
 
-- **Name-based allowlisting is not a security boundary.** The old approvals model let users write `approvals: { allow: ["bash", "exec"] }`. A malicious skill could register a new tool named `bash_v2` that did whatever it wanted \u2014 the allowlist matched on name, not intent.
+Task Brain wasn't a gentle roadmap item. It shipped as the structural response to a cluster of CVEs disclosed against OpenClaw over February–March 2026. Headline entries included `CVE-2026-25253` (one-click RCE), `CVE-2026-25157` (command injection), `CVE-2026-25158` (path traversal), plus a WebSocket shared-auth scope escalation at **CVSS 9.9** ([nine CVEs in four days](https://www.tryopenclaw.ai/blog/openclaw-cve-flood-march-2026/) in mid-March alone). Peter Steinberger's [official release post](https://openclawai.io/blog/openclaw-task-brain-v2026-3-31-control-plane-security) described the v2026.3.31-beta.1 drop as "primarily about security hardening." The common thread across most of those CVEs:
+
+- **Name-based allowlisting is not a security boundary.** The old approvals model let users write `approvals: { allow: ["bash", "exec"] }`. A malicious skill could register a new tool named `bash_v2` that did whatever it wanted — the allowlist matched on name, not intent.
 - **No cross-surface enforcement.** A tool blocked in an interactive session was often still runnable via cron or sub-agent spawn, because each surface enforced approvals independently.
-- **Approval prompts leaked credentials.** Covered in [Part 15](./part15-infrastructure-hardening.md) \u2014 2026.4.15-beta.1 redacts these now.
+- **Approval prompts leaked credentials.** Covered in [Part 15](./part15-infrastructure-hardening.md) — 2026.4.15-beta.1 redacts these now.
 
 Task Brain replaces name-based allowlisting with **semantic approval categories** and enforces them at a single choke point every surface goes through.
 
@@ -49,7 +54,7 @@ Every tool invocation is now classified into one of a small fixed set of categor
 | `control-plane.tasks` | Controls other Task Brain tasks | spawn, cancel, approve, deny |
 | `control-plane.skills` | Installs/removes/updates skills | ClawHub operations, see [Part 23](./part23-clawhub-skills-marketplace.md) |
 
-**Categories are assigned by the tool's declared intent, not by name.** A skill can't sidestep `execution.shell` by registering a tool called `totally_not_bash` \u2014 it still runs through the shell executor, so Task Brain categorizes it as `execution.shell` regardless of the display name.
+**Categories are assigned by the tool's declared intent, not by name.** A skill can't sidestep `execution.shell` by registering a tool called `totally_not_bash` — it still runs through the shell executor, so Task Brain categorizes it as `execution.shell` regardless of the display name.
 
 ## The Default Policy We Recommend
 
@@ -70,8 +75,8 @@ Every tool invocation is now classified into one of a small fixed set of categor
 Rules of thumb:
 
 - **`read-only.*` \u2192 allow.** Agents need to read to be useful. Logging is fine, approval prompts on every file read are not.
-- **`execution.*` \u2192 ask** (at least on first use, or by command signature). This is the one you'll actually approve/deny hundreds of times \u2014 the core agent behavior loop.
-- **`write.network` \u2192 ask.** Tweeting, emailing, posting webhooks, API DELETEs. Asymmetric blast radius \u2014 one silent approve can send a message you can't recall.
+- **`execution.*` \u2192 ask** (at least on first use, or by command signature). This is the one you'll actually approve/deny hundreds of times — the core agent behavior loop.
+- **`write.network` \u2192 ask.** Tweeting, emailing, posting webhooks, API DELETEs. Asymmetric blast radius — one silent approve can send a message you can't recall.
 - **`control-plane.*` \u2192 never `allow`.** This is the key structural change. If a skill is installing other skills, rotating secrets, or cancelling tasks on its own, that's the shape of a privilege-escalation attack. Keep these approval-required even if it's annoying.
 - **`control-plane.skills` \u2192 deny.** Install skills from the CLI with a human in the loop. Don't let an agent install its own toolbelt autonomously.
 
@@ -121,16 +126,16 @@ Task Brain added the inverse of the approval flow: an agent can now **refuse to 
 ```
 [agent] I've been asked to rm -rf ~/.openclaw/. I'm denying this because
         it would destroy the auth profiles. Flagging as task 9a3f-....
-[you]   openclaw tasks show 9a3f
-[you]   openclaw tasks approve 9a3f --reason "confirmed, starting fresh"
+[you]   openclaw flows show 9a3f
+[you]   # confirm context, re-issue the request with explicit approval
 ```
 
 This matters because:
 
-1. Prompt injection attacks can come from anywhere \u2014 a compromised vault file, a malicious skill, a poisoned memory entry. An agent that's allowed to refuse is an agent that has a chance to push back on an injected instruction.
+1. Prompt injection attacks can come from anywhere — a compromised vault file, a malicious skill, a poisoned memory entry. An agent that's allowed to refuse is an agent that has a chance to push back on an injected instruction.
 2. The refusal is logged. You get to see "the agent almost did X, but stopped." That's a signal you used to miss entirely.
 
-Don't punish agent denies. If your agent is refusing too often, tighten your prompts / approvals \u2014 don't try to suppress the deny behavior itself.
+Don't punish agent denies. If your agent is refusing too often, tighten your prompts / approvals — don't try to suppress the deny behavior itself.
 
 ## Fail-Closed Plugin Defaults
 
@@ -147,25 +152,24 @@ This trades a bit of friction for "we don't have unintended silent bypasses." It
 A weekly habit worth building:
 
 ```bash
-# What did this instance do this week?
-openclaw tasks audit --since 7d | less
+# What's running right now? (stuck cron, forgotten spawn)
+openclaw flows list --status running
 
-# Anything denied recently? (injection tells)
-openclaw tasks audit --since 7d --status denied
+# Dig into anything that looks odd
+openclaw flows show <flow-id>
 
-# Anything still running? (stuck cron, forgotten spawn)
-openclaw tasks list --status running
-
-# What's my highest-privilege recent activity?
-openclaw tasks audit --since 7d --category "control-plane.*"
+# Cancel runaway or orphaned flows
+openclaw flows cancel <flow-id>
 ```
+
+For longer-horizon auditing (7-day window, category filters, denied/approved breakdowns), subcommand flags have moved between betas — run `openclaw flows --help` against your installed version for the exact set. As of 2026.4.15-beta.1 the published verbs are `list`, `show`, and `cancel`. Category filtering and denied-flow rollups are primarily visible through the **Control UI** (Canvas → Flows), not via CLI flags.
 
 You'll find:
 
 - Cron jobs that haven't done anything useful in weeks (delete them)
 - Skills making network calls you didn't realize (revisit [Part 23](./part23-clawhub-skills-marketplace.md))
 - `control-plane.*` events clustered on a single skill (investigate hard)
-- Denied tasks with interesting reasons (that's your agent catching prompt injection \u2014 good)
+- Denied tasks with interesting reasons (that's your agent catching prompt injection — good)
 
 ## The Task Brain Checklist
 
@@ -174,9 +178,9 @@ You'll find:
 - [ ] No `execution.*` policies wider than the agent actually needs
 - [ ] Per-agent scopes configured for worker agents (narrower than the orchestrator)
 - [ ] `control-plane.skills` explicitly `deny` for all agents (install from CLI only)
-- [ ] `openclaw tasks audit --since 7d` reviewed at least weekly
-- [ ] Approval prompts show redacted secrets (2026.4.15-beta.1 \u2014 see [Part 15](./part15-infrastructure-hardening.md))
-- [ ] Agents are not punished for denying \u2014 denies are logged and used as signal
+- [ ] `openclaw flows list` reviewed weekly — watch for stuck, denied, or orphaned flows (Canvas Flows panel gives the richer view)
+- [ ] Approval prompts show redacted secrets (2026.4.15-beta.1 — see [Part 15](./part15-infrastructure-hardening.md))
+- [ ] Agents are not punished for denying — denies are logged and used as signal
 - [ ] Unused plugins removed (fail-closed defaults apply, but unused surface is still surface)
 
-Task Brain doesn't make OpenClaw bulletproof. It makes it **auditable and enforceable**, which is the minimum a multi-agent deployment needs. If you're running more than one agent, or letting any agent do anything in production that isn't read-only, you want this configured deliberately \u2014 not left at defaults.
+Task Brain doesn't make OpenClaw bulletproof. It makes it **auditable and enforceable**, which is the minimum a multi-agent deployment needs. If you're running more than one agent, or letting any agent do anything in production that isn't read-only, you want this configured deliberately — not left at defaults.

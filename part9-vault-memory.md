@@ -3,6 +3,9 @@
 
 ## Part 9: Vault Memory System (Stop Losing Knowledge Between Sessions)
 
+> **Read this if** Part 4's flat memory works but the agent is getting dumber the more you teach it, or you have 200+ memory files and search returns noise.
+> **Skip if** you have fewer than ~50 memory files — stay on the basics from Part 4 until you hit the wall.
+
 Part 4 gave you memory. It works — `memory_search()` is fast, local, and free. But after a few months of daily use, you'll notice something: **your agent is getting dumber, not smarter.**
 
 Here's what happened to us: 358 memory files. 100MB+ of accumulated knowledge. Vector search returning irrelevant results because every query matches 15 files about slightly different things. Date-named files like `2026-02-27-cerebras-session.md` that tell you nothing from the filename. Research conclusions from a 2-hour session — gone, because nobody saved them to memory. The agent starts every session fresh, reads MEMORY.md, and has zero idea what happened yesterday.

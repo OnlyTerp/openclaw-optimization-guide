@@ -3,6 +3,9 @@ contact_links:
   - name: Question about OpenClaw itself (not the guide)
     url: https://github.com/openclaw/openclaw/issues
     about: For OpenClaw bugs, feature requests, or usage questions, open an issue on the OpenClaw repo instead.
+  - name: OpenClaw documentation
+    url: https://clawdocs.org/
+    about: Official OpenClaw docs — the right place for questions about the product itself.
   - name: Read the FAQ first
     url: https://github.com/OnlyTerp/openclaw-optimization-guide/blob/master/part27-gotchas-and-faq.md
     about: Most questions are already answered in Part 27 — Gotchas & FAQ.
