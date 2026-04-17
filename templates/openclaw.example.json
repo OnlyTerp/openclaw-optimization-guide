@@ -1,0 +1,115 @@
+{
+  "$schema": "https://openclaw.dev/schema/openclaw.schema.json",
+  "_comment": "Reference config from the OpenClaw Optimization Guide. Tested on OpenClaw 2026.4.15 stable (2026-04-16). Copy to ~/.openclaw/openclaw.json (or your project root) and edit. Never commit real credentials — use env var references like ${ANTHROPIC_API_KEY}.",
+
+  "agents": {
+    "defaults": {
+      "experimental": {
+        "localModelLean": false
+      }
+    }
+  },
+
+  "models": {
+    "primary": {
+      "provider": "anthropic",
+      "model": "opus",
+      "_comment": "`opus` alias resolves to Claude Opus 4.7 in OpenClaw 2026.4.15 stable. Pin explicitly (e.g. `claude-opus-4-7`) if you want to lock the version."
+    },
+    "fallback": [
+      { "provider": "anthropic", "model": "sonnet" },
+      { "provider": "openai",    "model": "gpt-5-mini" },
+      { "provider": "google",    "model": "gemini-2.5-flash" }
+    ],
+    "compaction": {
+      "provider": "cerebras",
+      "model": "qwen-3-coder",
+      "_comment": "Keep compaction on a cheap, fast, non-reasoning model. Never share a key with the chat provider."
+    },
+    "embedding": {
+      "provider": "ollama",
+      "model": "qwen3-embedding:0.6b",
+      "endpoint": "http://localhost:11434",
+      "_comment": "Local Ollama is the right default. Switch to `copilot` (2026.4.15-beta.1+) only if your org already pays for Copilot Business/Enterprise."
+    }
+  },
+
+  "contextPruning": {
+    "mode": "cache-ttl",
+    "ttl": "5m",
+    "_comment": "Stops SOUL+AGENTS+MEMORY re-injection every turn. Single biggest latency win on frontier models."
+  },
+
+  "compaction": {
+    "reserveTokens": 8000,
+    "_comment": "Cap is auto-applied in 2026.4.15+ (to the model context window). Setting it explicitly anyway is belt-and-suspenders."
+  },
+
+  "plugins": {
+    "entries": {
+      "memory-core": {
+        "enabled": true,
+        "config": {
+          "dreaming": {
+            "enabled": true,
+            "schedule": "0 3 * * *",
+            "storage": {
+              "mode": "separate",
+              "_comment": "2026.4.15 stable default. Phase blocks land in memory/dreaming/{phase}/YYYY-MM-DD.md. Flip to `inline` if you want them in the daily memory file."
+            }
+          }
+        }
+      },
+      "memory-lancedb": {
+        "enabled": true,
+        "config": {
+          "storage": {
+            "mode": "local",
+            "_comment": "Switch to `cloud` with S3-compatible creds if you want durable memory indexes on object storage (2026.4.15-beta.1+)."
+          }
+        }
+      }
+    }
+  },
+
+  "skills": {
+    "autoUpdate": false,
+    "updateNotify": true,
+    "_comment": "Auto-update ON is the sleeper-update attack. Pin specific refs: `openclaw skills install author/skill --ref v1.2.0`. See Part 23."
+  },
+
+  "taskBrain": {
+    "approvals": {
+      "defaults": {
+        "read-only.*": "allow",
+        "execution.sandbox.*": "allow",
+        "execution.*": "ask",
+        "write.fs.workspace": "allow",
+        "write.fs.outside-workspace": "deny",
+        "write.network": "ask",
+        "control-plane.*": "deny"
+      },
+      "_comment": "Semantic categories replaced name-based allowlists in 2026.3.31-beta.1. See Part 24 for per-agent overrides."
+    }
+  },
+
+  "hooks": {
+    "auto-capture": {
+      "enabled": true,
+      "path": "./hooks/auto-capture/handler.ts",
+      "event": "session-end",
+      "_comment": "Extracts claim-named knowledge notes into vault/00_inbox/. See Part 11."
+    }
+  },
+
+  "auth": {
+    "profiles": {
+      "default": {
+        "anthropic": "${ANTHROPIC_API_KEY}",
+        "openai":    "${OPENAI_API_KEY}",
+        "google":    "${GOOGLE_API_KEY}",
+        "cerebras":  "${CEREBRAS_API_KEY}"
+      }
+    }
+  }
+}

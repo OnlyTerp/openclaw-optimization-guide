@@ -1,0 +1,118 @@
+site_name: OpenClaw Optimization Guide
+site_description: Make your OpenClaw AI agent faster, smarter, cheaper, and actually safe to run in production. Tested on OpenClaw 2026.4.15 stable.
+site_url: https://onlyterp.github.io/openclaw-optimization-guide/
+repo_url: https://github.com/OnlyTerp/openclaw-optimization-guide
+repo_name: OnlyTerp/openclaw-optimization-guide
+edit_uri: edit/master/
+copyright: "Copyright © Terp AI Labs. MIT-licensed."
+
+theme:
+  name: material
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.action.edit
+    - content.action.view
+    - content.tabs.link
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: deep purple
+      accent: deep purple
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep purple
+      accent: deep purple
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  icon:
+    repo: fontawesome/brands/github
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+plugins:
+  - search
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/OnlyTerp/openclaw-optimization-guide
+    - icon: fontawesome/brands/x-twitter
+      link: https://x.com/OnlyTerp
+
+nav:
+  - Home: README.md
+  - Start here:
+      - Architecture overview: part25-architecture-overview.md
+      - Migration guide: part26-migration-guide.md
+      - Gotchas & FAQ: part27-gotchas-and-faq.md
+      - Glossary & terminology: part28-glossary-and-terminology.md
+  - Deep dives:
+      - Vault memory: part9-vault-memory.md
+      - State-of-the-art embeddings: part10-state-of-the-art-embeddings.md
+      - Auto-capture hook: part11-auto-capture-hook.md
+      - Self-improving system: part12-self-improving-system.md
+      - Memory bridge: part13-memory-bridge.md
+      - Infrastructure hardening: part15-infrastructure-hardening.md
+      - LightRAG graph RAG: part18-lightrag-graph-rag.md
+      - Repowise codebase intelligence: part19-repowise-codebase-intelligence.md
+      - Observability & services: part20-observability-and-services.md
+      - Realtime knowledge sync: part21-realtime-knowledge-sync.md
+      - ClawHub skills marketplace: part23-clawhub-skills-marketplace.md
+      - Task Brain control plane: part24-task-brain-control-plane.md
+  - Production:
+      - Scorecard: SCORECARD.md
+      - Benchmarks:
+          - Overview: benchmarks/README.md
+          - Methodology: benchmarks/METHODOLOGY.md
+          - Harness: benchmarks/harness/README.md
+          - Run template: benchmarks/runs/TEMPLATE.md
+      - Awesome OpenClaw: AWESOME.md
+  - Project:
+      - Contributing: CONTRIBUTING.md
+      - Code of conduct: CODE_OF_CONDUCT.md
+      - Security policy: SECURITY.md
+      - Support: SUPPORT.md

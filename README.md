@@ -4,12 +4,25 @@
 
 [![Tested on 2026.4.15](https://img.shields.io/badge/OpenClaw-2026.4.15-2ea44f)](./part26-migration-guide.md)
 [![28 parts](https://img.shields.io/badge/parts-28-blue)](#full-table-of-contents)
+[![Scorecard](https://img.shields.io/badge/scorecard-50_items-8957e5)](./SCORECARD.md)
+[![Awesome](https://img.shields.io/badge/awesome-list-fc60a8)](./AWESOME.md)
+[![Benchmarks](https://img.shields.io/badge/benchmarks-reproducible-0a7bbb)](./benchmarks/METHODOLOGY.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey)](./LICENSE)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](./CONTRIBUTING.md)
 
-> **Tested on OpenClaw 2026.4.15 — April 16, 2026.** 28 parts. Battle-tested on a 14+ agent production deployment. Covers speed, memory, orchestration, models, web search, vault architecture, embeddings, hooks, graph RAG, codebase intelligence, observability, infrastructure hardening, skills marketplace, and control-plane security.
+> **Tested on OpenClaw 2026.4.15 — April 16, 2026.** 28 parts + scorecard + awesome list + reproducible benchmarks. Battle-tested on a 14+ agent production deployment. Covers speed, memory, orchestration, models, web search, vault architecture, embeddings, hooks, graph RAG, codebase intelligence, observability, infrastructure hardening, skills marketplace, and control-plane security.
 
 *By Terp — [Terp AI Labs](https://x.com/OnlyTerp)*
+
+## Jump straight to the payoff
+
+| Do this | For this outcome |
+|---|---|
+| **[Grade your setup →](./SCORECARD.md)** | 50-item Production Readiness Scorecard, score out of 100, shareable. |
+| **[Copy the reference config →](./templates/)** | Working `openclaw.example.json` + SOUL / AGENTS / MEMORY / TOOLS templates for 2026.4.15 stable. |
+| **[See the numbers →](./benchmarks/METHODOLOGY.md)** | Reproducible benchmark methodology + harness + run template. |
+| **[Browse the ecosystem →](./AWESOME.md)** | Curated list of skills, tools, papers, talks, adjacent projects. |
+| **[Hit a wall? →](./part27-gotchas-and-faq.md)** | Gotchas & FAQ, symptom-indexed. Most questions answered in one page. |
 
 ---
 
@@ -43,6 +56,19 @@
 | Sessions before audit trail | 0 surfaces | all surfaces | [Part 24 — Task Brain](./part24-task-brain-control-plane.md) |
 
 Full numbers in **[benchmarks/](./benchmarks/)**.
+
+---
+
+## Companion resources shipped with the guide
+
+Alongside the 28 parts themselves, this repo now includes the tooling that turns "I read the guide" into "I can audit and reproduce the results":
+
+- **[SCORECARD.md](./SCORECARD.md)** — The OpenClaw Production Readiness Scorecard. 50 items across Speed / Memory / Orchestration / Security / Observability, 2 points each, max 100. Designed to be copy-pasted into your own repo and shared publicly.
+- **[AWESOME.md](./AWESOME.md)** — A curated, opinionated list of OpenClaw resources: skills worth installing, memory and orchestration tools, observability stacks, research papers, talks, communities, adjacent ecosystems.
+- **[templates/](./templates/)** — A working reference config starter kit: `openclaw.example.json`, tiny SOUL.md / AGENTS.md / MEMORY.md / TOOLS.md templates, and a `vault/` skeleton. All aligned to 2026.4.15 stable (Opus 4.7, semantic approvals, `dreaming.storage.mode: "separate"`).
+- **[benchmarks/METHODOLOGY.md](./benchmarks/METHODOLOGY.md)** + **[benchmarks/harness/](./benchmarks/harness/)** + **[benchmarks/runs/TEMPLATE.md](./benchmarks/runs/TEMPLATE.md)** — A reproducible benchmark methodology (4 pillars, 3 reference environments) plus a contract for submitting your own numbers via PR.
+- **[CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)** · **[SECURITY.md](./SECURITY.md)** · **[SUPPORT.md](./SUPPORT.md)** — Community standards so you know how to file issues, report problems, and get help.
+- **GitHub Pages site** — rendered from this repo via MkDocs-material: <https://onlyterp.github.io/openclaw-optimization-guide/>.
 
 ---
 
@@ -1765,19 +1791,41 @@ The Gateway Dreams tab shows:
 
 ---
 
+## Star history
+
+[![Star History Chart](https://api.star-history.com/svg?repos=OnlyTerp/openclaw-optimization-guide&type=Date)](https://www.star-history.com/#OnlyTerp/openclaw-optimization-guide&Date)
+
+If this guide saved you time, a ⭐ helps other OpenClaw operators find it.
+
+## Featured / mentioned in
+
+*We'll list the talks, blog posts, newsletters, and release notes that reference this guide here. Open a PR with the link if you've written about it.*
+
+## Sibling resources in this repo
+
+| Resource | Purpose |
+|---|---|
+| **[SCORECARD.md](./SCORECARD.md)** | 50-item Production Readiness Scorecard (2 pts each, max 100). Shareable. |
+| **[AWESOME.md](./AWESOME.md)** | Curated list of skills, guides, talks, research, adjacent ecosystems. |
+| **[templates/](./templates/)** | Reference config starter kit: `openclaw.example.json`, SOUL / AGENTS / MEMORY / TOOLS templates for 2026.4.15 stable. |
+| **[benchmarks/](./benchmarks/)** | Reproducible benchmark methodology + harness + run template. Submit your numbers via PR. |
+| **[CONTRIBUTING.md](./CONTRIBUTING.md)** · **[SECURITY.md](./SECURITY.md)** · **[CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)** · **[SUPPORT.md](./SUPPORT.md)** | Contributor + community policy. |
+
 ## About
 
-*Built by [Terp - Terp AI Labs](https://x.com/OnlyTerp)*
+*Built by [Terp — Terp AI Labs](https://x.com/OnlyTerp).*
 
-The definitive optimization guide for OpenClaw - covering speed, memory, context management, model selection, web search, orchestration, vault architecture, and spec-driven development. Battle-tested daily on a production setup.
+The optimization guide for OpenClaw — covering speed, memory, context management, model selection, web search, orchestration, vault architecture, observability, infrastructure hardening, skills marketplace, control-plane security, and spec-driven development. Battle-tested daily on a 14+ agent production deployment.
 
-**Saved you tokens/time?** Drop a ⭐ on this repo or ping [@OnlyTerp](https://x.com/OnlyTerp) on X with your before/after numbers.
+**Prefer scripts?** Run `bash setup.sh` (macOS/Linux) or `powershell setup.ps1` (Windows) from the repo root. Or grab the full reference kit from [`templates/`](./templates/).
 
-**Prefer scripts?** Run `bash setup.sh` (Mac/Linux) or `powershell setup.ps1` (Windows) from the repo root.
+**Saved you tokens or time?** Post your [scorecard](./SCORECARD.md) score or ping [@OnlyTerp](https://x.com/OnlyTerp) on X with your before/after numbers.
 
-### Related Resources
+### Related resources
+
 - [OpenClaw Documentation (clawdocs.org)](https://clawdocs.org/)
 - [OpenClaw GitHub](https://github.com/openclaw/openclaw)
 - [OpenClaw Changelog](https://openclawai.io/changelog/)
 - [OpenClaw Discord Community](https://discord.gg/clawd)
 - [ClawHub — Skills Marketplace](https://clawhub.com)
+- [This guide, rendered as a searchable site](https://onlyterp.github.io/openclaw-optimization-guide/) *(deploys from `master` via MkDocs-material)*
