@@ -171,6 +171,32 @@ You'll find:
 - `control-plane.*` events clustered on a single skill (investigate hard)
 - Denied tasks with interesting reasons (that's your agent catching prompt injection — good)
 
+## OpenClaw vs. Cloud-Sandbox Delegation (Twill / Amika)
+
+**Callout added in the April 2026 refresh.** Two YC-backed services that launched on cloud-sandbox agent delegation landed this week:
+
+- **[Twill.ai](https://news.ycombinator.com/item?id=47720418)** (YC S25, HN thread Apr 11, 2026) — run the agent on their sandbox instead of your laptop. Their pitch: agents shouldn't have shell access to your primary environment; delegate the whole session to an ephemeral cloud VM.
+- **[Amika](https://www.youtube.com/watch?v=OZzdBNBXxSU)** (Apr 13, 2026, YouTube walkthrough) — similar model, different operator experience. Focuses on "give the agent a container, not your dev box."
+
+This is a real architectural choice. Here's the positioning an OpenClaw operator should know:
+
+| Dimension | OpenClaw + Task Brain | Twill / Amika (cloud sandbox) |
+|-----------|------------------------|--------------------------------|
+| **Where the agent runs** | On-prem, your box / server / worktree | Their cloud, ephemeral VM per session |
+| **Data residency** | Yours. Everything stays local. | Theirs. Your code/secrets transit their infrastructure. |
+| **Setup cost** | Configure approvals, hooks, memory. This guide. | `pip install` + credit card. |
+| **Trust model** | You enforce approvals + hooks; agent has full local blast radius | They enforce sandbox boundaries; agent blast radius = their VM |
+| **Cost model** | Your infra + your model tokens | Their infra markup + your model tokens |
+| **Audit trail** | `openclaw flows list`, your logs | Their dashboard. You may or may not get the raw log. |
+| **Customizability** | Full — every part of this guide | Fixed to what their UI exposes |
+| **Offline / air-gapped** | Works | Does not |
+
+**The OpenClaw answer to cloud-sandbox delegation:** Task Brain's semantic approval categories + the [Part 29 hook catalog](./part29-hook-catalog.md) + [Part 15 worktrees](./part15-infrastructure-hardening.md) give you the same blast-radius containment without shipping your codebase to a third party. If you need harder isolation than worktrees (container-per-agent, VM-per-agent), pair with Docker/Firecracker — the hooks and approvals still apply unchanged.
+
+**When cloud sandboxes genuinely win:** one-off workloads where you don't want to stand up local infrastructure at all, or environments where "agent on dev laptop" is a compliance non-starter. For a team running OpenClaw seriously, the on-prem path is the one this guide is written for.
+
+---
+
 ## The Task Brain Checklist
 
 - [ ] Running OpenClaw 2026.3.31-beta.1 or later (Task Brain is mandatory from here)

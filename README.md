@@ -3,16 +3,46 @@
 **Make your OpenClaw AI agent faster, smarter, cheaper, and actually safe to run in production.**
 
 [![Tested on 2026.4.15](https://img.shields.io/badge/OpenClaw-2026.4.15-2ea44f)](./part26-migration-guide.md)
-[![28 parts](https://img.shields.io/badge/parts-28-blue)](#full-table-of-contents)
+[![32 parts](https://img.shields.io/badge/parts-32-blue)](#full-table-of-contents)
 [![Scorecard](https://img.shields.io/badge/scorecard-50_items-8957e5)](./SCORECARD.md)
 [![Awesome](https://img.shields.io/badge/awesome-list-fc60a8)](./AWESOME.md)
 [![Benchmarks](https://img.shields.io/badge/benchmarks-reproducible-0a7bbb)](./benchmarks/METHODOLOGY.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey)](./LICENSE)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](./CONTRIBUTING.md)
 
-> **Tested on OpenClaw 2026.4.15 — April 16, 2026.** 28 parts + scorecard + awesome list + reproducible benchmarks. Battle-tested on a 14+ agent production deployment. Covers speed, memory, orchestration, models, web search, vault architecture, embeddings, hooks, graph RAG, codebase intelligence, observability, infrastructure hardening, skills marketplace, and control-plane security.
+> **Tested on OpenClaw 2026.4.15 — April 16, 2026.** 32 parts + scorecard + awesome list + reproducible benchmarks. Battle-tested on a 14+ agent production deployment. Covers speed, memory, orchestration, models, web search, vault architecture, embeddings, hooks, graph RAG, codebase intelligence, observability, infrastructure hardening, skills marketplace, control-plane security, Ralph-loop autonomy, the LLM Wiki pattern, and self-evolving skills.
 
 *By Terp — [Terp AI Labs](https://x.com/OnlyTerp)*
+
+---
+
+## The Harness Thesis
+
+> **95% of agent capability comes from the harness, 5% from the model.** Same weights, different harness, different benchmarks.
+
+That line isn't ours. It's what nine independent writers — Princeton NLP, [Atlan](https://atlan.com/blog/agent-harness-2026), [Trensee](https://trensee.ai/blog/the-harness-is-everything) (Apr 12, 2026), a [Medium deep-dive](https://medium.com/@reliabledataengineering/the-harness-is-everything-a4114e8a54d1) (Apr 13, 2026), a [Korean YouTube explainer with 14.9K views](https://www.youtube.com/), [heyuan110](https://www.heyuan110.com/posts/ai/2026-04-13-harness-subagent-architecture/), [The AI Corner](https://medium.com/the-ai-corner), [Towards AI](https://pub.towardsai.net/), and [ivanmagda.dev](https://ivanmagda.dev) — all converged on in the week of April 10–17, 2026.
+
+This guide is what operating that thesis looks like, end-to-end, on a real production OpenClaw deployment. It is the harness.
+
+```mermaid
+flowchart LR
+    subgraph Model["The Model (5%)"]
+        M[Claude Opus 4.7<br/>or your choice]
+    end
+    subgraph Harness["The Harness (95%) — this guide"]
+        direction TB
+        Inst[Instructions<br/>SOUL/AGENTS/MEMORY/skills]
+        Ctx[Context engineering<br/>budgets + progressive disclosure]
+        Tools[Tools + approvals<br/>semantic categories]
+        Guard[Guardrails<br/>hooks, Task Brain, redaction]
+        Mem[Memory layer<br/>memory-core + LightRAG + dreaming]
+        Orch[Orchestration<br/>5 coordination patterns]
+    end
+    Model -.-> Harness
+    Harness -.-> Results[Production results]
+```
+
+The 5% you can't change: the weights. The 95% you can: everything else. The rest of this guide is the 95%.
 
 ## Jump straight to the payoff
 
@@ -26,10 +56,52 @@
 
 ---
 
+## File Hierarchy At A Glance
+
+OpenClaw's file layout maps 1:1 to [Karpathy's three-tier LLM Wiki pattern](./part31-the-llm-wiki-pattern-in-openclaw.md) published April 10, 2026. If you only remember one diagram from this guide, make it this one:
+
+```mermaid
+flowchart TB
+    subgraph Raw["Raw sources — immutable, agent read-only"]
+        Vault["vault/*"]
+        Daily["memory/YYYY-MM-DD.md"]
+    end
+    subgraph Curated["Curated summaries — injected on every message"]
+        Soul["SOUL.md<br/>identity"]
+        Agents["AGENTS.md<br/>operational rules"]
+        Mem["MEMORY.md<br/>durable facts"]
+        Dreams["DREAMS.md<br/>reflection diary"]
+        Skills["skills/*<br/>on-demand playbooks"]
+    end
+    subgraph Artifacts["Generated artifacts — one-shot output"]
+        PRs["PRs / commits"]
+        Reports["Reports / transcripts"]
+    end
+    Raw -. memory_search .-> Agent((Agent))
+    Curated --> Agent
+    Agent --> Artifacts
+    Agent -. Deep-phase promote .-> Mem
+    Artifacts -. auto-capture .-> Daily
+```
+
+| File | Purpose | Size cap | Written by | Read when |
+|------|---------|---------:|------------|-----------|
+| **SOUL.md** | Identity, invariants, non-negotiables | < 2 KB | Human | Every message |
+| **AGENTS.md** | Operational rules, decision trees, tool routing | < 8 KB | Human + agent (auditable) | Every message |
+| **MEMORY.md** | Durable facts promoted from short-term | < 32 KB | Agent via `memory promote` | Every message |
+| **DREAMS.md** | Human-readable reflection diary | latest N entries | Built-in Dreaming | Every message |
+| **skills/** | Named playbooks | per-skill small | Human + SkillClaw | On activation |
+| **vault/** | Raw source notes, transcripts, links | unbounded | Auto-capture + humans | On `memory_search` |
+| **memory/YYYY-MM-DD.md** | Daily short-term rollup | rolling | Auto-capture | On `memory_search` |
+
+Full reasoning and update rules in **[Part 31 — The LLM Wiki Pattern In OpenClaw](./part31-the-llm-wiki-pattern-in-openclaw.md)**.
+
+---
+
 ## Who This Is For
 
 - **Running any OpenClaw agent in production.** If your bot handles real work, the speed, memory, and security parts are non-optional.
-- **Just hit "why is my agent slow?" for the first time.** [Part 1](#part-1-speed-stop-being-slow) and [Part 2](#part-2-context-bloat-the-silent-performance-killer) are where to start.
+- **Just hit "why is my agent slow?" for the first time.** [Part 1](#part-1-speed-stop-being-slow) and [Part 2](#part-2-context-engineering-the-discipline) are where to start.
 - **Coming from v3.x or early v4.0.** Start with [Part 26 — Migration Guide](./part26-migration-guide.md), then [Part 25 — Architecture Overview](./part25-architecture-overview.md).
 - **Building multi-agent systems.** [Part 5 — Orchestration](#part-5-orchestration-stop-doing-everything-yourself) and [Part 24 — Task Brain](./part24-task-brain-control-plane.md) are your backbone.
 - **Already read half the guide and forget what's where.** Jump to [Part 27 — Gotchas & FAQ](./part27-gotchas-and-faq.md) or the themed map below.
@@ -136,13 +208,15 @@ Not every part applies to every reader. Jump directly to the pillar that matches
 
 | I want to… | Start with |
 |-------------|-----------|
-| **Make my agent faster** | [1 Speed](#part-1-speed-stop-being-slow) · [2 Context Bloat](#part-2-context-bloat-the-silent-performance-killer) · [3 Cron Bloat](#part-3-cron-session-bloat-the-hidden-killer) · [6 Models](#part-6-models-what-to-actually-use) |
-| **Stop it forgetting things** | [4 Memory](#part-4-memory-stop-forgetting-everything) · [9 Vault](#part-9-vault-memory-system-stop-losing-knowledge-between-sessions) · [10 Embeddings](./part10-state-of-the-art-embeddings.md) · [22 Built-In Dreaming](#part-22-built-in-dreaming) |
-| **Reduce cost** | [5 Orchestration](#part-5-orchestration-stop-doing-everything-yourself) · [6 Models](#part-6-models-what-to-actually-use) · [8 One-Shotting](#part-8-one-shotting-big-tasks-stop-iterating-start-researching) |
+| **Make my agent faster** | [1 Speed](#part-1-speed-stop-being-slow) · [2 Context Engineering](#part-2-context-engineering-the-discipline) · [3 Cron Bloat](#part-3-cron-session-bloat-the-hidden-killer) · [6 Models](#part-6-models-what-to-actually-use) |
+| **Stop it forgetting things** | [4 Memory](#part-4-memory-stop-forgetting-everything) · [9 Vault](#part-9-vault-memory-system-stop-losing-knowledge-between-sessions) · [10 Embeddings](./part10-state-of-the-art-embeddings.md) · [22 Built-In Dreaming](#part-22-built-in-dreaming) · [31 LLM Wiki Pattern](./part31-the-llm-wiki-pattern-in-openclaw.md) |
+| **Reduce cost** | [5 Orchestration](#part-5-orchestration-stop-doing-everything-yourself) · [6 Models](#part-6-models-what-to-actually-use) · [8 One-Shotting](#part-8-one-shotting-big-tasks-stop-iterating-start-researching) · [22 Memory you can afford](#part-22-built-in-dreaming) |
 | **Handle real codebases** | [18 LightRAG](./part18-lightrag-graph-rag.md) · [19 Repowise](./part19-repowise-codebase-intelligence.md) · [21 Real-time Sync](./part21-realtime-knowledge-sync.md) |
-| **Harden for production** | [15 Infra Hardening](./part15-infrastructure-hardening.md) · [23 ClawHub](./part23-clawhub-skills-marketplace.md) · [24 Task Brain](./part24-task-brain-control-plane.md) |
+| **Harden for production** | [15 Infra Hardening](./part15-infrastructure-hardening.md) · [23 ClawHub](./part23-clawhub-skills-marketplace.md) · [24 Task Brain](./part24-task-brain-control-plane.md) · [29 Hook Catalog](./part29-hook-catalog.md) |
 | **See what my agents are doing** | [20 Observability](./part20-observability-and-services.md) · [24 Task Brain audit](./part24-task-brain-control-plane.md) |
-| **Automate self-improvement** | [11 Auto-Capture Hook](./part11-auto-capture-hook.md) · [12 Self-Improving System](./part12-self-improving-system.md) · [13 Memory Bridge](./part13-memory-bridge.md) |
+| **Automate self-improvement** | [11 Auto-Capture Hook](./part11-auto-capture-hook.md) · [12 Self-Improving System](./part12-self-improving-system.md) · [13 Memory Bridge](./part13-memory-bridge.md) · [32 Self-evolving skills (SkillClaw)](./part32-self-evolving-skills-with-skillclaw.md) |
+| **Run autonomous / overnight work** | [5 Orchestration patterns](#part-5-orchestration-stop-doing-everything-yourself) · [30 Ralph Loop](./part30-ralph-loop-in-openclaw.md) · [15 Worktrees](./part15-infrastructure-hardening.md) · [26 Spec-Driven Development](./part26-migration-guide.md) |
+| **Enforce safety the agent can't ignore** | [29 Hook Catalog](./part29-hook-catalog.md) · [24 Task Brain](./part24-task-brain-control-plane.md) · [15 Infra Hardening](./part15-infrastructure-hardening.md) |
 | **Upgrade from an older version** | [26 Migration Guide](./part26-migration-guide.md) |
 | **Look up a term you don't know** | [28 Glossary](./part28-glossary-and-terminology.md) |
 | **Debug something weird** | [27 Gotchas & FAQ](./part27-gotchas-and-faq.md) |
@@ -161,7 +235,7 @@ Not every part applies to every reader. Jump directly to the pillar that matches
 
 **⚡ Speed & context**
 1. [Speed — Stop Being Slow](#part-1-speed-stop-being-slow) — trim context, add fallbacks, reasoning mode, `localModelLean`
-2. [Context Bloat — The Silent Performance Killer](#part-2-context-bloat-the-silent-performance-killer) — quadratic scaling, pruning, compaction
+2. [Context Engineering — The Discipline](#part-2-context-engineering-the-discipline) — quadratic scaling, pruning, compaction, 5-min cache TTL trap
 3. [Cron Session Bloat — The Hidden Killer](#part-3-cron-session-bloat-the-hidden-killer) — session file accumulation, cleanup
 
 **🧠 Memory**
@@ -171,13 +245,16 @@ Not every part applies to every reader. Jump directly to the pillar that matches
 11. [Auto-Capture Hook](./part11-auto-capture-hook.md) — automatic knowledge extraction after every session
 12. [Self-Improving System](./part12-self-improving-system.md) — micro-learning loop, HOT/WARM/COLD tiers
 13. [Memory Bridge](./part13-memory-bridge.md) — give Codex / Claude Code access to your vault
-22. [Built-In Dreaming (memory-core)](#part-22-built-in-dreaming) — official 3-phase consolidation, DREAMS.md (the retired Part 16 autoDream pattern is summarized in its tombstone there)
+22. [Built-In Dreaming (memory-core)](#part-22-built-in-dreaming) — official 3-phase consolidation, DREAMS.md, memory-you-can-afford (LightMem + vbfs)
+31. [The LLM Wiki Pattern In OpenClaw](./part31-the-llm-wiki-pattern-in-openclaw.md) — Karpathy's three-tier pattern mapped onto SOUL/AGENTS/MEMORY/skills
 
 **🤝 Orchestration & models**
-5. [Orchestration](#part-5-orchestration-stop-doing-everything-yourself) — sub-agents, CEO/COO/Worker, verification, Ralph loop
+5. [Orchestration](#part-5-orchestration-stop-doing-everything-yourself) — sub-agents-as-GC, Anthropic's 5 coordination patterns, CEO/COO/Worker, verification
 6. [Models — What To Actually Use](#part-6-models-what-to-actually-use) — provider comparison, pricing, local, `localModelLean`
 7. [Web Search](#part-7-web-search-give-your-agent-eyes-on-the-internet) — Tavily, Brave, Serper, Gemini grounding
 8. [One-Shotting Big Tasks](#part-8-one-shotting-big-tasks-stop-iterating-start-researching) — research-first methodology
+30. [The Ralph Loop In OpenClaw](./part30-ralph-loop-in-openclaw.md) — autonomous `while true` wrappers, PRD.json, overnight runs
+32. [Self-Evolving Skills With SkillClaw](./part32-self-evolving-skills-with-skillclaw.md) — skill population evolution, Mem²Evolve
 
 **🧩 Knowledge graph & codebase**
 18. [LightRAG — Graph RAG](./part18-lightrag-graph-rag.md) — entities + relationships, Web UI, REST, LangFuse tracing
@@ -185,9 +262,10 @@ Not every part applies to every reader. Jump directly to the pillar that matches
 21. [Real-Time Knowledge Sync](./part21-realtime-knowledge-sync.md) — event-driven file watcher, <6s vault → LightRAG sync
 
 **🔒 Hardening & security**
-15. [Infrastructure Hardening](./part15-infrastructure-hardening.md) — compaction crash loops, GPU contention, secrets, gateway crash-loop fix, reserve-token cap, auth hot-reload, approval redaction
+15. [Infrastructure Hardening](./part15-infrastructure-hardening.md) — compaction crash loops, GPU contention, secrets, gateway crash-loop fix, reserve-token cap, auth hot-reload, approval redaction, **parallel OpenClaw with git worktrees**
 23. [ClawHub Skills Marketplace](./part23-clawhub-skills-marketplace.md) — marketplace, malware, install policy
 24. [Task Brain Control Plane](./part24-task-brain-control-plane.md) — unified task ledger, semantic approvals, trust boundaries
+29. [The Hook Catalog](./part29-hook-catalog.md) — 8 copy-paste hooks, exit-code semantics, deterministic enforcement
 
 **🔭 Observability**
 20. [Agent Observability](./part20-observability-and-services.md) — LangFuse, reranker, n8n, workflow automation
@@ -373,7 +451,9 @@ The default model for memory search should be `qwen3-embedding:0.6b` (500 MB, 10
 
 ---
 
-## Part 2: Context Bloat (The Silent Performance Killer)
+## Part 2: Context Engineering — The Discipline
+
+> **Renamed in the April 2026 refresh.** "Context Bloat" was the *problem*; context engineering is the *discipline*. [Karpathy coined it](https://karpathy.ai/) and [Gartner picked it up](https://www.gartner.com/) within a week. The Part 2 material is the practical version of that discipline for OpenClaw.
 
 > **Read this if** you notice each message getting slower, you're hitting compaction often, or your SOUL.md / MEMORY.md / AGENTS.md are over a few KB combined.
 > **Skip if** your total injected context is already under 15 KB and compaction rarely fires.
@@ -448,6 +528,37 @@ Over 100 msgs/day: $2.25/day vs $22.50/day
 **Auto-Compaction** - Summarizes older conversation when nearing context limits. Trigger manually with `/compact`.
 
 > **2026.4.15 fix:** The compaction reserve-token floor is now capped at the model's actual context window. Before this, compaction on a 16K-token local model could request a larger reserve than the window itself, creating an infinite "try to free N tokens, fail, retry" loop. If you run small local models as compaction workers, upgrade — this is the fix you want. See [Part 15](./part15-infrastructure-hardening.md).
+
+### Appendix — The 5-Minute Prompt Cache TTL Trap (March 2026)
+
+Silent production killer that caught most teams in April 2026: **Anthropic's prompt-cache default TTL dropped from 1 hour to 5 minutes** sometime in early March 2026, without a release note most operators noticed. See the writeup *[Claude API Prompt Caching: Cut Costs 80% on Every Repeated Request](https://dev.to/whoffagents/claude-api-prompt-caching-cut-costs-80-on-every-repeated-request-1ap6)* (Apr 14, 2026).
+
+If you built your SOUL/AGENTS/MEMORY context assuming a 1-hour cache, you're now paying **full token price on every sub-5-minute gap** between messages. For an orchestrator running one session at a time with users stopping to think between turns, the cache is essentially never hit. Bills silently tripled.
+
+**Symptom:** Your Anthropic bill is up 2–4× month-over-month; token counts haven't changed.
+
+**Fix (OpenClaw).** Set the cache TTL explicitly on any prompt segment that should live longer than 5 minutes:
+
+```json
+{
+  "agents": {
+    "defaults": {
+      "prompts": {
+        "cacheControl": {
+          "soul":     { "type": "ephemeral", "ttl": "1h" },
+          "agents":   { "type": "ephemeral", "ttl": "1h" },
+          "memory":   { "type": "ephemeral", "ttl": "1h" },
+          "skills":   { "type": "ephemeral", "ttl": "5m" }
+        }
+      }
+    }
+  }
+}
+```
+
+The hot-path files (SOUL, AGENTS, MEMORY) are stable within a session, so pin their TTL to `1h`. Skills and dynamic context stay at 5m — they change too often to be worth extending.
+
+> Anthropic considers 1h-cached blocks billable, just at ~1/10 the rate of uncached tokens. Worth the trade for anything that's reused more than twice an hour.
 
 **Use both.** Pruning handles tool result bloat. Compaction handles conversation history bloat.
 
@@ -611,6 +722,50 @@ run memory_search FIRST. It costs 45ms. Not searching = wrong answers.
 
 > **Read this if** you do anything non-trivial — research, coding, long tasks — in a single interactive agent and haven't set up sub-agent workers, verification, or the Ralph loop yet.
 > **Skip if** you're already running CEO/COO/Worker with PreCompletionChecklist verification.
+
+### Sub-Agents Are Context Garbage Collection (Not A Speed Hack)
+
+The mistake most teams make with sub-agents: treating them as a *performance* trick ("run two things in parallel = 2x speed"). That misses the point. The week of April 10–17, 2026 had five independent writeups ([heyuan110 Apr 13](https://www.heyuan110.com/posts/ai/2026-04-13-harness-subagent-architecture/), [Builder.io Apr 16](https://www.builder.io/blog/claude-code-subagents), and three more on DEV) all converging on the same reframe: **sub-agents are context garbage collection.**
+
+The real unlock: a sub-agent is a disposable context window. You spawn one, it burns 40K tokens searching the codebase, it returns a 500-token summary, the sub-agent's context is thrown away. Your main agent's context stays lean. Without sub-agents, that 40K of search noise would permanently live in your main context, degrading every subsequent turn.
+
+**The 3-trigger decision table — spawn a sub-agent if *any* of these are true:**
+
+| Trigger | What it looks like | Why you spawn |
+|---------|---------------------|----------------|
+| **Wide search scope** | "find every usage of X", "how does auth work across the codebase", "read all related files" | The search is most of the tokens. Don't bring them home. |
+| **10+ edit targets** | Renaming across many files, systematic refactors, bulk migrations | Each edit call is noise once it's done. Worker commits, reports hash, done. |
+| **Independent verification** | "does the code actually compile", "do the tests pass", "is this PR complete" | You want a fresh pair of eyes with no bias from the implementation conversation. |
+
+If none of those are true, **don't spawn**. Sub-agent invocation has real overhead — cold-start prompts, tool-registration roundtrips, summarization cost. Use them surgically, not reflexively.
+
+Your main model should NEVER do heavy work directly. It should plan and delegate to cheaper, faster sub-agents — per the triggers above.
+
+### Anthropic's Five Multi-Agent Coordination Patterns (Apr 10, 2026)
+
+On April 10, 2026, Anthropic published *[Multi-Agent Coordination Patterns](https://claude.com/blog/multi-agent-coordination-patterns)* — the first canonical naming of the patterns the community had been reinventing. The taxonomy is now the lingua franca for how agents work together. Use it. Old internal names ("CEO/COO/Worker", "critic loop") still map to these.
+
+| Pattern | When you pick it | OpenClaw realization |
+|---------|------------------|----------------------|
+| **Generator-Verifier** | Output correctness matters more than latency (code, plans, architecture decisions) | Spawn worker to produce, spawn fresh worker to verify. No shared context. |
+| **Orchestrator-Subagent** | Main agent holds strategy, workers execute narrow tasks | The classic. What Part 5 started as. |
+| **Agent Teams** | Bounded problem with clearly separate roles (researcher + writer + editor) | Each team member is its own persistent thread via ACP. |
+| **Hierarchical** | Truly large task trees, multiple layers of delegation | Rare. When you need it, Task Brain's parent-child ledger is how you keep it sane. |
+| **Network** | Peer agents passing tasks to each other without a central orchestrator | Spicy. Only use with strong approval gates. Most failures live here. |
+
+```mermaid
+flowchart LR
+    Q{Task shape?}
+    Q -->|"Output correctness critical"| GV[Generator-Verifier]
+    Q -->|"Clear strategy + narrow execute"| OS[Orchestrator-Subagent]
+    Q -->|"Distinct roles, bounded"| AT[Agent Teams]
+    Q -->|"Deep task tree"| HI[Hierarchical]
+    Q -->|"Peer-to-peer flow"| NET[Network — careful]
+```
+
+**Default picks for an OpenClaw operator:** Orchestrator-Subagent for 80% of work, Generator-Verifier for code and decisions, Agent Teams for long research loops, Hierarchical when Task Brain flows nest 3+ levels deep, Network almost never.
+
+The [Ralph Loop ([Part 30](./part30-ralph-loop-in-openclaw.md))](./part30-ralph-loop-in-openclaw.md) is a specific flavor of Orchestrator-Subagent where the orchestrator is an outer bash wrapper and every iteration is a fresh agent session.
 
 Your main model should NEVER do heavy work directly. It should plan and delegate to cheaper, faster sub-agents.
 
@@ -1643,6 +1798,52 @@ Start with the basic vault system (Parts 4, 9). It works well up to ~500 files. 
 
 > **Read this if** you're on OpenClaw 2026.4+ and want automatic memory consolidation (the native replacement for the retired Part 16 autoDream pattern).
 > **Skip if** you're on a pre-2026.4 install — upgrade first (Part 26), then come back here.
+
+### Memory You Can Afford (April 2026 research wave)
+
+The week of April 10–17 produced a pile of memory-system papers and benchmarks that collectively shifted the default answer to "what model runs my memory layer?" from "the same one as my orchestrator" to **"something much cheaper."** The numbers are striking:
+
+| System | Published | Result | Model class for memory ops |
+|--------|-----------|--------|------------------------------|
+| **[vbfs/agent-memory-store](https://github.com/iflow-mcp/vbfs-agent-memory-store)** | Apr 15, 2026 | **92.1% Recall@5** | **Zero LLM calls** — pure vector store + reranker |
+| **[LightMem](https://arxiv.org/abs/2604.07798)** | Apr 12, 2026 | **+2.5 F1** over baseline on LoCoMo, **83 ms** retrieval | **Small language model** for STM/MTM/LTM consolidation |
+| **[Mem²Evolve](https://arxiv.org/html/2604.10923v1)** | Apr 14, 2026 | **+18.53%** over baseline on mixed agent-task benchmark | Co-evolves skills + memory without expensive model calls |
+| **[AMFS (Apache 2.0 MCP server)](https://dev.to/bruno_andrade_357863927e2/your-claude-code-and-cursor-agents-have-amnesia-heres-the-fix-2l3a)** | Apr 13, 2026 | Drop-in MCP memory for any harness | Runs on whatever model you want, including local |
+
+The unifying insight: **memory consolidation is cheap, dense, deterministic work**. Using Opus 4.7 on it burns $100/month you don't need to spend.
+
+**The practical OpenClaw configuration** — run memory-core's Deep-phase sweep on a small/local model, keep your orchestrator on top-tier:
+
+```json
+{
+  "plugins": {
+    "entries": {
+      "memory-core": {
+        "config": {
+          "dreaming": {
+            "enabled": true,
+            "models": {
+              "light":  "ollama/qwen3:4b",
+              "deep":   "cerebras/qwen-3-235b-a22b-instruct-2507",
+              "rem":    "ollama/qwen3:4b"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+Why these picks:
+
+- **Light phase** is short-term staging — pattern matching, deduplication. A 4B local model nails it.
+- **Deep phase** is the scoring + promotion step — the one that writes MEMORY.md. Worth a capable cheap model (Cerebras `qwen-3-235b` runs at 1400 tok/s for pennies on the API).
+- **REM phase** is reflection — narrative summarization. Local Qwen3:4b is fine; you're not doing complex reasoning.
+
+Combined with memory-lancedb on local Ollama embeddings (see [Part 4](#part-4-memory-stop-forgetting-everything)), total memory-layer cost drops to near zero without sacrificing recall.
+
+Full three-tier discipline — raw sources, curated summaries, generated artifacts — in [Part 31 — The LLM Wiki Pattern](./part31-the-llm-wiki-pattern-in-openclaw.md). SkillClaw's co-evolution of skills + memory in [Part 32](./part32-self-evolving-skills-with-skillclaw.md).
 
 > **OpenClaw 2026.4+** — The official memory consolidation system built into memory-core. This replaces the retired custom autoDream pattern that used to live in Part 16.
 

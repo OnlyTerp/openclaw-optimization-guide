@@ -5,6 +5,34 @@
 > **Read this if** you're newish to OpenClaw v4.0+, or you've been following the guide part-by-part without a map of where each piece fits.
 > **Skip if** you already know the gateway daemon / Canvas / memory-core / Task Brain / ClawHub pieces and just want to tune a specific one — jump straight to the targeted part.
 
+## The Harness Thesis
+
+> **95% of agent capability comes from the harness, 5% from the model.**
+
+Nine independent writers between April 10 and April 17, 2026 converged on the same claim — Princeton NLP, Atlan ([1](https://atlan.com/blog/agent-harness-2026), [2](https://atlan.com/)), [Trensee](https://trensee.ai/blog/the-harness-is-everything), a widely-shared [Medium essay](https://medium.com/@reliabledataengineering/the-harness-is-everything-a4114e8a54d1), [heyuan110](https://www.heyuan110.com/posts/ai/2026-04-13-harness-subagent-architecture/), a Korean YouTube explainer (14.9K views), The AI Corner, Towards AI, and [ivanmagda.dev](https://ivanmagda.dev). The precise percentages vary; the direction doesn't. Changing the model is worth single-digit improvements; changing the harness routinely moves benchmarks by 30–60 points.
+
+```mermaid
+flowchart TB
+    subgraph Harness["The Harness (95% of capability)"]
+        direction TB
+        I[Instructions<br/>SOUL / AGENTS / MEMORY / skills]
+        C[Context engineering<br/>budgets + progressive disclosure]
+        T[Tools + approvals<br/>semantic categories]
+        G[Guardrails<br/>hooks, Task Brain, redaction]
+        M[Memory layer<br/>memory-core + LightRAG + dreaming]
+        O[Orchestration<br/>5 coordination patterns]
+    end
+    subgraph Model["The Model (5%)"]
+        W[Weights]
+    end
+    Harness --> Results[What the agent can do]
+    Model --> Results
+```
+
+OpenClaw is a harness. This guide is the operator's manual for that harness. Every part that follows — the five moving parts below, and the 31 other parts in the guide — is about configuring one axis of the 95%.
+
+If you take one idea from this guide: **the model you pick is the smallest lever. The harness is the system.**
+
 ## The Five Moving Parts
 
 Every OpenClaw install since v4.0 has the same five major components. Most of the guide is "how to configure one of these better," so it helps to know what they are:

@@ -7,6 +7,12 @@ This is a single-page reference. Terms are alphabetical. Each entry includes the
 
 ---
 
+## Anthropic's 5 multi-agent coordination patterns
+
+Published by Anthropic on [April 10, 2026](https://claude.com/blog/multi-agent-coordination-patterns) as the official taxonomy for multi-agent systems: **generator-verifier**, **orchestrator-subagent**, **agent teams**, **hierarchical**, **network**. This guide's Part 5 is organized around these names now that they're the canonical terms. When the user says "sub-agents" they almost always mean orchestrator-subagent.
+
+- **Covered in:** [Part 5 — Orchestration](./README.md#part-5-orchestration-stop-doing-everything-yourself).
+
 ## ACP — Agent Communication Protocol
 
 A protocol for **one agent calling another as a tool** (and persisting the conversation across the call). Introduced in **v4.2 (March 28, 2026)** alongside thread-bound persistent sessions, sub-agent spawning, and the `session_status` tool. In 2026.3.31-beta.1+, ACP calls show up as flows in the Task Brain ledger.
@@ -37,6 +43,18 @@ The reverse-engineered Claude Code / memory-core memory-consolidation pattern th
 
 - **Retired in:** this release.
 - **Replacement:** memory-core's built-in Dreaming (OpenClaw 2026.4+).
+
+## Cloud sandbox delegation (Twill / Amika)
+
+The architectural alternative to running OpenClaw on your own box: **delegate the whole agent session to a vendor's ephemeral cloud VM**. [Twill.ai](https://news.ycombinator.com/item?id=47720418) (YC S25, HN Apr 11, 2026) and [Amika](https://www.youtube.com/watch?v=OZzdBNBXxSU) (Apr 13, 2026) are the two that launched this week. Wins on zero-setup isolation; loses on data residency, customizability, and audit. OpenClaw's on-prem answer: Task Brain approvals + hooks + worktrees.
+
+- **Covered in:** [Part 24 — Task Brain Control Plane](./part24-task-brain-control-plane.md).
+
+## Context Engineering
+
+The discipline — named by Karpathy and picked up by Gartner in the week of April 10-17, 2026 — of **treating every token in the context window as a budgeted resource**. Includes pruning, progressive disclosure (keep big things out of the default prompt until activated), cache-friendly ordering, and explicit file-hierarchy tiers (SOUL/AGENTS/MEMORY/skills). Part 2 is this guide's practical treatment of the discipline.
+
+- **Covered in:** [Part 2 — Context Engineering](./README.md#part-2-context-engineering-the-discipline), [Part 31 — The LLM Wiki Pattern](./part31-the-llm-wiki-pattern-in-openclaw.md).
 
 ## Canvas UI
 
@@ -105,6 +123,12 @@ Memory-core's **native 3-phase memory consolidation** (Light → Deep → REM) i
 
 - **Covered in:** [Part 22 — Built-In Dreaming](./README.md#part-22-built-in-dreaming).
 
+## Exit codes (hooks)
+
+Hooks communicate with the OpenClaw runtime via POSIX exit codes. **`0` = allow / continue**, **`1` = error but continue** (logged, not blocking), **`2` = block** (the runtime surfaces this as a `StopFailure` and aborts the action). Mixing `1` and `2` up is the single most common hook bug — see Amit Kothari's writeup linked from [Part 29](./part29-hook-catalog.md).
+
+- **Covered in:** [Part 29 — The Hook Catalog](./part29-hook-catalog.md).
+
 ## Embedding provider
 
 The model that converts text into vectors for vector search. Options: local Ollama (Qwen3, bge-m3, nomic-embed-text), cloud (OpenAI `text-embedding-3-large`, Voyage), or **GitHub Copilot** (new in 2026.4.15). Picking the right one is usually more impactful than tuning the LLM.
@@ -117,9 +141,29 @@ The **single long-running process** every OpenClaw surface talks to. Holds the T
 
 - **Covered in:** [Part 25 — Architecture Overview](./part25-architecture-overview.md), [Part 15 — Infrastructure Hardening](./part15-infrastructure-hardening.md).
 
+## Git worktrees (for parallel agents)
+
+`git worktree` lets a single repo have multiple checked-out working directories simultaneously, each on its own branch, sharing the `.git` object database. The Apr 2026 consensus pattern for running N OpenClaw agents in parallel without merge conflicts: **one worktree per agent, one OpenClaw process per worktree**, merge the winning branches back afterwards.
+
+- **Covered in:** [Part 15 — Infrastructure Hardening](./part15-infrastructure-hardening.md).
+
+## Harness Thesis
+
+"**95% of agent capability comes from the harness, 5% from the model.**" Nine independent writers — Princeton NLP, Atlan, Trensee, heyuan110, The AI Corner, Towards AI, ivanmagda.dev, a Korean YouTube explainer (14.9K views), and a viral Medium essay — converged on this in the week of April 10-17, 2026. The harness is instructions + context engineering + tools/approvals + guardrails + memory + orchestration. Same weights, different harness, different benchmarks. OpenClaw *is* a harness; this guide is the operator's manual for one.
+
+- **Covered in:** [README intro](./README.md), [Part 25 — Architecture Overview](./part25-architecture-overview.md).
+
 ## Hooks
 
-Lifecycle callbacks OpenClaw fires at well-defined points (session-start, session-end, file-change, etc.). Most-useful for this guide: the auto-capture hook ([Part 11](./part11-auto-capture-hook.md)) and the file watcher ([Part 21](./part21-realtime-knowledge-sync.md)).
+Lifecycle callbacks OpenClaw fires at well-defined points — session-start, session-end, pre-tool-use, post-tool-use, pre-edit, post-edit, compact, stop, user-prompt-submit, and others (18 documented events across 4 types as of April 2026). Hooks are the **deterministic enforcement layer** — the only way to guarantee behavior an agent cannot talk its way out of. The 8 copy-paste hooks in [Part 29](./part29-hook-catalog.md) cover the common safety, cost, secret, and audit patterns.
+
+- **Covered in:** [Part 11 — Auto-Capture Hook](./part11-auto-capture-hook.md), [Part 21 — Realtime Knowledge Sync](./part21-realtime-knowledge-sync.md), [Part 29 — The Hook Catalog](./part29-hook-catalog.md).
+
+## LightMem
+
+A three-tier **STM / MTM / LTM memory** system published in [arXiv:2604.07798](https://arxiv.org/abs/2604.07798) in April 2026. Design win: memory operations (consolidation, retrieval) run on a **small, fast model** while the main agent keeps running a frontier model. Reports 83ms retrieval, +2.5 F1 over baselines on LoCoMo. Cite it whenever someone runs memory ops on Opus — they're setting money on fire.
+
+- **Covered in:** [Part 22 — Built-In Dreaming](./README.md#part-22-built-in-dreaming).
 
 ## LightRAG
 
@@ -132,6 +176,18 @@ Graph-RAG layer that turns your vault into a **knowledge graph of entities + rel
 Flag at `agents.defaults.experimental.localModelLean: true` (added in **2026.4.15**) that drops heavyweight default tools (browser, cron, message) from weaker local models. Lets small quantized models actually function instead of burning tokens parsing tool definitions they'll never use.
 
 - **Covered in:** [Part 1 — Speed](./README.md#part-1-speed-stop-being-slow), [Part 6 — Models](./README.md#part-6-models-what-to-actually-use).
+
+## LLM Wiki pattern
+
+Karpathy's Apr 10, 2026 [YouTube talk (4.3K views)](https://www.youtube.com/watch?v=K47qWvM8os0) crystallized a three-tier file hierarchy for production agents: **raw sources (immutable)** → **curated summaries (model-maintained, size-capped)** → **generated artifacts (one-shot)**. OpenClaw's SOUL/AGENTS/MEMORY/DREAMS/skills hierarchy maps 1:1 onto Karpathy's tiers.
+
+- **Covered in:** [Part 31 — The LLM Wiki Pattern In OpenClaw](./part31-the-llm-wiki-pattern-in-openclaw.md).
+
+## Mem²Evolve
+
+[arXiv preprint (Apr 14, 2026)](https://arxiv.org/html/2604.10923v1) that co-evolves an agent's **memory *and* skill populations** together, reporting +18.53% over a skill-only evolution baseline on a mixed agent-task benchmark. Research direction rather than shipping code; [SkillClaw](https://github.com/AMAP-ML/SkillClaw)'s roadmap cites it as the next integration target.
+
+- **Covered in:** [Part 32 — Self-Evolving Skills With SkillClaw](./part32-self-evolving-skills-with-skillclaw.md).
 
 ## Memory Bridge
 
@@ -175,17 +231,41 @@ Pattern where the **main agent** (orchestrator) spawns **sub-agents** (workers) 
 
 - **Covered in:** [Part 5 — Orchestration](./README.md#part-5-orchestration-stop-doing-everything-yourself), [Part 24 — Task Brain Control Plane](./part24-task-brain-control-plane.md).
 
+## PRD.json
+
+The **persistent spec** a Ralph Loop reads and writes every iteration. Contains tasks, their statuses, acceptance criteria, budget (max iterations / max USD / max wall hours), learnings, and last-iteration trace. The agent's reasoning anchor across fresh sessions. See also [Spec-Driven Development](./part26-migration-guide.md#pair-openclaw-with-a-machine-readable-spec-spec-driven-development).
+
+- **Covered in:** [Part 30 — The Ralph Loop In OpenClaw](./part30-ralph-loop-in-openclaw.md).
+
+## Progressive disclosure
+
+The context-engineering principle of **keeping big context out of the default prompt until a condition activates it** (a skill fires, a file is opened, a sub-agent spawns). Opposing anti-pattern: stuffing everything into CLAUDE.md / AGENTS.md and blowing the budget on every message. Five independent April 2026 writeups ([MindStudio Apr 15](https://www.mindstudio.ai/blog/progressive-disclosure-ai-agents-context-management/), among others) named this as the single biggest lever for long-session cost.
+
+- **Covered in:** [Part 2 — Context Engineering](./README.md#part-2-context-engineering-the-discipline), [Part 31 — The LLM Wiki Pattern](./part31-the-llm-wiki-pattern-in-openclaw.md).
+
+## Prompt cache TTL (5-minute trap)
+
+Anthropic's prompt-cache default TTL silently dropped from **1 hour to 5 minutes** in March 2026. Most operators missed the release note; bills quietly went up 2-4× for cache-heavy workloads because cache hits stopped materializing. Fix: pass an explicit `ttl` when writing cache checkpoints, or accept the new default and rebuild cache affinity.
+
+- **Covered in:** [Part 2 — Context Engineering](./README.md#part-2-context-engineering-the-discipline).
+
 ## Ralph loop
 
-An orchestration pattern: **implement → test → loop until tests pass**, with a PreCompletionChecklist that runs verification *before* the agent claims success. Named after the ghuntley.com/loop essay; also implemented in Letta Code's `/ralph` mode and LangChain's PreCompletionChecklistMiddleware.
+An autonomous orchestration pattern: a `while` loop that reads a **persistent spec (PRD.json)**, invokes the agent with a fresh session each iteration, appends learnings, and exits on budget / iteration / stall conditions. Reference implementation: [frankbria/ralph-claude-code (8.7K stars)](https://github.com/frankbria/ralph-claude-code). OpenClaw-specific port: [DEV Apr 13, 2026](https://dev.to/satoru_906c2ffeaf64bd2ac1/stop-babysitting-your-ai-agent-use-ralph-loops-openclaw-fdi). Named after the [ghuntley.com/loop](https://ghuntley.com/loop) essay.
 
-- **Covered in:** [Part 5 — Orchestration](./README.md#part-5-orchestration-stop-doing-everything-yourself).
+- **Covered in:** [Part 30 — The Ralph Loop In OpenClaw](./part30-ralph-loop-in-openclaw.md).
 
 ## Repowise
 
 Codebase-intelligence service that pre-builds a structural index of a repo so coding agents don't burn tokens re-reading the same files every spawn. ~60% fewer tokens, ~4x faster coding workflows in our measurements.
 
 - **Covered in:** [Part 19 — Repowise](./part19-repowise-codebase-intelligence.md).
+
+## SDD — Spec-Driven Development
+
+Framing popularized by a *[Time Apr 14, 2026](https://time.news/spec-driven-development-the-key-to-scaling-autonomous-ai-agents/)* piece: **a machine-readable spec (`SPEC.md` or `PRD.json`) is the agent's single source of truth**. Agent reads it, picks the next task, does the work, updates the spec, commits. AWS Kiro case study: 18 months → 76 days. Natural partner to the Ralph Loop.
+
+- **Covered in:** [Part 26 — Migration Guide](./part26-migration-guide.md#pair-openclaw-with-a-machine-readable-spec-spec-driven-development), [Part 30 — The Ralph Loop In OpenClaw](./part30-ralph-loop-in-openclaw.md).
 
 ## Session memory files
 
@@ -204,6 +284,24 @@ The OpenClaw tool that creates a sub-agent. In Task Brain it produces a child fl
 A packaged capability (tools + prompt + optional hooks) installable from ClawHub or locally. In 2026.3.31-beta.1+, skill installs are **fail-closed** if the built-in security scan flags dangerous code; overriding requires the deliberately awkward `--dangerously-force-unsafe-install` flag.
 
 - **Covered in:** [Part 23 — ClawHub Skills Marketplace](./part23-clawhub-skills-marketplace.md).
+
+## SkillClaw
+
+[AMAP-ML/SkillClaw (created April 10, 2026)](https://github.com/AMAP-ML/SkillClaw) — population-level skill evolution framework. Scores skills on outcome, efficiency, and recency; mutates prompts / parameters / order-of-checks; retires weak skills; promotes strong ones. **Lists OpenClaw as a first-class harness.** 687 stars in week one. See also Mem²Evolve for the co-evolution direction.
+
+- **Covered in:** [Part 32 — Self-Evolving Skills With SkillClaw](./part32-self-evolving-skills-with-skillclaw.md).
+
+## StopFailure
+
+The runtime error OpenClaw raises when a hook exits with code `2`. Unlike a normal tool error, a StopFailure is **non-recoverable from the agent's side** — it aborts the in-progress action and surfaces the hook's stdout/stderr to the user. The deliberate design: hooks are the layer the agent cannot talk its way out of. The common footgun (Amit Kothari's writeup): using exit code 1 when you meant 2, so the hook "fails" but the unsafe action still runs.
+
+- **Covered in:** [Part 29 — The Hook Catalog](./part29-hook-catalog.md).
+
+## Sub-agents as context garbage collection
+
+2026 reframing: the primary value of sub-agents is **disposable context**, not parallelism. A sub-agent runs, produces a small structured result, and its entire conversation — tool calls, intermediate thoughts, long file reads — is thrown away. The main agent never paid for any of it. The Apr 2026 decision table: spawn a sub-agent when **(a) the scope is wide**, **(b) ≥10 edit targets**, or **(c) independent verification is wanted**.
+
+- **Covered in:** [Part 5 — Orchestration](./README.md#part-5-orchestration-stop-doing-everything-yourself).
 
 ## SOUL.md
 
