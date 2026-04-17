@@ -1,0 +1,56 @@
+{
+  // Config for markdownlint-cli2 — prose guide, permissive by design.
+  // We keep rules that catch real correctness problems (heading levels, etc.)
+  // and disable the ones that fight an opinionated writing style.
+  "default": true,
+
+  // --- Style rules we deliberately turn off ---
+
+  // Line length — prose, hard-wrap hurts readability.
+  "MD013": false,
+
+  // Inline HTML is fine (we use <sub>, <br/>, details/summary).
+  "MD033": false,
+
+  // Bare URLs in tables / inline.
+  "MD034": false,
+
+  // Emphasis-as-heading is part of the voice.
+  "MD036": false,
+
+  // Trailing punctuation in headings is allowed ("Stop Being Slow.").
+  "MD026": false,
+
+  // Don't require language on every fence — ASCII art blocks.
+  "MD040": false,
+
+  // Allow blanks inside block quotes for multi-paragraph callouts.
+  "MD028": false,
+
+  // Allow duplicate headings at different levels / siblings.
+  "MD024": { "siblings_only": true },
+
+  // First line doesn't have to be a top-level heading (badges first).
+  "MD041": false,
+
+  // Table column style — allow mixed alignment; we use it deliberately.
+  "MD060": false,
+
+  // --- Blank-line rules: relaxed so templates and nested tables don't break CI ---
+
+  // Blank line around headings / fences / tables.
+  "MD022": false,
+  "MD031": false,
+  "MD032": false,
+  "MD058": false,
+
+  // Multiple consecutive blank lines — keep tight, but 2 is fine in block quotes.
+  "MD012": { "maximum": 2 },
+
+  // Trailing newline at EOF — nice-to-have, not worth failing CI on legacy files.
+  "MD047": false,
+
+  // Anchor fragment validation disagrees with GitHub's slug behaviour for
+  // headings with emojis and colons. We link-check with lychee instead.
+  "MD051": false
+}

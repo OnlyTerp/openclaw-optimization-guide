@@ -1,0 +1,159 @@
+# Part 26: Migration Guide
+
+> New in the 2026.4.15-beta.1 refresh. Opinionated, battle-tested upgrade paths from older OpenClaw versions to current. If something in this guide doesn't apply to your version yet, start here.
+
+## TL;DR By Version
+
+| You're on | Do this first | Then | Finally |
+|-----------|--------------|------|---------|
+| **v3.x** | Full v4.0 upgrade (not a drop-in) | v4.1 ClawHub | 2026.4.15-beta.1 |
+| **v4.0.x** | v2026.3.31-beta.1 (Task Brain) | 2026.4.x (built-in dreaming) | 2026.4.15-beta.1 |
+| **v2026.3.x** | Apply Task Brain approval policy | Upgrade to 2026.4.x | 2026.4.15-beta.1 |
+| **v2026.4.x pre-4.15** | Skip straight to 2026.4.15-beta.1 | Apply the 4.15 flags | Done |
+
+Each step is described below. Don't skip steps \u2014 the CVE wave fixes and Task Brain model changes are not optional for anyone running more than a personal-dev setup.
+
+## Before You Upgrade (Every Upgrade, Every Time)
+
+```bash
+# 1. Back up your config
+cp ~/.openclaw/openclaw.json ~/.openclaw/openclaw.json.pre-upgrade.$(date +%Y%m%d)
+
+# 2. Back up auth profiles
+cp ~/.openclaw/auth-profiles.json ~/.openclaw/auth-profiles.json.pre-upgrade.$(date +%Y%m%d)
+
+# 3. Snapshot your memory + vault
+tar -czf ~/openclaw-memory-$(date +%Y%m%d).tgz \
+  ~/.openclaw/memory \
+  ~/.openclaw/agents/*/sessions \
+  ./vault   # if your vault is project-local
+
+# 4. Check current version so you know what to roll back to
+openclaw --version
+```
+
+**Do not skip the snapshot.** Task Brain changes how tasks are recorded; memory-core changes how dreams are written. If you hit something weird post-upgrade, rolling back to a snapshot beats debugging a half-migrated state.
+
+## Path 1: v3.x \u2192 v4.0
+
+This is the hardest single jump and the one most likely to break configs. v4.0 was a ground-up rewrite.
+
+**Breaking changes:**
+- Gateway daemon replaces the old multi-process model. Your existing `openclaw start` scripts probably won't work.
+- Cron moves from a plugin to native. Old cron plugin configs need migration.
+- Canvas UI replaces the old web UI. Bookmarks break.
+- Tool schema changed \u2014 custom tools need their manifests updated.
+- Session file format changed. Old sessions are read-only after upgrade.
+
+**Steps:**
+
+1. Read the v4.0 release notes in full. No shortcut here.
+2. Install v4.0 in parallel \u2014 don't replace v3 until you've done a dry run.
+3. Export your v3 cron schedules, memory contents, and custom tools. Save as JSON/markdown, not as v3 binary state.
+4. Install v4.0 clean, reimport the exports. Expect to hand-fix 10-30% of configs.
+5. Point any ACP callers / IDE integrations at the new gateway endpoint.
+6. Keep v3 around read-only for a week before uninstalling.
+
+**What breaks if you rush it:**
+- Custom tools silently disabled because their manifest is v3-format.
+- Cron jobs stop firing because they were registered against the old plugin.
+- Memory appears empty in v4.0 because session files live in a different directory.
+
+If you're on v3.x and you want "a few more months of life out of it": stay on v3. If you want any of the rest of this guide: you have to do the v4.0 upgrade. There is no in-between.
+
+## Path 2: v4.0.x \u2192 v2026.3.31-beta.1 (Task Brain)
+
+Significantly easier than v3\u2192v4.0. No data migration, but a policy migration.
+
+**What changes:**
+- The old name-based approvals (`allow: ["bash", "exec"]`) still parse but are converted internally to semantic categories.
+- All spawns, cron jobs, and ACP calls now flow through the Task Brain ledger.
+- Plugin defaults are fail-closed. Unconfigured plugins get `ask` approvals, not free access.
+
+**Steps:**
+
+1. Upgrade the package. Restart the gateway.
+2. Run `openclaw tasks list`. If it works: Task Brain is live. If you get "command not found": upgrade didn't take, re-check.
+3. Write a semantic approval policy (see [Part 24](./part24-task-brain-control-plane.md)). Don't leave it on defaults for more than a day \u2014 you want the policy to match your actual usage or you'll drown in approval prompts.
+4. Audit `openclaw tasks audit --since 7d` at least once in the first week. You'll spot jobs you forgot existed.
+
+**What to watch for post-upgrade:**
+- Sub-agent spawns suddenly requiring approval that didn't before \u2014 means your per-agent approval policy is too loose at the orchestrator level or too tight at the worker level. Adjust per [Part 24](./part24-task-brain-control-plane.md).
+- Skills failing silently \u2014 check they're not being denied by fail-closed defaults. Either explicitly allow them in the approval policy, or remove them.
+- Cron jobs missing runs the first day \u2014 known behavior during ledger initialization; resolves automatically after one cycle.
+
+## Path 3: v2026.3.x \u2192 v2026.4.x
+
+This is mostly smooth.
+
+**What changes:**
+- memory-core ships built-in dreaming ([Part 22](./README.md#part-22-built-in-dreaming)) \u2014 the native replacement for the custom autoDream pattern in [Part 16](./part16-autodream-memory-consolidation.md).
+- DREAMS.md joins MEMORY.md as a canonical memory file.
+- Bundled skill updates across ClawHub.
+
+**Steps:**
+
+1. Upgrade and restart gateway.
+2. If you were running the custom autoDream ([Part 16](./part16-autodream-memory-consolidation.md)): keep it running for 48 hours with the built-in one *also* enabled. Compare `DREAMS.md` entries from both to make sure the built-in is catching what you expect. Then remove the custom one.
+3. If you weren't running any dreaming: enable memory-core's built-in and walk away. Check in after a week.
+
+**Gotchas:**
+- If you had custom `memory_get` calls reading arbitrary paths, they'll still work in 4.x but will break at 4.15 \u2014 fix them now, don't wait.
+
+## Path 4: Anything v2026.4.x \u2192 v2026.4.15-beta.1
+
+Small jump. This is the version the guide is currently tested on.
+
+**What changes (the ones you should act on immediately):**
+- Compaction reserve-token floor is now capped at the model context window (fixes infinite loops on small local compaction workers).
+- Gateway supports hot-reload of auth secrets via `openclaw secrets reload` \u2014 no more downtime for key rotation.
+- Approval prompts redact secrets before showing them to approvers. Previously every approval was a credential leak.
+- `memory_get` restricted to MEMORY.md + DREAMS.md only (path-traversal hardening against the qmd backend).
+- Memory-lancedb can persist to S3-compatible cloud storage.
+- GitHub Copilot embedding provider.
+- `agents.defaults.experimental.localModelLean: true` drops heavyweight default tools for weak local models.
+- New Model Auth card in Canvas UI shows OAuth token health + rate-limit pressure.
+
+**Steps:**
+
+1. Upgrade. Restart gateway. Run `openclaw doctor`.
+2. Open Canvas UI \u2192 Model Auth card. If anything is yellow/red, fix it before doing real work.
+3. If you have any skill or hook calling `memory_get("some/path")` with non-canonical paths \u2014 fix them now. They fail at 4.15.
+4. If you run a small local compaction model: check your `compaction.reserveTokens` is under the model's context window (Part 15). The cap now enforces this, but explicit is better.
+5. If you run multi-user approvals: verify the approval UI now shows `sk-***` redacted, not raw keys.
+6. Optional: enable `localModelLean` if you have a 14B-or-smaller local agent.
+7. Optional: switch to Copilot embeddings *only* if your org already pays for Copilot Business/Enterprise. Local Ollama is still the right default.
+
+## Rollback Plan (Every Path)
+
+If something goes sideways:
+
+```bash
+# Stop the gateway
+openclaw gateway stop
+
+# Install previous version (example: pin via your package manager)
+npm install -g openclaw@2026.4.14  # adjust for your install method
+
+# Restore config
+cp ~/.openclaw/openclaw.json.pre-upgrade.YYYYMMDD ~/.openclaw/openclaw.json
+
+# If memory got corrupted during upgrade (rare):
+tar -xzf ~/openclaw-memory-YYYYMMDD.tgz -C /
+
+# Restart
+openclaw gateway start
+openclaw doctor
+```
+
+Full rollback takes ~2 minutes if you have the snapshots. If you skipped the snapshots, rollback might not work \u2014 Task Brain + memory-core have made enough on-disk format changes that "just reinstalling the old binary" is not enough on the 2026.3.x \u2192 2026.4.x line.
+
+## After Every Upgrade
+
+- `openclaw doctor` \u2014 sanity check.
+- `openclaw tasks list` / `openclaw tasks audit --since 24h` \u2014 confirm Task Brain is recording.
+- Memory smoke test: search for something you know is in memory. Confirm it comes back fast (<100ms local).
+- Run one sub-agent spawn end-to-end. Confirm the approval categories behave the way your policy says they should.
+- Check Canvas UI \u2192 Model Auth card. Tokens healthy, no rate-limit warnings.
+
+If all five pass, you're done. If any fail, roll back and file a reproducer \u2014 don't fight a broken upgrade live on production agents.

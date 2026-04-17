@@ -6,7 +6,7 @@
 
 The main guide's one-shot prompt installs a local embedding model via Ollama. Pick the right tier for your hardware:
 
-### Embedding Model Tiers
+## Embedding Model Tiers
 
 | Tier | Model | Dims | RAM | Speed | Quality | Best For |
 |------|-------|------|-----|-------|---------|----------|

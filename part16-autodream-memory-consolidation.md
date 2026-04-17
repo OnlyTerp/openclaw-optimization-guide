@@ -1,6 +1,17 @@
-# Part 16: autoDream — Automatic Memory Consolidation
+# Part 16: autoDream — Automatic Memory Consolidation *(legacy / pre-2026.4)*
 
-> **Note:** OpenClaw 2026.4+ has a [built-in dreaming system (Part 22)](./README.md#part-22-built-in-dreaming) inside memory-core. If you're on 2026.4+, use that instead — it's the official, supported version with proper scoring, phase management, and a UI. This part is kept for older versions and custom implementations.
+> **⚠️ DEPRECATED — use [Part 22: Built-In Dreaming](./README.md#part-22-built-in-dreaming) instead.**
+>
+> OpenClaw 2026.4+ ships a native memory consolidation system (memory-core built-in dreaming) that replaces everything this part describes. It has proper scoring, phase management, a Canvas UI, a Dream Diary (`DREAMS.md`), and is officially supported.
+>
+> **You should read this part only if:**
+> - You're stuck on a pre-2026.4 OpenClaw and can't upgrade yet (see [Part 26 — Migration Guide](./part26-migration-guide.md))
+> - You're writing a custom consolidation system on top of memory-core and want the original pattern for reference
+> - You're curious about the Claude Code lineage this was reverse-engineered from
+>
+> **For any current (2026.4+) setup, go to [Part 22](./README.md#part-22-built-in-dreaming) and stop reading here.**
+>
+> This part is kept as an archival reference; it will not be updated for new OpenClaw versions.
 
 *Your agent's memory grows forever. Session files pile up. MEMORY.md gets stale. Knowledge gets buried. autoDream fixes this by teaching your agent to consolidate its own memory — automatically, on every session start.*
 
@@ -347,4 +358,4 @@ Our adaptation replaces the forked subagent with **agent instructions** — simp
 
 ---
 
-*Next: [Part 17 →](./part17-coordinator-protocol.md) — Multi-agent coordinator workflow (Research → Synthesis → Implementation → Verification)*
+*This part is legacy. For the current path, see [Part 22: Built-In Dreaming](./README.md#part-22-built-in-dreaming). For multi-agent coordinator patterns, see [Part 5: Orchestration](./README.md#part-5-orchestration-stop-doing-everything-yourself).*

@@ -1,46 +1,174 @@
 # OpenClaw Optimization Guide
 
-> **Tested on OpenClaw 2026.4.15-beta.1 — April 15, 2026** · 24 parts · Battle-tested on a 14+ agent production deployment
->
-> **What changed since 2026.4.5:** Task Brain control plane (new Part 24), ClawHub skills marketplace (new Part 23), memory-lancedb cloud storage, GitHub Copilot embedding provider, `localModelLean` flag for weak local models, semantic approval categories, compaction reserve-token floor cap, gateway auth hot-reload, approvals secret redaction, `memory_get` restricted to canonical memory files (DREAMS.md joins MEMORY.md), and the Model Auth status card in Control UI.
+**Make your OpenClaw AI agent faster, smarter, cheaper, and actually safe to run in production.**
 
-### Make Your OpenClaw AI Agent Faster, Smarter, and Actually Useful
-#### Speed optimization, memory architecture, context management, model selection, graph RAG, codebase intelligence, and agent observability
+[![Tested on 2026.4.15-beta.1](https://img.shields.io/badge/OpenClaw-2026.4.15--beta.1-2ea44f)](./part26-migration-guide.md)
+[![27 parts](https://img.shields.io/badge/parts-27-blue)](#full-table-of-contents)
+[![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey)](./LICENSE)
+[![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](./CONTRIBUTING.md)
 
-*By Terp - [Terp AI Labs](https://x.com/OnlyTerp)*
+> **Tested on OpenClaw 2026.4.15-beta.1 — April 15, 2026.** 27 parts. Battle-tested on a 14+ agent production deployment. Covers speed, memory, orchestration, models, web search, vault architecture, embeddings, hooks, graph RAG, codebase intelligence, observability, infrastructure hardening, skills marketplace, and control-plane security.
+
+*By Terp — [Terp AI Labs](https://x.com/OnlyTerp)*
 
 ---
 
-## Table of Contents
+## Who This Is For
 
-1. [Speed](#part-1-speed-stop-being-slow) - Trim context files, add fallbacks, manage reasoning mode
-2. [Context Bloat](#part-2-context-bloat-the-silent-performance-killer) - Quadratic scaling, built-in defenses
-3. [Cron Session Bloat](#part-3-cron-session-bloat-the-hidden-killer) - Session file accumulation, cleanup
-4. [Memory](#part-4-memory-stop-forgetting-everything) - 3-tier memory system, Ollama vector search
-5. [Orchestration](#part-5-orchestration-stop-doing-everything-yourself) - Sub-agent delegation, CEO/COO/Worker model
-6. [Models](#part-6-models-what-to-actually-use) - Provider comparison, pricing, local models
-7. [Web Search](#part-7-web-search-give-your-agent-eyes-on-the-internet) - Tavily, Brave, Serper, Gemini grounding
-8. [One-Shotting Big Tasks](#part-8-one-shotting-big-tasks-stop-iterating-start-researching) - Research-first methodology
-9. [Vault Memory System](#part-9-vault-memory-system-stop-losing-knowledge-between-sessions) - Structured knowledge graph, MOCs, cross-session continuity
-10. [State-of-the-Art Embeddings](./part10-state-of-the-art-embeddings.md) - Upgrade from nomic to qwen3-embedding, SOTA quality, Windows gotchas
-11. [Auto-Capture Hook](./part11-auto-capture-hook.md) - Automatic knowledge extraction after every session, no manual memory writes
-12. [Self-Improving System](./part12-self-improving-system.md) - Micro-learning loop that compounds forever, $0/day
-13. [Memory Bridge](./part13-memory-bridge.md) - Give coding agents (Codex/Claude Code) access to your vault knowledge
-14. [Quick Checklist](#part-14-quick-checklist) - 30-minute setup checklist
-15. [Infrastructure Hardening](./part15-infrastructure-hardening.md) - Compaction crash loops, GPU contention, Gemini Flash purge, Tavily migration, gateway crash-loop fix
-16. [autoDream Memory Consolidation](./part16-autodream-memory-consolidation.md) - Automatic memory cleanup inspired by Claude Code's leaked source. 3-gate trigger, 4-phase execution, works with any OpenClaw setup
-17. [The One-Shot Prompt](#part-17-the-one-shot-prompt) - Copy-paste automation prompt that does the entire setup (works with 2026.4.15-beta.1)
-18. [LightRAG — Graph RAG](./part18-lightrag-graph-rag.md) - Upgrade from vector-only to graph RAG. Entities + relationships, not just text similarity. Built-in Web UI, REST API, LangFuse tracing. The single biggest intelligence upgrade.
-19. [Repowise — Codebase Intelligence](./part19-repowise-codebase-intelligence.md) - 60% fewer tokens, 4x faster coding agents. Dependency graphs, git analytics, dead code detection, architectural decisions.
-20. [Agent Observability](./part20-observability-and-services.md) - LangFuse for tracing all agent calls. n8n for workflow automation. Reranker for better search quality.
-21. [Real-Time Knowledge Sync](./part21-realtime-knowledge-sync.md) - Event-driven file watcher that syncs vault changes to LightRAG in under 6 seconds. No cron. Self-healing offline queue. The final piece that makes the knowledge graph always current.
-22. [Built-In Dreaming (memory-core)](#part-22-built-in-dreaming) - OpenClaw's official memory consolidation system. 3-phase sweep: Light, Deep, REM. Automatic promotion to MEMORY.md and DREAMS.md. The native replacement for our custom autoDream.
-23. [ClawHub Skills Marketplace](./part23-clawhub-skills-marketplace.md) - 13,000+ community skills in ~30 days. How to find the useful ones, avoid the malicious ones, and vet anything before you `openclaw skills install`.
-24. [Task Brain Control Plane](./part24-task-brain-control-plane.md) - The unified task ledger introduced in 2026.3.31-beta.1. Semantic approval categories, agent-initiated denies, fail-closed plugin defaults — everything you need to know after the March CVE wave.
+- **Running any OpenClaw agent in production.** If your bot handles real work, the speed, memory, and security parts are non-optional.
+- **Just hit "why is my agent slow?" for the first time.** [Part 1](#part-1-speed-stop-being-slow) and [Part 2](#part-2-context-bloat-the-silent-performance-killer) are where to start.
+- **Coming from v3.x or early v4.0.** Start with [Part 26 — Migration Guide](./part26-migration-guide.md), then [Part 25 — Architecture Overview](./part25-architecture-overview.md).
+- **Building multi-agent systems.** [Part 5 — Orchestration](#part-5-orchestration-stop-doing-everything-yourself) and [Part 24 — Task Brain](./part24-task-brain-control-plane.md) are your backbone.
+- **Already read half the guide and forget what's where.** Jump to [Part 27 — Gotchas & FAQ](./part27-gotchas-and-faq.md) or the themed map below.
 
-**📊 [Benchmarks](./benchmarks/)** — Real numbers from a production system (context savings, search latency, reindex results, SWE-bench rankings)
+---
 
-**📁 [Example Vault](./examples/)** — Populated mini-vault showing MOCs, wiki-links, Agent Notes, and .learnings/ after 2 weeks of use
+## Start Here (In This Order)
+
+1. **[Part 25 — Architecture Overview](./part25-architecture-overview.md)** — 15-minute primer on what OpenClaw actually is under the hood (gateway, Task Brain, memory layer, skills, surfaces).
+2. **[Part 14 — Quick Checklist](#part-14-quick-checklist)** — 30-minute setup checklist covering the 80/20.
+3. **[Part 17 — The One-Shot Prompt](#part-17-the-one-shot-prompt)** — copy-paste prompt that automates the whole setup.
+4. **[Part 27 — Gotchas & FAQ](./part27-gotchas-and-faq.md)** — keep this open while you work. Half your questions are here.
+
+---
+
+## What You Get (Numbers From Our Production Deployment)
+
+| Metric | Before | After | Source |
+|--------|-------:|------:|--------|
+| Context file size (SOUL + AGENTS + MEMORY) | ~15 KB | ~5 KB | [Part 1](#part-1-speed-stop-being-slow) |
+| Memory search latency | 2–5s (cloud) | <100ms (local) | [Part 4](#part-4-memory-stop-forgetting-everything), [Part 10](./part10-state-of-the-art-embeddings.md) |
+| Compaction crash rate | loops on 16K models | 0 (fixed in 4.15) | [Part 15](./part15-infrastructure-hardening.md) |
+| Coding-agent token usage | baseline | –60% | [Part 19 — Repowise](./part19-repowise-codebase-intelligence.md) |
+| Sessions before audit trail | 0 surfaces | all surfaces | [Part 24 — Task Brain](./part24-task-brain-control-plane.md) |
+
+Full numbers in **[benchmarks/](./benchmarks/)**.
+
+---
+
+## What Changed In This Release (2026.4.15-beta.1 Refresh)
+
+- **Task Brain control plane** (new [Part 24](./part24-task-brain-control-plane.md)) — unified task ledger, semantic approval categories, agent-initiated denies, fail-closed plugin defaults. Shipped as the structural fix for the March CVE wave.
+- **ClawHub skills marketplace** (new [Part 23](./part23-clawhub-skills-marketplace.md)) — 13K+ community skills, 1,184 removed for being malicious. Install policy, signing, scope-limiting, sleeper-update mitigation.
+- **v4.0 Architecture Overview** (new [Part 25](./part25-architecture-overview.md)) — the primer that should have existed since the rewrite.
+- **Migration Guide** (new [Part 26](./part26-migration-guide.md)) — opinionated v3 → v4 → v2026.3 → v2026.4 → v2026.4.15-beta.1 upgrade paths with rollback plans.
+- **Gotchas & FAQ** (new [Part 27](./part27-gotchas-and-faq.md)) — symptom-indexed troubleshooting, most questions answered in one page.
+- **Part 16 (custom autoDream) deprecated** — memory-core's native dreaming (Part 22) is the official path since 2026.4+.
+- Updates across existing parts for: memory-lancedb cloud storage, GitHub Copilot embedding provider, `localModelLean` flag, compaction reserve-token floor cap, gateway auth hot-reload, approvals secret redaction, `memory_get` canonical-only, Model Auth status card.
+
+---
+
+## How The Pieces Fit Together
+
+```mermaid
+flowchart LR
+    You[You]
+    subgraph Surfaces
+        Canvas[Canvas UI]
+        CLI[CLI / IDE]
+        Cron[Cron / ACP]
+    end
+    subgraph Gateway["Gateway daemon (Task Brain)"]
+        Ledger[Task ledger]
+        Approvals[Semantic approvals]
+        Auth[Auth / secrets]
+    end
+    subgraph Agents
+        Main[Main agent]
+        Workers[Sub-agents]
+    end
+    subgraph Memory["Memory layer"]
+        MemCore[memory-core<br/>MEMORY.md + DREAMS.md]
+        Lance[memory-lancedb<br/>vector search]
+        Light[LightRAG<br/>graph RAG]
+    end
+    subgraph Capabilities
+        Hub[ClawHub skills]
+        Hooks[Hooks]
+        Tools[Tools]
+    end
+
+    You --> Surfaces
+    Surfaces --> Gateway
+    Gateway --> Agents
+    Agents --> Memory
+    Agents --> Capabilities
+    Capabilities -. register with .-> Gateway
+    Memory -. feed .-> Agents
+```
+
+Full breakdown of each block in **[Part 25 — Architecture Overview](./part25-architecture-overview.md)**.
+
+---
+
+## Navigate By Goal
+
+Not every part applies to every reader. Jump directly to the pillar that matches what you're trying to do:
+
+| I want to… | Start with |
+|-------------|-----------|
+| **Make my agent faster** | [1 Speed](#part-1-speed-stop-being-slow) · [2 Context Bloat](#part-2-context-bloat-the-silent-performance-killer) · [3 Cron Bloat](#part-3-cron-session-bloat-the-hidden-killer) · [6 Models](#part-6-models-what-to-actually-use) |
+| **Stop it forgetting things** | [4 Memory](#part-4-memory-stop-forgetting-everything) · [9 Vault](#part-9-vault-memory-system-stop-losing-knowledge-between-sessions) · [10 Embeddings](./part10-state-of-the-art-embeddings.md) · [22 Built-In Dreaming](#part-22-built-in-dreaming) |
+| **Reduce cost** | [5 Orchestration](#part-5-orchestration-stop-doing-everything-yourself) · [6 Models](#part-6-models-what-to-actually-use) · [8 One-Shotting](#part-8-one-shotting-big-tasks-stop-iterating-start-researching) |
+| **Handle real codebases** | [18 LightRAG](./part18-lightrag-graph-rag.md) · [19 Repowise](./part19-repowise-codebase-intelligence.md) · [21 Real-time Sync](./part21-realtime-knowledge-sync.md) |
+| **Harden for production** | [15 Infra Hardening](./part15-infrastructure-hardening.md) · [23 ClawHub](./part23-clawhub-skills-marketplace.md) · [24 Task Brain](./part24-task-brain-control-plane.md) |
+| **See what my agents are doing** | [20 Observability](./part20-observability-and-services.md) · [24 Task Brain audit](./part24-task-brain-control-plane.md) |
+| **Automate self-improvement** | [11 Auto-Capture Hook](./part11-auto-capture-hook.md) · [12 Self-Improving System](./part12-self-improving-system.md) · [13 Memory Bridge](./part13-memory-bridge.md) |
+| **Upgrade from an older version** | [26 Migration Guide](./part26-migration-guide.md) |
+| **Debug something weird** | [27 Gotchas & FAQ](./part27-gotchas-and-faq.md) |
+
+---
+
+## Full Table of Contents
+
+**🎯 Primers & references**
+- [25. Architecture Overview](./part25-architecture-overview.md) — the 15-min mental map of v4.0+
+- [26. Migration Guide](./part26-migration-guide.md) — upgrade paths + rollback plans
+- [27. Gotchas & FAQ](./part27-gotchas-and-faq.md) — symptom → fix table + frequently asked questions
+- [14. Quick Checklist](#part-14-quick-checklist) — 30-minute setup
+- [17. The One-Shot Prompt](#part-17-the-one-shot-prompt) — automation prompt (2026.4.15-beta.1)
+
+**⚡ Speed & context**
+1. [Speed — Stop Being Slow](#part-1-speed-stop-being-slow) — trim context, add fallbacks, reasoning mode, `localModelLean`
+2. [Context Bloat — The Silent Performance Killer](#part-2-context-bloat-the-silent-performance-killer) — quadratic scaling, pruning, compaction
+3. [Cron Session Bloat — The Hidden Killer](#part-3-cron-session-bloat-the-hidden-killer) — session file accumulation, cleanup
+
+**🧠 Memory**
+4. [Memory — Stop Forgetting Everything](#part-4-memory-stop-forgetting-everything) — 3-tier memory, Ollama, lancedb cloud storage, Copilot embeddings
+9. [Vault Memory System](#part-9-vault-memory-system-stop-losing-knowledge-between-sessions) — folders, MOCs, claim-named notes, wiki-links
+10. [State-of-the-Art Embeddings](./part10-state-of-the-art-embeddings.md) — qwen3-embedding, GPU tier, Windows path, Copilot provider
+11. [Auto-Capture Hook](./part11-auto-capture-hook.md) — automatic knowledge extraction after every session
+12. [Self-Improving System](./part12-self-improving-system.md) — micro-learning loop, HOT/WARM/COLD tiers
+13. [Memory Bridge](./part13-memory-bridge.md) — give Codex / Claude Code access to your vault
+22. [Built-In Dreaming (memory-core)](#part-22-built-in-dreaming) — official 3-phase consolidation, DREAMS.md
+16. [autoDream *(legacy, pre-2026.4)*](./part16-autodream-memory-consolidation.md) — kept for reference only
+
+**🤝 Orchestration & models**
+5. [Orchestration](#part-5-orchestration-stop-doing-everything-yourself) — sub-agents, CEO/COO/Worker, verification, Ralph loop
+6. [Models — What To Actually Use](#part-6-models-what-to-actually-use) — provider comparison, pricing, local, `localModelLean`
+7. [Web Search](#part-7-web-search-give-your-agent-eyes-on-the-internet) — Tavily, Brave, Serper, Gemini grounding
+8. [One-Shotting Big Tasks](#part-8-one-shotting-big-tasks-stop-iterating-start-researching) — research-first methodology
+
+**🧩 Knowledge graph & codebase**
+18. [LightRAG — Graph RAG](./part18-lightrag-graph-rag.md) — entities + relationships, Web UI, REST, LangFuse tracing
+19. [Repowise — Codebase Intelligence](./part19-repowise-codebase-intelligence.md) — 60% fewer tokens, 4x faster coding agents
+21. [Real-Time Knowledge Sync](./part21-realtime-knowledge-sync.md) — event-driven file watcher, <6s vault → LightRAG sync
+
+**🔒 Hardening & security**
+15. [Infrastructure Hardening](./part15-infrastructure-hardening.md) — compaction crash loops, GPU contention, secrets, gateway crash-loop fix, reserve-token cap, auth hot-reload, approval redaction
+23. [ClawHub Skills Marketplace](./part23-clawhub-skills-marketplace.md) — marketplace, malware, install policy
+24. [Task Brain Control Plane](./part24-task-brain-control-plane.md) — unified task ledger, semantic approvals, trust boundaries
+
+**🔭 Observability**
+20. [Agent Observability](./part20-observability-and-services.md) — LangFuse, reranker, n8n, workflow automation
+
+---
+
+**📊 [Benchmarks](./benchmarks/)** — real numbers from a production system (context savings, search latency, reindex results, SWE-bench rankings)
+
+**📁 [Example Vault](./examples/)** — populated mini-vault showing MOCs, wiki-links, Agent Notes, and `.learnings/` after 2 weeks of use
+
+**🤝 [Contributing](./CONTRIBUTING.md)** — how to propose corrections, new parts, and version-bump PRs
 
 ---
 
