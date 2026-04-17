@@ -46,7 +46,7 @@ Each tier has a different write pattern. Getting this wrong is the #1 cause of "
 
 ### Curated summaries (`SOUL.md`, `AGENTS.md`, `MEMORY.md`, `DREAMS.md`, `skills/`)
 
-- **Size-capped.** SOUL < 1 KB, AGENTS < 2 KB, MEMORY < 32 KB, DREAMS latest-N entries only. Above the cap, the Deep-phase sweep promotes and prunes.
+- **Size-capped.** SOUL < 1 KB, AGENTS < 2 KB, MEMORY < 3 KB (pointer index — the actual durable facts live in `vault/` and are pulled on demand), DREAMS latest-N entries only. Above the cap, the Deep-phase sweep promotes and prunes.
 - **Model-maintained, human-audited.** Dreaming writes MEMORY.md; humans skim it weekly to delete anything wrong.
 - **Single-writer per file.** The agent writes MEMORY.md via `memory promote`. Humans write SOUL.md/AGENTS.md. Don't cross these streams.
 

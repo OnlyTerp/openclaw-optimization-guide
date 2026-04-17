@@ -88,7 +88,7 @@ flowchart TB
 |------|---------|---------:|------------|-----------|
 | **SOUL.md** | Identity, invariants, non-negotiables | < 1 KB | Human | Every message |
 | **AGENTS.md** | Operational rules, decision trees, tool routing | < 2 KB | Human + agent (auditable) | Every message |
-| **MEMORY.md** | Durable facts promoted from short-term | < 32 KB | Agent via `memory promote` | Every message |
+| **MEMORY.md** | Durable facts promoted from short-term (pointer index) | < 3 KB | Agent via `memory promote` | Every message |
 | **DREAMS.md** | Human-readable reflection diary | latest N entries | Built-in Dreaming | Every message |
 | **skills/** | Named playbooks | per-skill small | Human + SkillClaw | On activation |
 | **vault/** | Raw source notes, transcripts, links | unbounded | Auto-capture + humans | On `memory_search` |

@@ -323,7 +323,7 @@ Reference block for `openclaw.json`:
 }
 ```
 
-Test every hook with a `--dry-run` flag before you ship it. A hook that throws because of a missing env var blocks every tool call in the session.
+Test every hook with a `--dry-run` flag before you ship it. A hook that throws because of a missing env var exits with code **1** (`Error — continue`) per the exit-code table above — which means every tool call **proceeds anyway** and your safety hook silently fails open. Catch exceptions at the top of each hook and `exit 2` explicitly if you want a hard block on error.
 
 ## Further Reading
 
