@@ -348,19 +348,20 @@ git branch -D agent/auth-refactor   # if you don't want to keep it
 
 ### The 20-Line Spawner
 
-Copy-paste harness for spawning N agents across N worktrees. Pairs with the [Ralph Loop ([Part 30](./part30-ralph-loop-in-openclaw.md))](./part30-ralph-loop-in-openclaw.md) when you want each agent to run autonomously:
+Copy-paste harness for spawning N agents across N worktrees. Pairs with the [Ralph Loop (Part 30)](./part30-ralph-loop-in-openclaw.md) when you want each agent to run autonomously:
 
 ```bash
 #!/usr/bin/env bash
 # scripts/fan-out.sh <tasks-dir>
 set -euo pipefail
-tasks_dir="${1:?pass a directory containing one *.md task-prompt per agent}"
+tasks_dir="$(realpath "${1:?pass a directory containing one *.md task-prompt per agent}")"
 base_repo="$(pwd)"
 
 mkdir -p "$base_repo/.worktrees"
 declare -a pids=()
 
 for task in "$tasks_dir"/*.md; do
+  abs_task="$(realpath "$task")"   # pin before we cd into the worktree
   name=$(basename "$task" .md)
   wt="$base_repo/.worktrees/$name"
   branch="agent/$name"
@@ -368,7 +369,7 @@ for task in "$tasks_dir"/*.md; do
   git worktree add "$wt" -b "$branch" >/dev/null
   (
     cd "$wt"
-    openclaw run --prompt-file "$task" --ephemeral --output json \
+    openclaw run --prompt-file "$abs_task" --ephemeral --output json \
       > "$base_repo/.worktrees/$name.log" 2>&1
   ) &
   pids+=($!)

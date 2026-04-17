@@ -86,8 +86,8 @@ flowchart TB
 
 | File | Purpose | Size cap | Written by | Read when |
 |------|---------|---------:|------------|-----------|
-| **SOUL.md** | Identity, invariants, non-negotiables | < 2 KB | Human | Every message |
-| **AGENTS.md** | Operational rules, decision trees, tool routing | < 8 KB | Human + agent (auditable) | Every message |
+| **SOUL.md** | Identity, invariants, non-negotiables | < 1 KB | Human | Every message |
+| **AGENTS.md** | Operational rules, decision trees, tool routing | < 2 KB | Human + agent (auditable) | Every message |
 | **MEMORY.md** | Durable facts promoted from short-term | < 32 KB | Agent via `memory promote` | Every message |
 | **DREAMS.md** | Human-readable reflection diary | latest N entries | Built-in Dreaming | Every message |
 | **skills/** | Named playbooks | per-skill small | Human + SkillClaw | On activation |
@@ -765,7 +765,7 @@ flowchart LR
 
 **Default picks for an OpenClaw operator:** Orchestrator-Subagent for 80% of work, Generator-Verifier for code and decisions, Agent Teams for long research loops, Hierarchical when Task Brain flows nest 3+ levels deep, Network almost never.
 
-The [Ralph Loop ([Part 30](./part30-ralph-loop-in-openclaw.md))](./part30-ralph-loop-in-openclaw.md) is a specific flavor of Orchestrator-Subagent where the orchestrator is an outer bash wrapper and every iteration is a fresh agent session.
+The [Ralph Loop (Part 30)](./part30-ralph-loop-in-openclaw.md) is a specific flavor of Orchestrator-Subagent where the orchestrator is an outer bash wrapper and every iteration is a fresh agent session.
 
 Your main model should NEVER do heavy work directly. It should plan and delegate to cheaper, faster sub-agents.
 
