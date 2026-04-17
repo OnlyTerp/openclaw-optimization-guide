@@ -61,7 +61,7 @@ If the gateway is the heart, Task Brain ([Part 24](./part24-task-brain-control-p
 The thing that actually runs a model and pushes a conversation forward. Two shapes:
 
 - **Main agent** \u2014 your interactive session. High-quality model, full tool access, human in the loop.
-- **Sub-agent workers** \u2014 spawned via `sessions_spawn`. Cheaper/faster model, narrower tool scope, no interactive input. [Part 5](./README.md#part-5-orchestration) is the full pattern.
+- **Sub-agent workers** \u2014 spawned via `sessions_spawn`. Cheaper/faster model, narrower tool scope, no interactive input. [Part 5](./README.md#part-5-orchestration-stop-doing-everything-yourself) is the full pattern.
 
 All spawns go through the Task Brain ledger now \u2014 meaning you can see, audit, and revoke them in one place.
 
