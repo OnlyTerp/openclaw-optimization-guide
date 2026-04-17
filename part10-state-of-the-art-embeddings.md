@@ -88,7 +88,7 @@ After the initial reindex (~5-10 min), real-world cache hit rate is 99%+. Almost
 
 ### Full server code
 
-The complete server is at: [`scripts/qwen_embed_server_v3.py`](./scripts/qwen_embed_server_v3.py)
+The complete server lives at `scripts/qwen_embed_server_v3.py` in your local OpenClaw install (installed by the one-shot prompt — see [Part 17](./README.md#part-17-the-one-shot-prompt)). The path below assumes you're running it as a standalone script on Windows.
 
 To run it:
 ```cmd

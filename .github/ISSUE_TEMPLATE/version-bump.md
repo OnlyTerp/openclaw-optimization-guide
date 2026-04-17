@@ -15,7 +15,7 @@ Link.
 Bullet list. For each item, call out:
 - Which existing part needs updating (or "new part needed")
 - Whether it's breaking, deprecating, or additive
-- Anything the migration guide ([Part 26](../part26-migration-guide.md)) needs to capture
+- Anything the migration guide ([Part 26](../../part26-migration-guide.md)) needs to capture
 
 **Volunteering to send the PR?**
 Yes/no. If yes, link the branch when you push it.
