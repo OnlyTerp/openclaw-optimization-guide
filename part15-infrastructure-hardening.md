@@ -333,7 +333,7 @@ Each worktree is a full, independent working directory on its own branch. Launch
 
 ```bash
 for wt in ../openclaw-wt-*; do
-  (cd "$wt" && openclaw run --prompt "$(cat ./AGENT_PROMPT.md)" --ephemeral &) 
+  (cd "$wt" && openclaw run --prompt "$(cat ./AGENT_PROMPT.md)" --ephemeral) &
 done
 wait
 ```
@@ -376,8 +376,15 @@ for task in "$tasks_dir"/*.md; do
   echo "[fan-out] spawned $name (pid ${pids[-1]}) in $wt"
 done
 
-for pid in "${pids[@]}"; do wait "$pid"; done
-echo "[fan-out] all agents done. Branches: agent/*"
+# Don't let one failing agent orphan the rest: track failures but keep waiting.
+set +e
+failures=0
+for pid in "${pids[@]}"; do
+  wait "$pid" || ((failures++))
+done
+set -e
+echo "[fan-out] all agents done ($failures failed of ${#pids[@]}). Branches: agent/*"
+[[ $failures -eq 0 ]] || exit 1
 ```
 
 ### Gotchas
