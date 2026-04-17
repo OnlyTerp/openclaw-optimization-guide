@@ -140,26 +140,31 @@ Secret redaction is the single cheapest defense against the "my agent pasted my 
 import json, os, sys
 from pathlib import Path
 
-SESSION_ID = os.environ["OPENCLAW_SESSION_ID"]
-STATE = Path(f"/tmp/openclaw-cost-{SESSION_ID}.json")
-CAP_USD = float(os.environ.get("OPENCLAW_SESSION_CAP_USD", "5.00"))
+try:
+    SESSION_ID = os.environ["OPENCLAW_SESSION_ID"]
+    STATE = Path(f"/tmp/openclaw-cost-{SESSION_ID}.json")
+    CAP_USD = float(os.environ.get("OPENCLAW_SESSION_CAP_USD", "5.00"))
 
-payload = json.load(sys.stdin)
-usage = payload.get("usage", {})
-spend = usage.get("cost_usd", 0.0)
+    payload = json.load(sys.stdin)
+    usage = payload.get("usage", {})
+    spend = usage.get("cost_usd", 0.0)
 
-total = json.loads(STATE.read_text())["total"] if STATE.exists() else 0.0
-total += spend
-STATE.write_text(json.dumps({"total": total}))
+    total = json.loads(STATE.read_text())["total"] if STATE.exists() else 0.0
+    total += spend
+    STATE.write_text(json.dumps({"total": total}))
 
-if total >= CAP_USD:
-    print(f"BLOCKED by cost-tripwire: session spend ${total:.2f} exceeded cap ${CAP_USD:.2f}", file=sys.stderr)
+    if total >= CAP_USD:
+        print(f"BLOCKED by cost-tripwire: session spend ${total:.2f} exceeded cap ${CAP_USD:.2f}", file=sys.stderr)
+        sys.exit(2)
+
+    if total >= 0.75 * CAP_USD:
+        print(f"[cost-tripwire] WARNING: ${total:.2f} / ${CAP_USD:.2f} used", file=sys.stderr)
+
+    sys.exit(0)
+except Exception as e:
+    # Fail CLOSED: a broken tripwire must block, not silently pass.
+    print(f"BLOCKED by cost-tripwire: hook error ({e!r}) — refusing to run without cost tracking", file=sys.stderr)
     sys.exit(2)
-
-if total >= 0.75 * CAP_USD:
-    print(f"[cost-tripwire] WARNING: ${total:.2f} / ${CAP_USD:.2f} used", file=sys.stderr)
-
-sys.exit(0)
 ```
 
 Set `OPENCLAW_SESSION_CAP_USD=10.00` globally; override per-project via `.envrc`. Runaway sub-agent loops are the #1 source of surprise bills — a tripwire at 75% warning / 100% hard-stop catches them before the card gets hit.
