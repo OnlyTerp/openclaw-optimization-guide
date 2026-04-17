@@ -4,6 +4,9 @@
 
 ---
 
+> **Read this if** you can't tell why your agent is slow/expensive, you're running more than two agents, or you need LangFuse-style tracing for debugging and cost attribution.
+> **Skip if** you're running a single interactive agent and can just read its output when things go wrong.
+
 ## The Observability Problem
 
 Running multiple agents without observability is flying blind. You don't know:

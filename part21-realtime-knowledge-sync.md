@@ -4,6 +4,9 @@
 
 ---
 
+> **Read this if** you edit vault files manually or by other agents and want LightRAG (Part 18) to pick up changes immediately instead of waiting for a cron.
+> **Skip if** you don't use LightRAG, or your vault is small enough that a nightly re-index is fine.
+
 ## The Problem With Batch Ingestion
 
 Part 18 showed you how to set up LightRAG and bulk-ingest your vault. But what happens after that? Every new vault file, every session memory update, every autoDream consolidation — none of it reaches your knowledge graph until you manually re-run the ingestion script.

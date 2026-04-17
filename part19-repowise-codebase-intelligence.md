@@ -4,6 +4,9 @@
 
 ---
 
+> **Read this if** your coding agents burn tokens re-reading the same files every spawn, or you work in a large monorepo where "read the whole repo" isn't viable.
+> **Skip if** you're coding in a small repo or the language-server integration in your IDE is already feeding the agent enough structure.
+
 ## The Problem
 
 When a coding agent (Codex, Claude Code, any sub-agent) works on a large codebase, it **greps blindly.** It reads files one by one hoping to find what's relevant. It doesn't know:

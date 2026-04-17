@@ -33,7 +33,7 @@ Thanks for wanting to make the guide better. This is a living document — OpenC
 - **Links > inline duplication.** If something is already covered in another part, link to it.
 - **Cross-link new parts** from the relevant existing parts and the README TOC.
 - **Consistent heading levels.** Each part starts with `# Part N: Title`, major sections are `##`, subsections `###`.
-- **Mark deprecated content** with a block quote at the top saying "DEPRECATED — use [Part X] instead" (see [Part 16](./part16-autodream-memory-consolidation.md) for an example).
+- **Mark deprecated content** with a block quote at the top saying "DEPRECATED — use [Part X] instead". When a part is fully retired, delete the file and leave a one-paragraph tombstone in the part that supersedes it (see the Part 22 "What Changed (and the Part 16 Retirement)" block in the README for the pattern).
 
 ## Running The Quality Checks Locally
 

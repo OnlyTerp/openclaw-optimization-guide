@@ -4,6 +4,9 @@ Your OpenClaw setup probably has hidden landmines that cause crash loops, GPU co
 
 ---
 
+> **Read this if** you're running OpenClaw in production, have more than one user on it, or have ever hit a gateway crash loop, GPU contention, or a secret leak in an approval prompt.
+> **Skip if** you're experimenting on a single-user dev box and don't mind restarting every few hours.
+
 ## The Compaction Crash Loop
 
 ### The Problem
@@ -43,11 +46,11 @@ Set an explicit compaction model that won't rate-limit you:
 
 **Never use for compaction:** Gemini Flash (rate limits), expensive models like Opus (waste of money for summarization).
 
-### The Reserve-Token Trap on Small Local Models (fixed in 2026.4.15-beta.1)
+### The Reserve-Token Trap on Small Local Models (fixed in 2026.4.15)
 
 If you pointed `compaction.model` at a small local model (a 14B Qwen with a 16K-32K context window), you could hit a *different* infinite loop. When `reserveTokens` was larger than the model's context window, compaction would compute "I need to free more tokens than this model even accepts" — fail — retry — forever. Same crash-loop symptom, different root cause.
 
-2026.4.15-beta.1 caps the reserve-token floor at the model's actual context window. If you're running a small local compaction worker, **upgrade to 2026.4.15-beta.1 or later** and this class of loop is gone. If you can't upgrade yet, keep `reserveTokens` strictly under your compaction model's window (e.g. `reserveTokens: 4000` on a 16K-context model — never higher than ~25% of the window).
+2026.4.15 caps the reserve-token floor at the model's actual context window. If you're running a small local compaction worker, **upgrade to 2026.4.15 or later** and this class of loop is gone. If you can't upgrade yet, keep `reserveTokens` strictly under your compaction model's window (e.g. `reserveTokens: 4000` on a 16K-context model — never higher than ~25% of the window).
 
 ---
 
@@ -241,29 +244,48 @@ If you find anything, rotate those keys immediately. Git history is permanent �
 
 After the Claude Code leak, a developer built [secretgate](https://github.com/nickcaglar/secretgate) — a local proxy that intercepts outbound AI traffic and redacts secrets before they leave your machine. Early stage (v0.6, ~170 regex patterns) but addresses the root cause: secrets shouldn't leave your machine in API calls.
 
-### Gateway Auth Hot-Reload (new in 2026.4.15-beta.1)
+### Gateway Auth Hot-Reload (new in 2026.4.15)
 
-Before 2026.4.15-beta.1, rotating a gateway auth secret required a full gateway restart \u2014 every agent, every running sub-agent, every in-flight cron job got dropped. That made rotation so painful that most operators just\u2026 didn't. Expired OAuth tokens quietly degraded half the setup.
+Before 2026.4.15, rotating a gateway auth secret required a full gateway restart — every agent, every running sub-agent, every in-flight cron job got dropped. That made rotation so painful that most operators just… didn't. Expired OAuth tokens quietly degraded half the setup.
 
-2026.4.15-beta.1 adds `secrets.reload`: drop a new value into your secret store and the gateway picks it up without restarting. New requests use the new secret; in-flight requests finish on the old one.
+2026.4.15 adds `secrets.reload`: drop a new value into your secret store and the gateway picks it up without restarting. New requests use the new secret; in-flight requests finish on the old one.
 
 ```bash
 # Example: rotate an Anthropic key without killing the gateway
 # (exact command depends on how your secrets are wired)
 openclaw secrets set ANTHROPIC_API_KEY "sk-ant-new-key-here"
-openclaw secrets reload
+openclaw secrets reload   # verb varies across 2026.4.x betas—check `openclaw --help`
 openclaw doctor  # confirm new key picked up
 ```
 
 **Use this to finally rotate those 12-month-old keys you're embarrassed about.** Ideally wire it into a quarterly cron or your password-manager rotation policy.
 
-### Approvals Secret Redaction (new in 2026.4.15-beta.1)
+### Approvals Secret Redaction (new in 2026.4.15)
 
-When a tool call required approval, the approval prompt used to echo the full argument payload to the approver \u2014 including any API keys, tokens, or passwords the tool was about to send. A reviewer clicking "approve" on a `curl` call was reading the raw `Authorization: Bearer \u2026` header.
+When a tool call required approval, the approval prompt used to echo the full argument payload to the approver — including any API keys, tokens, or passwords the tool was about to send. A reviewer clicking "approve" on a `curl` call was reading the raw `Authorization: Bearer …` header.
 
-2026.4.15-beta.1 redacts secret-shaped strings (`sk-*`, `sk-ant-*`, `AIza*`, `xai-*`, `Bearer *`, `password=*`, etc.) from approval prompts before they reach the reviewer. The tool still receives the real values \u2014 only the approval UI sees placeholders.
+2026.4.15 redacts secret-shaped strings (`sk-*`, `sk-ant-*`, `AIza*`, `xai-*`, `Bearer *`, `password=*`, etc.) from approval prompts before they reach the reviewer. The tool still receives the real values — only the approval UI sees placeholders.
 
-**Practical impact:** if you run OpenClaw with human-in-the-loop approvals (most multi-user deployments should \u2014 see [Part 24](./part24-task-brain-control-plane.md)), upgrade. Before this fix, every approval was a credential leak to the approver.
+**Practical impact:** if you run OpenClaw with human-in-the-loop approvals (most multi-user deployments should — see [Part 24](./part24-task-brain-control-plane.md)), upgrade. Before this fix, every approval was a credential leak to the approver.
+
+### Gateway Tool-Name Collision Rejection (new in 2026.4.15 stable)
+
+The 2026.4.15 stable release closed a subtle but ugly class of privilege inheritance: if a **client-supplied tool definition** normalized to the same name as a built-in tool, it used to silently *inherit* the built-in's trust envelope — in particular the local-media (`MEDIA:`) passthrough path. A malicious or poorly-vetted ClawHub skill could register a tool like `Browser` or `exec` with a trailing space that normalize-collided with a built-in and ride the built-in's trust.
+
+2026.4.15 anchors the trusted local-media passthrough on the **exact raw name** of that run's registered built-in tools, and **rejects any client tool whose name normalize-collides with a built-in or with another client tool in the same request** — on both JSON and SSE paths — with `400 invalid_request_error`.
+
+```
+POST /v1/chat/completions
+{ "tools": [ { "name": "Browser", ... } ] }
+ → 400 invalid_request_error
+   "client tool name collides with built-in 'browser'"
+```
+
+Practical impact:
+
+- If you maintain skills in-house that deliberately shadow a built-in (don't — rename instead), they will start hard-failing after the upgrade.
+- If you install community skills from [Part 23](./part23-clawhub-skills-marketplace.md), this is one of the structural defenses against the ClawHavoc-style supply-chain attack: even a signed-but-compromised skill can't inherit a built-in's trust by name anymore.
+- Combine with: local-roots containment on webchat audio (same release), Task Brain semantic approvals ([Part 24](./part24-task-brain-control-plane.md)), and the skill scope allowlist ([Part 23](./part23-clawhub-skills-marketplace.md)).
 
 ### Gateway Crash Loop Fix
 
@@ -284,7 +306,7 @@ This kills any orphaned gateway process before starting a new one. Without this,
 ## The Hardening Checklist
 
 - [ ] Compaction model set explicitly (not defaulting to Flash)
-- [ ] `reserveTokens` safe for your compaction model's context window (2026.4.15-beta.1+ caps this automatically)
+- [ ] `reserveTokens` safe for your compaction model's context window (2026.4.15+ caps this automatically)
 - [ ] All agent fallbacks point to reliable providers (Cerebras, Groq, local)
 - [ ] Web search uses Tavily (not Gemini grounding)
 - [ ] Embedding server on dedicated GPU (not shared with gaming/inference)
@@ -294,8 +316,8 @@ This kills any orphaned gateway process before starting a new one. Without this,
 - [ ] No credentials written in memory/session files (rule in AGENTS.md)
 - [ ] Existing git history scanned for leaked secrets
 - [ ] Gateway startup script has stale-process cleanup
-- [ ] Gateway auth hot-reload tested (2026.4.15-beta.1+): rotate a test key via `openclaw secrets reload` without a gateway restart
-- [ ] Approval prompts show redacted secrets, not raw values (2026.4.15-beta.1+)
+- [ ] Gateway auth hot-reload tested (2026.4.15+): rotate a test key and confirm the Canvas **Model Auth status card** picks up the new credential without a full gateway restart (backed by the `models.authStatus` gateway method)
+- [ ] Approval prompts show redacted secrets, not raw values (2026.4.15+)
 - [ ] Config backed up before changes
 - [ ] Gateway restarted after config changes
 

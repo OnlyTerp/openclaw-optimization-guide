@@ -18,4 +18,4 @@ What should it say instead?
 Release notes, config schema, your own testing — whatever backs up the correction.
 
 **OpenClaw version you're on**
-e.g. `2026.4.15-beta.1`
+e.g. `2026.4.15`

@@ -12,6 +12,9 @@ ByteRover (a community plugin on ClawHub) solves this with an `afterTurn` hook t
 
 ---
 
+> **Read this if** your `vault/00_inbox/` stays empty, you keep forgetting to save useful conversations, or you want knowledge extraction to happen automatically after every session.
+> **Skip if** you're disciplined about manually saving knowledge, or the built-in `session-memory` hook is already giving you what you need.
+
 ## How It Works
 
 The auto-capture hook fires on three events:

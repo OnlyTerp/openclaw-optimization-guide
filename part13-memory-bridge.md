@@ -4,6 +4,9 @@ When you spawn Codex or Claude Code to build something, they start blind. They d
 
 **The fix: inject your vault knowledge into the coding agent's workspace before it starts.**
 
+> **Read this if** you spawn Codex, Claude Code, or other coding agents and they start every session blind to your architecture / past decisions.
+> **Skip if** you don't use external coding agents — or your vault is small enough to paste into their prompts manually.
+
 ## The Problem
 
 ```

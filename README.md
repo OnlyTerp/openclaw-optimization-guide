@@ -2,12 +2,12 @@
 
 **Make your OpenClaw AI agent faster, smarter, cheaper, and actually safe to run in production.**
 
-[![Tested on 2026.4.15-beta.1](https://img.shields.io/badge/OpenClaw-2026.4.15--beta.1-2ea44f)](./part26-migration-guide.md)
-[![27 parts](https://img.shields.io/badge/parts-27-blue)](#full-table-of-contents)
+[![Tested on 2026.4.15](https://img.shields.io/badge/OpenClaw-2026.4.15-2ea44f)](./part26-migration-guide.md)
+[![28 parts](https://img.shields.io/badge/parts-28-blue)](#full-table-of-contents)
 [![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey)](./LICENSE)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](./CONTRIBUTING.md)
 
-> **Tested on OpenClaw 2026.4.15-beta.1 — April 15, 2026.** 27 parts. Battle-tested on a 14+ agent production deployment. Covers speed, memory, orchestration, models, web search, vault architecture, embeddings, hooks, graph RAG, codebase intelligence, observability, infrastructure hardening, skills marketplace, and control-plane security.
+> **Tested on OpenClaw 2026.4.15 — April 16, 2026.** 28 parts. Battle-tested on a 14+ agent production deployment. Covers speed, memory, orchestration, models, web search, vault architecture, embeddings, hooks, graph RAG, codebase intelligence, observability, infrastructure hardening, skills marketplace, and control-plane security.
 
 *By Terp — [Terp AI Labs](https://x.com/OnlyTerp)*
 
@@ -38,7 +38,7 @@
 |--------|-------:|------:|--------|
 | Context file size (SOUL + AGENTS + MEMORY) | ~15 KB | ~5 KB | [Part 1](#part-1-speed-stop-being-slow) |
 | Memory search latency | 2–5s (cloud) | <100ms (local) | [Part 4](#part-4-memory-stop-forgetting-everything), [Part 10](./part10-state-of-the-art-embeddings.md) |
-| Compaction crash rate | loops on 16K models | 0 (fixed in 4.15) | [Part 15](./part15-infrastructure-hardening.md) |
+| Compaction crash rate | loops on 16K models | 0 (fixed in 4.15 stable) | [Part 15](./part15-infrastructure-hardening.md) |
 | Coding-agent token usage | baseline | –60% | [Part 19 — Repowise](./part19-repowise-codebase-intelligence.md) |
 | Sessions before audit trail | 0 surfaces | all surfaces | [Part 24 — Task Brain](./part24-task-brain-control-plane.md) |
 
@@ -46,15 +46,18 @@ Full numbers in **[benchmarks/](./benchmarks/)**.
 
 ---
 
-## What Changed In This Release (2026.4.15-beta.1 Refresh)
+## What Changed In This Release (2026.4.15 Refresh)
 
 - **Task Brain control plane** (new [Part 24](./part24-task-brain-control-plane.md)) — unified task ledger, semantic approval categories, agent-initiated denies, fail-closed plugin defaults. Shipped as the structural fix for the March CVE wave.
 - **ClawHub skills marketplace** (new [Part 23](./part23-clawhub-skills-marketplace.md)) — 13K+ community skills, 1,184 removed for being malicious. Install policy, signing, scope-limiting, sleeper-update mitigation.
 - **v4.0 Architecture Overview** (new [Part 25](./part25-architecture-overview.md)) — the primer that should have existed since the rewrite.
-- **Migration Guide** (new [Part 26](./part26-migration-guide.md)) — opinionated v3 → v4 → v2026.3 → v2026.4 → v2026.4.15-beta.1 upgrade paths with rollback plans.
+- **Migration Guide** (new [Part 26](./part26-migration-guide.md)) — opinionated v3 → v4 → v2026.3 → v2026.4 → v2026.4.15 upgrade paths with rollback plans.
 - **Gotchas & FAQ** (new [Part 27](./part27-gotchas-and-faq.md)) — symptom-indexed troubleshooting, most questions answered in one page.
-- **Part 16 (custom autoDream) deprecated** — memory-core's native dreaming (Part 22) is the official path since 2026.4+.
+- **Glossary & Terminology** (new [Part 28](./part28-glossary-and-terminology.md)) — every term this guide uses (MOC, autoDream, Task Brain, ACP, Ralph loop, ClawHavoc, memory-lancedb, LightRAG, semantic approvals, `localModelLean`…) on one page, cross-linked to the part that introduces each.
+- **Decision trees on every part** — each part (README-embedded and external) now opens with a "Read this if / Skip if" callout so you can route yourself through the guide instead of reading it linearly.
+- **Part 16 (custom autoDream) retired** — the file has been removed. Memory-core's native dreaming ([Part 22](#part-22-built-in-dreaming)) is the official path since 2026.4+; see the short retirement note in Part 22 below if you're coming from the old pattern.
 - Updates across existing parts for: memory-lancedb cloud storage, GitHub Copilot embedding provider, `localModelLean` flag, compaction reserve-token floor cap, gateway auth hot-reload, approvals secret redaction, `memory_get` canonical-only, Model Auth status card.
+- **v2026.4.15 stable (April 16, 2026)** — **Claude Opus 4.7** is the new default Anthropic selection (`opus` aliases + Claude CLI defaults + bundled image understanding all point at it); **dreaming default flipped `inline` → `separate`** so phase blocks land in `memory/dreaming/{phase}/YYYY-MM-DD.md` instead of polluting daily memory files; **`memory_get` excerpts are now capped by default** with explicit continuation metadata + trimmed startup/skills prompt budgets; **gateway tool-name normalize-collision rejection** (client tools that collide with a built-in get `400 invalid_request_error`, closing a local-media trust-inheritance hole); plus Gemini TTS in the bundled `google` plugin, Control UI false-positive Model Auth fix, webchat localRoots containment, and Matrix pairing-auth tightening.
 
 ---
 
@@ -115,6 +118,7 @@ Not every part applies to every reader. Jump directly to the pillar that matches
 | **See what my agents are doing** | [20 Observability](./part20-observability-and-services.md) · [24 Task Brain audit](./part24-task-brain-control-plane.md) |
 | **Automate self-improvement** | [11 Auto-Capture Hook](./part11-auto-capture-hook.md) · [12 Self-Improving System](./part12-self-improving-system.md) · [13 Memory Bridge](./part13-memory-bridge.md) |
 | **Upgrade from an older version** | [26 Migration Guide](./part26-migration-guide.md) |
+| **Look up a term you don't know** | [28 Glossary](./part28-glossary-and-terminology.md) |
 | **Debug something weird** | [27 Gotchas & FAQ](./part27-gotchas-and-faq.md) |
 
 ---
@@ -125,8 +129,9 @@ Not every part applies to every reader. Jump directly to the pillar that matches
 - [25. Architecture Overview](./part25-architecture-overview.md) — the 15-min mental map of v4.0+
 - [26. Migration Guide](./part26-migration-guide.md) — upgrade paths + rollback plans
 - [27. Gotchas & FAQ](./part27-gotchas-and-faq.md) — symptom → fix table + frequently asked questions
+- [28. Glossary & Terminology](./part28-glossary-and-terminology.md) — every term this guide assumes, on one page
 - [14. Quick Checklist](#part-14-quick-checklist) — 30-minute setup
-- [17. The One-Shot Prompt](#part-17-the-one-shot-prompt) — automation prompt (2026.4.15-beta.1)
+- [17. The One-Shot Prompt](#part-17-the-one-shot-prompt) — automation prompt (2026.4.15)
 
 **⚡ Speed & context**
 1. [Speed — Stop Being Slow](#part-1-speed-stop-being-slow) — trim context, add fallbacks, reasoning mode, `localModelLean`
@@ -140,8 +145,7 @@ Not every part applies to every reader. Jump directly to the pillar that matches
 11. [Auto-Capture Hook](./part11-auto-capture-hook.md) — automatic knowledge extraction after every session
 12. [Self-Improving System](./part12-self-improving-system.md) — micro-learning loop, HOT/WARM/COLD tiers
 13. [Memory Bridge](./part13-memory-bridge.md) — give Codex / Claude Code access to your vault
-22. [Built-In Dreaming (memory-core)](#part-22-built-in-dreaming) — official 3-phase consolidation, DREAMS.md
-16. [autoDream *(legacy, pre-2026.4)*](./part16-autodream-memory-consolidation.md) — kept for reference only
+22. [Built-In Dreaming (memory-core)](#part-22-built-in-dreaming) — official 3-phase consolidation, DREAMS.md (the retired Part 16 autoDream pattern is summarized in its tombstone there)
 
 **🤝 Orchestration & models**
 5. [Orchestration](#part-5-orchestration-stop-doing-everything-yourself) — sub-agents, CEO/COO/Worker, verification, Ralph loop
@@ -161,6 +165,12 @@ Not every part applies to every reader. Jump directly to the pillar that matches
 
 **🔭 Observability**
 20. [Agent Observability](./part20-observability-and-services.md) — LangFuse, reranker, n8n, workflow automation
+
+**📖 Reference**
+25. [Architecture Overview (v4.0+)](./part25-architecture-overview.md) — gateway / agents / memory / skills / surfaces primer
+26. [Migration Guide](./part26-migration-guide.md) — opinionated upgrade paths with rollback
+27. [Common Gotchas & FAQ](./part27-gotchas-and-faq.md) — symptom-indexed troubleshooting
+28. [Glossary & Terminology](./part28-glossary-and-terminology.md) — every term this guide assumes, on one page
 
 ---
 
@@ -251,13 +261,16 @@ Details live in vault/. The bot finds them via vector search in 45ms.
 
 This isn't a settings tweak - it's a **complete architecture change**: memory routing, context engineering, and orchestration working together. The one-shot prompt at the bottom does the entire setup automatically.
 
-> **Note:** Tested on Claude Opus 4.6. Other frontier models should work if they can follow multi-step instructions.
+> **Note:** Tested on Claude Opus 4.7 (the new Anthropic default as of 2026.4.15). Opus 4.6 also works fine — the differences are rounding-error for orchestration. Other frontier models should work if they can follow multi-step instructions.
 
 > **Templates included:** Check [`/templates`](./templates) for ready-to-use versions of SOUL.md, AGENTS.md, MEMORY.md, TOOLS.md, and a sample vault/ structure.
 
 ---
 
 ## Part 1: Speed (Stop Being Slow)
+
+> **Read this if** your agent feels laggy, you're on a Gemini/GPT default, or you just want to know which levers matter most. **Start here if you only read one part.**
+> **Skip if** you've already tuned context, fallbacks, reasoning mode, and model selection.
 
 Every message you send, OpenClaw injects ALL your workspace files into the prompt. Bloated files = slower, more expensive replies. This is the #1 speed issue people don't realize they have.
 
@@ -274,10 +287,10 @@ New approach: MEMORY.md is a slim index of pointers. Full details live in vault/
 | File | Target Size | What Goes In It | Why This Size |
 |------|------------|-----------------|---------------|
 | SOUL.md | < 1 KB | Personality, tone, core rules | Injected EVERY message - every byte costs latency |
-| AGENTS.md | 2-10 KB | Decision tree, tool routing, operational protocols (autoDream, coordinator) | Operational protocols are worth the context cost — they replace manual prompting |
+| AGENTS.md | 2-10 KB | Decision tree, tool routing, operational protocols (dreaming, coordinator) | Operational protocols are worth the context cost — they replace manual prompting |
 | MEMORY.md | < 3 KB | **Pointers only** - NOT full docs | Vector search replaces big files |
 | TOOLS.md | < 1 KB | Tool names + one-liner usage | Just reminders, not documentation |
-| **Total** | **8-15 KB** | Everything injected per message | With operational protocols (autoDream, coordinator), 8-15KB is acceptable — these replace manual prompting that would cost more |
+| **Total** | **8-15 KB** | Everything injected per message | With operational protocols (built-in dreaming, coordinator), 8-15KB is acceptable — these replace manual prompting that would cost more |
 
 **Rule:** If it's longer than a tweet thread, it's too long for a workspace file. Move the details to vault/.
 
@@ -305,7 +318,7 @@ Every enabled plugin adds overhead. If you're not using `memory-lancedb`, `memor
 
 ### Lean Mode for Weak Local Models
 
-New in 2026.4.15-beta.1: if you're running a small local model (≤14B params, 16K-32K context) and the default tool set is eating your whole prompt, flip the lean flag:
+New in 2026.4.15: if you're running a small local model (≤14B params, 16K-32K context) and the default tool set is eating your whole prompt, flip the lean flag:
 
 ```json
 {
@@ -328,13 +341,16 @@ ollama stop modelname  # Unload idle big models
 
 The default model for memory search should be `qwen3-embedding:0.6b` (500 MB, 1024 dims) — same Qwen3 family that holds #1 on MTEB, runs on anything, and blows away nomic on quality. Pull it: `ollama pull qwen3-embedding:0.6b`. If you have a GPU with 8GB+ VRAM, upgrade to Qwen3-Embedding-8B for dramatically better search quality — see [Part 10](./part10-state-of-the-art-embeddings.md). If you have 500+ vault files, also add [LightRAG (Part 18)](./part18-lightrag-graph-rag.md) for knowledge graph retrieval that blows away basic vector search.
 
-> **New in 2026.4.15-beta.1 — memory-lancedb cloud storage.** `memory-lancedb` can now persist its index to S3-compatible object storage instead of local disk (`storage.type: "s3"` + `bucket` + `prefix` + `endpoint`). Useful for multi-machine setups where you want every box to see the same index, or for backing up a single-machine index without rsync. The hot path is still in-memory — cloud is just durable storage. Don't confuse this with cloud *embeddings* (still a bad idea for the hot path).
+> **New in 2026.4.15 — memory-lancedb cloud storage.** `memory-lancedb` can now persist its index to S3-compatible object storage instead of local disk (`storage.type: "s3"` + `bucket` + `prefix` + `endpoint`). Useful for multi-machine setups where you want every box to see the same index, or for backing up a single-machine index without rsync. The hot path is still in-memory — cloud is just durable storage. Don't confuse this with cloud *embeddings* (still a bad idea for the hot path).
 
-> **New in 2026.4.15-beta.1 — GitHub Copilot embedding provider.** If your team already pays for Copilot Business/Enterprise, `memorySearch.provider: "copilot"` reuses that seat for embeddings. It's still cloud (2-5s round trips, same caveats as OpenAI/Voyage) so local Ollama is still the right default for personal setups — but for a corporate deployment that's already standardized on Copilot, this removes another vendor from the procurement list.
+> **New in 2026.4.15 — GitHub Copilot embedding provider.** If your team already pays for Copilot Business/Enterprise, `memorySearch.provider: "copilot"` reuses that seat for embeddings. It's still cloud (2-5s round trips, same caveats as OpenAI/Voyage) so local Ollama is still the right default for personal setups — but for a corporate deployment that's already standardized on Copilot, this removes another vendor from the procurement list.
 
 ---
 
 ## Part 2: Context Bloat (The Silent Performance Killer)
+
+> **Read this if** you notice each message getting slower, you're hitting compaction often, or your SOUL.md / MEMORY.md / AGENTS.md are over a few KB combined.
+> **Skip if** your total injected context is already under 15 KB and compaction rarely fires.
 
 ### The Quadratic Problem
 
@@ -405,7 +421,7 @@ Over 100 msgs/day: $2.25/day vs $22.50/day
 
 **Auto-Compaction** - Summarizes older conversation when nearing context limits. Trigger manually with `/compact`.
 
-> **2026.4.15-beta.1 fix:** The compaction reserve-token floor is now capped at the model's actual context window. Before this, compaction on a 16K-token local model could request a larger reserve than the window itself, creating an infinite "try to free N tokens, fail, retry" loop. If you run small local models as compaction workers, upgrade — this is the fix you want. See [Part 15](./part15-infrastructure-hardening.md).
+> **2026.4.15 fix:** The compaction reserve-token floor is now capped at the model's actual context window. Before this, compaction on a 16K-token local model could request a larger reserve than the window itself, creating an infinite "try to free N tokens, fail, retry" loop. If you run small local models as compaction workers, upgrade — this is the fix you want. See [Part 15](./part15-infrastructure-hardening.md).
 
 **Use both.** Pruning handles tool result bloat. Compaction handles conversation history bloat.
 
@@ -421,6 +437,9 @@ Over 100 msgs/day: $2.25/day vs $22.50/day
 ---
 
 ## Part 3: Cron Session Bloat (The Hidden Killer)
+
+> **Read this if** you run cron jobs, the `sessions/` folder is huge, or you've ever wondered why a background agent gets slower week over week.
+> **Skip if** you don't use cron / scheduled agents.
 
 Every cron job creates a session transcript file (`.jsonl`). Over time:
 
@@ -469,6 +488,9 @@ Isolated sessions don't pile up in your main agent's session history.
 ---
 
 ## Part 4: Memory (Stop Forgetting Everything)
+
+> **Read this if** you want the 3-tier memory model (MEMORY.md + session files + vector search) from scratch. This is the foundation for Parts 9, 10, 11, 12, 13, 22.
+> **Skip if** you're already running memory-core with a local embedding provider and a vault — skim for the 2026.4.15 `memory_get` / lancedb-cloud changes and move on.
 
 Out of the box, OpenClaw forgets everything between sessions. The fix is a 3-tier memory system.
 
@@ -541,9 +563,11 @@ Every detailed document → vault/. Leave a one-liner pointer in MEMORY.md or me
 
 **Step 5: Set up memory consolidation**
 
-Session memory files pile up fast — 200+ files in a month. OpenClaw 2026.4+ has built-in dreaming ([Part 22](#part-22-built-in-dreaming)) — enable it in memory-core config and it auto-consolidates on a daily schedule. For older versions, use the custom autoDream approach in [Part 16](./part16-autodream-memory-consolidation.md).
+Session memory files pile up fast — 200+ files in a month. OpenClaw 2026.4+ has built-in dreaming ([Part 22](#part-22-built-in-dreaming)) — enable it in memory-core config and it auto-consolidates on a daily schedule. (Pre-2026.4 installs used to need the custom "autoDream" AGENTS.md pattern described in the retired Part 16; that file is gone — upgrade to 2026.4+ and use built-in dreaming instead.)
 
-> **Security note (2026.4.15-beta.1):** `memory_get` is now restricted to canonical memory files — MEMORY.md and DREAMS.md. It no longer reads arbitrary files from the workspace by path. If you were doing `memory_get("vault/projects/x.md")` directly, switch to `memory_search` or a plain file read — the dedicated memory tool is strictly for the canonical agent indexes now. This closes a path-traversal vector that the `memory-qmd` backend allowed before.
+> **Security note (2026.4.15):** `memory_get` is now restricted to canonical memory files — MEMORY.md and DREAMS.md. It no longer reads arbitrary files from the workspace by path. If you were doing `memory_get("vault/projects/x.md")` directly, switch to `memory_search` or a plain file read — the dedicated memory tool is strictly for the canonical agent indexes now. This closes a path-traversal vector that the `memory-qmd` backend allowed before.
+
+> **Context budget change (2026.4.15 stable):** `memory_get` now caps excerpt length by default and returns explicit **continuation metadata** instead of dumping entire files into context. If an excerpt was truncated, the tool response includes a follow-up cursor the agent can use to fetch the next chunk deterministically. On top of that, default startup and skills prompt budgets were trimmed — long sessions pull less context by default without losing deterministic follow-up reads. Practical effect: your MEMORY.md and DREAMS.md can grow without silently blowing up every reply. If you had custom skills that assumed `memory_get` returns the whole file, update them to respect the continuation cursor (it's noisy but one-line).
 
 ### The Golden Rule
 
@@ -558,6 +582,9 @@ run memory_search FIRST. It costs 45ms. Not searching = wrong answers.
 ---
 
 ## Part 5: Orchestration (Stop Doing Everything Yourself)
+
+> **Read this if** you do anything non-trivial — research, coding, long tasks — in a single interactive agent and haven't set up sub-agent workers, verification, or the Ralph loop yet.
+> **Skip if** you're already running CEO/COO/Worker with PreCompletionChecklist verification.
 
 Your main model should NEVER do heavy work directly. It should plan and delegate to cheaper, faster sub-agents.
 
@@ -581,7 +608,7 @@ You are the ORCHESTRATOR. You coordinate; sub-agents execute.
 - Sub-agents (workers): Cheaper/faster model - execution, code, research
 ```
 
-> **2026.3.31-beta.1+ — every spawn is a Task Brain task.** Sub-agents, ACP runs, and cron jobs all flow through the same unified task ledger now (`openclaw tasks list`). Semantic approval categories (`execution.*`, `read-only.*`, `control-plane.*`) replace the old name-based allowlist. If you're seeing unexpected "approval required" prompts on sub-agent spawns, check [Part 24 — Task Brain Control Plane](./part24-task-brain-control-plane.md) for how to configure categories and trust boundaries.
+> **2026.3.31-beta.1+ — every spawn is a Task Brain flow.** Sub-agents, ACP runs, and cron jobs all flow through the same unified task flow registry now (`openclaw flows list`). Semantic approval categories (`execution.*`, `read-only.*`, `control-plane.*`) replace the old name-based allowlist. If you're seeing unexpected "approval required" prompts on sub-agent spawns, check [Part 24 — Task Brain Control Plane](./part24-task-brain-control-plane.md) for how to configure categories and trust boundaries.
 
 Your expensive model decides WHAT to build. The cheap model builds it. Right model, right job.
 
@@ -660,7 +687,7 @@ For overnight/unattended work:
 
 ### The 4-Phase Coordinator Protocol (Advanced)
 
-For complex multi-step tasks, use the coordinator pattern from [Claude Code's leaked source](./part16-autodream-memory-consolidation.md):
+For complex multi-step tasks, use the coordinator pattern — originally reverse-engineered from the Claude Code / autoDream leak, now absorbed into built-in dreaming and sub-agent spawning:
 
 | Phase | Who | Purpose |
 |-------|-----|---------|
@@ -701,15 +728,18 @@ This writes a `CONTEXT.md` that the coding agent reads automatically — giving 
 
 ## Part 6: Models (What to Actually Use)
 
+> **Read this if** you're picking providers/models, debating local vs. cloud, or you want an opinionated cost/latency matrix for 2026-era models.
+> **Skip if** you have a provider mix you're happy with and your bills are sane.
+
 ### The Model Strategy
 
 | Role | What It Does | Best Model(s) | Why |
 |------|-------------|----------------|-----|
-| **Orchestrator** | Plans, judges, coordinates | Claude Opus 4.6 | Best complex reasoning + tool use |
+| **Orchestrator** | Plans, judges, coordinates | Claude Opus 4.7 | Best complex reasoning + tool use (new default in 2026.4.15) |
 | **Sub-agents** | Execute delegated tasks | Kimi K2.5, MiMo V2 Pro, Gemini Flash | Fast, cheap, capable enough |
 | **Infrastructure** | Compaction, fallbacks, bulk work | Cerebras gpt-oss-120b | $0.60/M, 3000 tok/s, reliable |
 | **Knowledge Graph RAG** | Entity extraction, graph queries | Cerebras qwen-3-235b | 1400 tok/s, high accuracy for entity extraction |
-| **Coding (hard)** | Architecture, complex bugs | Claude Opus 4.6 | #1 SWE-bench (1549) — best coding model alive |
+| **Coding (hard)** | Architecture, complex bugs | Claude Opus 4.7 | Top SWE-bench — the new Anthropic default as of 2026.4.15 |
 | **Coding (batch)** | Scaffolding, CRUD, refactors | GPT-5.4 Codex | Fast, $0 on subscription, good with Memory Bridge |
 | **Research** | Web search, analysis | Kimi K2.5 + Tavily | Cheap, fast, good at research synthesis |
 | **Local inference** | $0 forever, private, no rate limits | QwOpus (27B), TerpBot (Nemotron 30B), Nemotron Nano 4B | Ollama on any GPU |
@@ -717,7 +747,7 @@ This writes a `CONTEXT.md` that the coding agent reads automatically — giving 
 
 ### Model Deep Dive
 
-**Claude Opus 4.6** - The Best Orchestrator
+**Claude Opus 4.7** - The Best Orchestrator (new default in 2026.4.15)
 - Unmatched multi-step reasoning and complex tool use
 - Follows long, nuanced system prompts better than any other model
 - 1M context window with prompt caching (up to 90% savings on cached tokens)
@@ -779,7 +809,7 @@ If you have a GPU, local models via Ollama = unlimited inference at zero cost.
 - **TerpBot (Nemotron 30B fine-tuned)** - Custom fine-tune on clean 9.4K examples. 235 tok/s on 5090, 91.93% MMLU-Pro Math. Not public — but Nemotron 30B base is: `ollama pull nemotron-30b`
 - **NVIDIA Nemotron Nano 4B** - Punches above its weight, 128K context, fits on any GPU. `ollama pull nemotron-nano`
 
-> **2026.4.15-beta.1 — if you drive a small local model, turn on `localModelLean`.** Set `agents.defaults.experimental.localModelLean: true` and the gateway stops injecting the heavyweight default tools (browser, cron, message) into the system prompt. You keep `memory_search`, `exec`, `sessions_spawn` — i.e. the tools a local model can actually *use*. Frees ~3KB of prompt, which on a 16K-context 14B model is the difference between "fits one retrieval result" and "crashes out of context." Leave this off for frontier models — you want them to have everything.
+> **2026.4.15 — if you drive a small local model, turn on `localModelLean`.** Set `agents.defaults.experimental.localModelLean: true` and the gateway stops injecting the heavyweight default tools (browser, cron, message) into the system prompt. You keep `memory_search`, `exec`, `sessions_spawn` — i.e. the tools a local model can actually *use*. Frees ~3KB of prompt, which on a 16K-context 14B model is the difference between "fits one retrieval result" and "crashes out of context." Leave this off for frontier models — you want them to have everything.
 
 ### Using Anthropic Membership (The Best Way)
 
@@ -805,7 +835,7 @@ Main: Sonnet 4 (membership) | Fallback: Gemini 3.1 Pro | Sub-agents: MiMo V2 Pro
 
 **Power (~$100/month - Claude Max):**
 ```
-Main: Opus 4.6 (membership) | Fallback: Gemini 3.1 Pro | Sub-agents: Kimi / MiMo / Flash
+Main: Opus 4.7 (membership) | Fallback: Gemini 3.1 Pro | Sub-agents: Kimi / MiMo / Flash
 Code (hard): Opus directly | Code (batch): Codex + Memory Bridge
 Self-improving: .learnings/ micro-loop ($0) | Memory: Qwen3-Embedding-8B on local GPU
 Knowledge Graph: LightRAG + Cerebras qwen-3-235b (Part 18)
@@ -819,11 +849,14 @@ Codebase Intel: Repowise (Part 19) | Observability: LangFuse (Part 20)
 - **Enable prompt caching** on Anthropic: `cacheRetention: "extended"` + cache-ttl pruning.
 - **Membership > API keys.** If you're paying for Pro/Max, use it via OAuth. Don't pay twice.
 - **Free models are real.** Gemini's free tier is legitimately good for daily driving.
-- **Watch the Model Auth card (new 2026.4.15-beta.1).** Control UI now shows per-provider OAuth token health and rate-limit pressure. Before a big run, eyeball it — catching an expiring Claude Max token or a rate-limited Gemini key there beats debugging mid-task.
+- **Watch the Model Auth card (new 2026.4.15).** Control UI now shows per-provider OAuth token health and rate-limit pressure. Before a big run, eyeball it — catching an expiring Claude Max token or a rate-limited Gemini key there beats debugging mid-task.
 
 ---
 
 ## Part 7: Web Search (Give Your Agent Eyes on the Internet)
+
+> **Read this if** your agent needs fresh web data and you haven't picked a search provider, or you're using Gemini grounding and it's failing silently.
+> **Skip if** your agent doesn't need web search, or you already have Tavily/Brave/Serper wired in.
 
 Without web search, your agent guesses at anything after its training cutoff.
 
@@ -866,6 +899,9 @@ Without web search, your agent guesses at anything after its training cutoff.
 ---
 
 ## Part 8: One-Shotting Big Tasks (Stop Iterating, Start Researching)
+
+> **Read this if** your agent keeps iterating on big tasks (refactors, migrations, research) and producing half-baked results.
+> **Skip if** your tasks are small and iterative-by-design (REPLs, ad-hoc queries).
 
 Most people type a vague prompt, iterate 15 times, burn context and money, end up at 60% quality. **The model isn't the problem - your prompt is.**
 
@@ -976,6 +1012,9 @@ Agent: [builds from spec]                  → one-shot quality
 ---
 
 ## Part 9: Vault Memory System (Stop Losing Knowledge Between Sessions)
+
+> **Read this if** Part 4's flat memory works but the agent is getting dumber the more you teach it, or you have 200+ memory files and search returns noise.
+> **Skip if** you have fewer than ~50 memory files — stay on the basics from Part 4 until you hit the wall.
 
 Part 4 gave you memory. But after months of daily use, **your agent gets dumber, not smarter.** We hit this: 358 memory files, 100MB+ of accumulated knowledge, vector search returning irrelevant results because every query matches 15 slightly different files. Date-named files that tell you nothing. Research conclusions lost because nobody saved them.
 
@@ -1137,6 +1176,9 @@ Your primary search path (`memory/` + `vault/01_thinking/`) should contain only 
 
 ## Part 14: Quick Checklist
 
+> **Read this if** you want a single printable page of everything else in the guide, for reviewing an install or onboarding a teammate.
+> **Skip if** you're reading the guide linearly — this will repeat what you just read.
+
 Run through this in 30 minutes:
 
 - [ ] MEMORY.md under 3 KB (pointers only)
@@ -1161,8 +1203,7 @@ Run through this in 30 minutes:
 - [ ] Daily learnings promotion cron set up — $0 on Cerebras (Part 12)
 - [ ] Memory Bridge scripts installed — `preflight-context.js` + `memory-query.js` (Part 13)
 - [ ] AGENTS.md updated: run preflight before every Codex spawn (Part 13)
-- [ ] autoDream: `memory/.dream-state.json` created with null state (Part 16)
-- [ ] autoDream: consolidation protocol added to AGENTS.md (Part 16)
+- [ ] Built-in dreaming enabled in memory-core config (Part 22) — replaces the retired custom autoDream pattern
 - [ ] Config protection: "only ops writes openclaw.json" rule in all agent workspaces
 - [ ] `.gitignore` in `.openclaw/` blocking `openclaw.json`, `auth-profiles.json`, `*.sqlite`
 - [ ] Gateway crash-loop fix: stale PID cleanup in `gateway.cmd` (Part 15)
@@ -1188,14 +1229,17 @@ Run through this in 30 minutes:
 - [ ] Test: write a vault file → confirm it's queryable in LightRAG within 10 seconds
 - [ ] **ClawHub hygiene** — every installed skill reviewed, source repo pinned, auto-update disabled (Part 23)
 - [ ] **Task Brain** — semantic approval categories configured; `control-plane.*` kept approval-required (Part 24)
-- [ ] `openclaw tasks list` runs clean — no orphaned or denied tasks lingering (Part 24)
-- [ ] 2026.4.15-beta.1 upgrade: `agents.defaults.experimental.localModelLean` set correctly for your model tier (Part 6)
-- [ ] 2026.4.15-beta.1 upgrade: `memory_get` not called with arbitrary paths anywhere in your skills/hooks (Part 4/22)
+- [ ] `openclaw flows list` runs clean — no orphaned or denied flows lingering (Part 24)
+- [ ] 2026.4.15 upgrade: `agents.defaults.experimental.localModelLean` set correctly for your model tier (Part 6)
+- [ ] 2026.4.15 upgrade: `memory_get` not called with arbitrary paths anywhere in your skills/hooks (Part 4/22)
 - [ ] Control UI Model Auth card checked — OAuth tokens healthy, no rate-limit red flags
 
 ---
 
 ## Part 17: The One-Shot Prompt
+
+> **Read this if** you want a copy-paste-able prompt that sets up a new agent's operating rules (memory, orchestration, security) in one shot.
+> **Skip if** you already maintain a custom SOUL.md / AGENTS.md — use this as a reference for any gaps.
 
 Copy this entire prompt and send it to your OpenClaw bot. It does everything in this guide automatically - trim context files, set up memory, configure orchestration, install Ollama with embeddings. Paste and let it run.
 
@@ -1311,7 +1355,7 @@ Pull the embedding model (pick ONE based on your hardware):
 - **RTX 3090+ or 5080+ with 16GB+ VRAM:** Use Qwen3-Embedding-8B via Fireworks or local vLLM (4096 dims, SOTA quality — see Part 10)
 - **Low RAM or potato hardware:** ollama pull nomic-embed-text (768 dims, smallest footprint — noticeably worse quality)
 
-Do NOT use cloud embeddings (Gemini, OpenAI, Voyage, Copilot) as your primary — 2-5 second round-trip latency per search vs <100ms local. Cloud embeddings defeat the entire purpose of fast memory search. (Copilot is new in 2026.4.15-beta.1 — useful for corporate setups with existing Copilot seats, but still cloud-latency.)
+Do NOT use cloud embeddings (Gemini, OpenAI, Voyage, Copilot) as your primary — 2-5 second round-trip latency per search vs <100ms local. Cloud embeddings defeat the entire purpose of fast memory search. (Copilot is new in 2026.4.15 — useful for corporate setups with existing Copilot seats, but still cloud-latency.)
 
 ## STEP 5: ADD FALLBACK MODEL
 
@@ -1375,10 +1419,7 @@ One feature at a time. Create progress.txt (done/in-progress/next). Start sessio
 ```
 That's it. Dreaming runs daily at 3am automatically. See Part 22 for full config.
 
-**Older versions (< 2026.4):** Use the custom autoDream approach from Part 16:
-- Create memory/.dream-state.json with: {"lastDreamAt":null,"sessionsSinceDream":0,"lastScanAt":null,"totalDreams":0,"lastDreamResult":null,"lastProcessedFiles":[]}
-- Create memory/topics/ directory (or use vault/ if Part 9 is set up)
-- Add autoDream protocol to AGENTS.md (see Part 16 for full instructions)
+**Older versions (< 2026.4):** Upgrade. The custom autoDream AGENTS.md pattern that used to live in Part 16 has been retired — the built-in Dreaming system is a drop-in replacement and is actively maintained. See [Part 26 — Migration Guide](./part26-migration-guide.md) for the upgrade path.
 
 ## STEP 10: CONFIG PROTECTION + SECURITY
 
@@ -1413,7 +1454,7 @@ Add to AGENTS.md coding workflow: "Before spawning Codex, run: node scripts/memo
    - Or use your existing model: export AUTOCAPTURE_API_URL="your-provider-url" AUTOCAPTURE_API_KEY="your-key" AUTOCAPTURE_MODEL="model-name"
 4. Enable: openclaw hooks enable auto-capture
 
-Without this hook, your vault/00_inbox/ never gets populated automatically and your memory system depends entirely on autoDream mining raw chat logs — which is slow, expensive, and lossy.
+Without this hook, your vault/00_inbox/ never gets populated automatically and your memory system depends entirely on built-in Dreaming mining raw chat logs — which is slow, expensive, and lossy.
 
 ## STEP 13: SESSION MANAGEMENT FOR LONG-RUNNING CHATS (Telegram, Discord, etc.)
 
@@ -1444,7 +1485,7 @@ If you use Telegram, Discord, or any channel where you chat in one long continuo
 
 If your embedding config has temporal decay:
 - Set vault documents (vault/**) to 60-day half-life — curated knowledge shouldn't decay fast
-- Set session files (memory/**) to 30-day half-life — these are raw and get consolidated by autoDream
+- Set session files (memory/**) to 30-day half-life — these are raw and get consolidated by built-in Dreaming (Part 22)
 - Don't set decay below 30 days for anything — it makes the bot forget things it just learned
 
 ## STEP 15: VERIFY
@@ -1454,8 +1495,8 @@ After all changes:
 2. Run: openclaw doctor
 3. Test memory_search by asking about something in your vault files
 4. Test Memory Bridge: node scripts/memory-bridge/memory-query.js "test query"
-5. Check Control UI → Model Auth card (2026.4.15-beta.1+): all OAuth tokens green, no rate-limit warnings
-6. Run `openclaw tasks list` (2026.3.31-beta.1+): no orphaned or denied control-plane tasks
+5. Check Control UI → Model Auth card (2026.4.15+): all OAuth tokens green, no rate-limit warnings
+6. Run `openclaw flows list` (2026.3.31-beta.1+): no orphaned or denied control-plane flows
 7. Report what you changed with before/after file sizes
 
 ## IMPORTANT RULES
@@ -1562,7 +1603,7 @@ Zero-infrastructure entry point. No Docker, no database admin. For power users, 
 No. Your expensive model PLANS and JUDGES. Execution (code, research, analysis) gets delegated to cheaper models via sub-agents. Frontier judgment + budget execution.
 
 **Does this work with models other than Claude Opus?**
-Architecture works with any model supporting `memory_search` and `sessions_spawn` in OpenClaw. Tested on Opus 4.6; most frontier models should handle the one-shot prompt.
+Architecture works with any model supporting `memory_search` and `sessions_spawn` in OpenClaw. Tested on Opus 4.7 (the new Anthropic default as of 2026.4.15); most frontier models should handle the one-shot prompt.
 
 **How is this different from other memory solutions?**
 Most add external databases or cloud services. This gives you 90% of the benefit with 10% of the parts - local files + vector search. Nothing to install except Ollama. Nothing leaves your machine.
@@ -1574,13 +1615,18 @@ Start with the basic vault system (Parts 4, 9). It works well up to ~500 files. 
 
 ## Part 22: Built-In Dreaming
 
-> **OpenClaw 2026.4+** — The official memory consolidation system built into memory-core. This is the native version of what our custom autoDream (Part 16) prototyped.
+> **Read this if** you're on OpenClaw 2026.4+ and want automatic memory consolidation (the native replacement for the retired Part 16 autoDream pattern).
+> **Skip if** you're on a pre-2026.4 install — upgrade first (Part 26), then come back here.
 
-### What Changed
+> **OpenClaw 2026.4+** — The official memory consolidation system built into memory-core. This replaces the retired custom autoDream pattern that used to live in Part 16.
 
-Our [autoDream implementation (Part 16)](./part16-autodream-memory-consolidation.md) was a custom AGENTS.md-driven workaround we built by reverse-engineering Claude Code's memory consolidation pattern. It worked, but it required you to set up triggers, state tracking, and consolidation logic manually.
+### What Changed (and the Part 16 Retirement)
+
+Earlier editions of this guide included a custom AGENTS.md-driven memory-consolidation pattern called **autoDream** — reverse-engineered from the Claude Code / memory-core source leak. It worked for pre-2026.4 installs but required you to set up triggers, state tracking, and consolidation logic manually. **The Part 16 file has been removed from the repo as of this release**; if you were running that pattern, migrate to the built-in Dreaming described below (see also [Part 26](./part26-migration-guide.md)).
 
 OpenClaw 2026.4+ ships a **built-in dreaming system** inside memory-core that does all of this natively. If you're on 2026.4+, use the built-in version instead.
+
+> **Default changed in 2026.4.15 stable:** `dreaming.storage.mode` now defaults to **`separate`** (was `inline`). Dreaming phase blocks (`## Light Sleep`, `## REM Sleep`) now land in `memory/dreaming/{phase}/YYYY-MM-DD.md` instead of being injected into the daily memory file at `memory/YYYY-MM-DD.md`. Daily memory files stay readable and the daily-ingestion scanner no longer has to compete with hundreds of phase-block lines on every run. If you preferred the old behavior, opt back in with `plugins.entries.memory-core.config.dreaming.storage.mode: "inline"`.
 
 ### How It Works
 
@@ -1688,9 +1734,9 @@ openclaw memory rem-harness --json
 | `memory/dreaming/<phase>/YYYY-MM-DD.md` | Optional phase reports |
 | `MEMORY.md` | Long-term promoted entries (Deep phase only) |
 
-### Canonical Memory Files (changed in 2026.4.15-beta.1)
+### Canonical Memory Files (changed in 2026.4.15)
 
-As of 2026.4.15-beta.1, memory-core treats **MEMORY.md and DREAMS.md as the only canonical memory files** — the ones the built-in `memory_get` tool is allowed to read. This was tightened after a path-traversal report against the `memory-qmd` backend that let `memory_get("any/path/in/workspace.md")` read arbitrary workspace files.
+As of 2026.4.15, memory-core treats **MEMORY.md and DREAMS.md as the only canonical memory files** — the ones the built-in `memory_get` tool is allowed to read. This was tightened after a path-traversal report against the `memory-qmd` backend that let `memory_get("any/path/in/workspace.md")` read arbitrary workspace files.
 
 Practical impact:
 
@@ -1709,13 +1755,13 @@ The Gateway Dreams tab shows:
 - Next scheduled run timing
 - Expandable Dream Diary reader
 
-### Should You Use This or Part 16?
+### Use This If / Skip If
 
 **Use Part 22 (built-in dreaming)** if you're on OpenClaw 2026.4+. It's the official, supported implementation with proper scoring, phase management, and a UI.
 
-**Use Part 16 (custom autoDream)** only if you're on an older version or need custom consolidation logic that the built-in system doesn't support.
+**If you're on a pre-2026.4 install:** upgrade. The old Part 16 custom-autoDream workaround is no longer in the repo, and the built-in system is a drop-in replacement. See [Part 26 — Migration Guide](./part26-migration-guide.md).
 
-*Source: [OpenClaw Dreaming Documentation](https://docs.openclaw.ai/concepts/dreaming)*
+*Source: [OpenClaw Dreaming Documentation](https://clawdocs.org/concepts/dreaming)*
 
 ---
 
@@ -1730,7 +1776,8 @@ The definitive optimization guide for OpenClaw - covering speed, memory, context
 **Prefer scripts?** Run `bash setup.sh` (Mac/Linux) or `powershell setup.ps1` (Windows) from the repo root.
 
 ### Related Resources
-- [OpenClaw Documentation](https://docs.openclaw.ai)
+- [OpenClaw Documentation (clawdocs.org)](https://clawdocs.org/)
 - [OpenClaw GitHub](https://github.com/openclaw/openclaw)
+- [OpenClaw Changelog](https://openclawai.io/changelog/)
 - [OpenClaw Discord Community](https://discord.gg/clawd)
-- [ClawHub - Skills Marketplace](https://clawhub.com)
+- [ClawHub — Skills Marketplace](https://clawhub.com)
