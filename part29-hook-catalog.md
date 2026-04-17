@@ -117,10 +117,12 @@ PATTERNS = [
 ]
 
 payload = json.load(sys.stdin)
-text = payload.get("output") or payload.get("prompt") or ""
-for kind, pat in PATTERNS:
-    text = re.sub(pat, f"[REDACTED:{kind}]", text)
-payload["output" if "output" in payload else "prompt"] = text
+for field in ("output", "prompt"):
+    if field in payload and payload[field]:
+        text = payload[field]
+        for kind, pat in PATTERNS:
+            text = re.sub(pat, f"[REDACTED:{kind}]", text)
+        payload[field] = text
 json.dump(payload, sys.stdout)
 sys.exit(0)
 ```

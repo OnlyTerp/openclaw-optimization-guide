@@ -3,7 +3,7 @@
 > New in the April 2026 refresh. Andrej Karpathy published the "LLM Wiki" pattern in early April 2026 and it caught on fast — 4.3K-view YouTube explainer from Karpathy himself, plus a pile of "we mapped this onto our harness" writeups. The pattern is very close to what OpenClaw's SOUL/AGENTS/MEMORY/skills hierarchy already does. This part makes the mapping explicit.
 
 > **Read this if** you're shipping a production OpenClaw deployment and want a principled answer to "what goes in which file?"
-> **Skip if** your MEMORY.md is healthy, your SOUL.md is under 5 KB, and you're not losing context between sessions.
+> **Skip if** your MEMORY.md is healthy, your SOUL.md is under 1 KB, and you're not losing context between sessions.
 
 ## What Karpathy Proposed
 
