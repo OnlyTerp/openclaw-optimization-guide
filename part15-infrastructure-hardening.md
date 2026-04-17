@@ -303,6 +303,109 @@ This kills any orphaned gateway process before starting a new one. Without this,
 
 ---
 
+## Parallel OpenClaw With Git Worktrees
+
+**Added in the April 2026 refresh.** Three independent writeups in one week — [Upsun (Apr 14)](https://developer.upsun.com/posts/2026/git-worktrees-for-parallel-ai-coding-agents), [DEV "How I Run 20 Claude Code Agents in Parallel" (Apr 12)](https://dev.to/gaganaryan/how-i-run-20-claude-code-agents-in-parallel-without-git-conflicts-4hmg), and [DEV "Claude Code Worktrees" (Apr 10)](https://dev.to/thebrierfox/claude-code-worktrees-how-to-run-parallel-builds-without-merge-conflicts-56m2) — converged on the same production pattern: **one git worktree per agent, one OpenClaw process per worktree.**
+
+### The Problem
+
+You want to run multiple OpenClaw agents on the same repo at the same time — say, one refactoring auth, another chasing a test flake, a third triaging the bug backlog. If they all run from the same working directory:
+
+- They step on each other's uncommitted changes.
+- They compete for the same lockfile, node_modules, venv.
+- Their commits race each other to the same branch.
+- Their Task Brain ledgers reference the same file paths with different contents.
+
+Running them serially is safe but slow; parallelization is the whole point of delegated agents.
+
+### The Fix: Worktree Per Agent
+
+`git worktree` lets a single repo have **multiple checked-out working directories simultaneously**, each on its own branch, all sharing the `.git` object database (no bandwidth-heavy re-clones).
+
+```bash
+# From your main repo checkout
+git worktree add ../openclaw-wt-auth-refactor  -b agent/auth-refactor
+git worktree add ../openclaw-wt-flake-hunt     -b agent/flake-hunt
+git worktree add ../openclaw-wt-backlog-triage -b agent/backlog-triage
+```
+
+Each worktree is a full, independent working directory on its own branch. Launch one OpenClaw session per worktree:
+
+```bash
+for wt in ../openclaw-wt-*; do
+  (cd "$wt" && openclaw run --prompt "$(cat ./AGENT_PROMPT.md)" --ephemeral) &
+done
+wait
+```
+
+When an agent finishes and you want its work:
+
+```bash
+git merge agent/auth-refactor       # fast-forward or merge-commit
+git worktree remove ../openclaw-wt-auth-refactor
+git branch -D agent/auth-refactor   # if you don't want to keep it
+```
+
+### The 20-Line Spawner
+
+Copy-paste harness for spawning N agents across N worktrees. Pairs with the [Ralph Loop (Part 30)](./part30-ralph-loop-in-openclaw.md) when you want each agent to run autonomously:
+
+```bash
+#!/usr/bin/env bash
+# scripts/fan-out.sh <tasks-dir>
+set -euo pipefail
+tasks_dir="$(realpath "${1:?pass a directory containing one *.md task-prompt per agent}")"
+base_repo="$(pwd)"
+
+mkdir -p "$base_repo/.worktrees"
+declare -a pids=()
+
+for task in "$tasks_dir"/*.md; do
+  abs_task="$(realpath "$task")"   # pin before we cd into the worktree
+  name=$(basename "$task" .md)
+  wt="$base_repo/.worktrees/$name"
+  branch="agent/$name"
+
+  git worktree add "$wt" -b "$branch" >/dev/null
+  (
+    cd "$wt"
+    openclaw run --prompt-file "$abs_task" --ephemeral --output json \
+      > "$base_repo/.worktrees/$name.log" 2>&1
+  ) &
+  pids+=($!)
+  echo "[fan-out] spawned $name (pid ${pids[-1]}) in $wt"
+done
+
+# Don't let one failing agent orphan the rest: track failures but keep waiting.
+set +e
+failures=0
+for pid in "${pids[@]}"; do
+  wait "$pid" || ((failures++))
+done
+set -e
+echo "[fan-out] all agents done ($failures failed of ${#pids[@]}). Branches: agent/*"
+[[ $failures -eq 0 ]] || exit 1
+```
+
+### Gotchas
+
+- **Lockfiles and caches.** `node_modules/`, `.venv/`, `target/`, `build/` are per-worktree by default — that's usually what you want, but it eats disk. Symlink shared dependency caches (`~/.npm`, `~/.cache/pip`, `~/.cargo/registry`) if the disk bill matters.
+- **Global state.** Anything the agent writes outside the repo (user-global config, databases, services) still races. Run each worktree's agent against its own sandbox (container, schema, port).
+- **OpenClaw vault path.** If your vault lives in the repo, each worktree has its own copy. Pick one: either set `OPENCLAW_VAULT` to a shared path (one source of truth, races on write), or let each agent have its own vault and reconcile via memory-promotion at the end. Usually the latter is safer.
+- **Task Brain ledger scope.** Task Brain stores flows per-install. Running multiple OpenClaws against the same gateway multiplexes their flows into one ledger — that's fine, but the flow names must be unique per agent (prefix with worktree name).
+- **Cost explosion.** N agents = N times the token cost. Pair with the `cost-tripwire` hook from [Part 29 — Hook Catalog](./part29-hook-catalog.md) and set `OPENCLAW_SESSION_CAP_USD` globally.
+
+### When To Use This
+
+- **Ralph loops** doing long unattended sweeps.
+- **Fan-out refactor:** N files, N worktrees, each agent fixes its file, you merge the branches.
+- **Competing approaches:** two agents attack the same problem with different strategies; you pick the winner.
+- **Safe experimentation:** agent can go off-script on its branch; your main is untouched.
+
+For sandbox isolation stronger than worktrees can provide (agent should not see your other projects at all), see the [Part 24 callout on cloud sandbox delegation](./part24-task-brain-control-plane.md).
+
+---
+
 ## The Hardening Checklist
 
 - [ ] Compaction model set explicitly (not defaulting to Flash)

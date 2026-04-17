@@ -176,6 +176,85 @@ openclaw doctor
 
 Full rollback takes ~2 minutes if you have the snapshots. If you skipped the snapshots, rollback might not work — Task Brain + memory-core have made enough on-disk format changes that "just reinstalling the old binary" is not enough on the 2026.3.x \u2192 2026.4.x line.
 
+## Pair OpenClaw With A Machine-Readable Spec (Spec-Driven Development)
+
+**Section added in the April 2026 refresh.** The framing caught fire this week: *[Spec-Driven Development: The Key To Scaling Autonomous AI Agents](https://time.news/spec-driven-development-the-key-to-scaling-autonomous-ai-agents/)* (Apr 14, 2026) packaged what a lot of teams had figured out independently: **if the agent's reasoning anchor is a machine-readable spec, everything else gets easier.**
+
+### The AWS Kiro Case Study
+
+The widely-cited proof point: AWS Kiro. Rewrote a core billing subsystem with a spec-first agent workflow. Timeline:
+
+- **Before (human-only):** estimated 18 months.
+- **After (SDD with 6 engineers + agents):** 76 days.
+
+Not a 2× speedup. ~7× — because the spec became the single source of truth the agent could both read (to figure out the next task) and write (to record what's now done). Conversation drift stopped consuming cycles.
+
+### The Pattern
+
+The spec is *not* a README. It's a structured, machine-parseable representation of:
+
+1. **Invariants** — what's always true about the system.
+2. **Contracts** — APIs, schemas, protocols. Usually OpenAPI / JSON Schema / protobuf.
+3. **Task list** — the backlog. Open / in-progress / done.
+4. **Acceptance criteria** — how you know each task is done. Testable, not aspirational.
+5. **Learnings** — short-form, time-ordered, appended to.
+
+In OpenClaw terms, the spec lives in one file the agent edits: `SPEC.md` or `PRD.json` at the project root. The spec **is** the task the agent works against. Every session:
+
+1. Agent reads the spec first.
+2. Agent picks the next unfinished item per the spec's ordering rules.
+3. Agent does the work.
+4. Agent updates the spec (tasks, learnings, contract changes).
+5. Agent commits the spec alongside the code.
+
+### Why This Composes With OpenClaw
+
+Two things OpenClaw already does that make SDD cheap to adopt:
+
+- **MEMORY.md + Dreaming ([Part 22](./README.md#part-22-built-in-dreaming)).** The spec is long-form explicit state; MEMORY.md is model-maintained durable facts. Dreaming's Deep phase promotes learnings from short-term into MEMORY.md; the spec is the hand-written half of the same idea.
+- **The Ralph Loop ([Part 30](./part30-ralph-loop-in-openclaw.md)).** SDD + Ralph = PRD.json + 30 lines of bash. The Ralph loop is literally "spec-driven development automated." If you're running Ralph, you're already doing SDD.
+
+### The Minimum Viable Spec
+
+```json
+{
+  "project": "openclaw-optimization-guide",
+  "invariants": [
+    "All source citations published Apr 10-17, 2026.",
+    "All `part*.md` files lint clean under markdownlint-cli2."
+  ],
+  "tasks": [
+    { "id": "T-1", "status": "done",        "title": "Ship Part 29 Hook Catalog" },
+    { "id": "T-2", "status": "in_progress", "title": "Ship Part 30 Ralph Loop" },
+    { "id": "T-3", "status": "pending",     "title": "Glossary entries for new terms" }
+  ],
+  "acceptance": {
+    "T-2": ["renders on GitHub", "3+ Apr 10-17 citations", "decision tree at top"]
+  },
+  "learnings": [
+    "Mermaid fences with `<br/>` inside node labels need double-quote wrappers."
+  ]
+}
+```
+
+Anything more than this in the first pass is over-engineering. Grow the schema when it hurts, not before.
+
+### When SDD Is The Wrong Tool
+
+- **Exploratory work.** You don't yet know what the system is. Writing a spec first is ceremony.
+- **Very small tasks.** `SPEC.md` for a one-file bugfix is worse than useless.
+- **Human-only teams.** SDD's ROI is the agent-readable angle. Pre-agent, a normal PRD is fine.
+
+**Start SDD when** your team adds an agent to a project with >20 tasks and realizes the agent spends half its tokens re-discovering context. That's the signal.
+
+### Further Reading
+
+- *[Spec-Driven Development: The Key To Scaling Autonomous AI Agents](https://time.news/spec-driven-development-the-key-to-scaling-autonomous-ai-agents/)* — Apr 14, 2026. The AWS Kiro case study.
+- [Part 30 — The Ralph Loop In OpenClaw](./part30-ralph-loop-in-openclaw.md) — the autonomous-loop realization of SDD.
+- [Part 31 — The LLM Wiki Pattern In OpenClaw](./part31-the-llm-wiki-pattern-in-openclaw.md) — the three-tier framing the spec plugs into.
+
+---
+
 ## After Every Upgrade
 
 - `openclaw doctor` — sanity check.

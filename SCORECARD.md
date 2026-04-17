@@ -19,12 +19,12 @@ Every item links to the part of the guide that covers it. If you're about to che
 
 Do your agents respond in seconds, not minutes? If every turn feels sluggish, context bloat is almost always the reason.
 
-- [ ] `SOUL.md` is under 1 KB. *→ [Part 2](./README.md#part-2-context-bloat-the-silent-performance-killer)*
-- [ ] `AGENTS.md` is under 2 KB. *→ [Part 2](./README.md#part-2-context-bloat-the-silent-performance-killer)*
+- [ ] `SOUL.md` is under 1 KB. *→ [Part 2](./README.md#part-2-context-engineering--the-discipline)*
+- [ ] `AGENTS.md` is under 2 KB. *→ [Part 2](./README.md#part-2-context-engineering--the-discipline)*
 - [ ] `MEMORY.md` is under 3 KB and is a pure index, not a content store. *→ [Part 4](./README.md#part-4-memory-stop-forgetting-everything)*
-- [ ] `TOOLS.md` uses one-liners per tool, not full JSON schemas. *→ [Part 2](./README.md#part-2-context-bloat-the-silent-performance-killer)*
+- [ ] `TOOLS.md` uses one-liners per tool, not full JSON schemas. *→ [Part 2](./README.md#part-2-context-engineering--the-discipline)*
 - [ ] Total injected context per message is under 8 KB (verified by logging a turn). *→ [Part 1](./README.md#part-1-speed-stop-being-slow)*
-- [ ] `contextPruning.mode: "cache-ttl"` with a 5-minute TTL. *→ [Part 2](./README.md#part-2-context-bloat-the-silent-performance-killer)*
+- [ ] `contextPruning.mode: "cache-ttl"` with a 5-minute TTL. *→ [Part 2](./README.md#part-2-context-engineering--the-discipline)*
 - [ ] Reasoning mode is OFF on the default model, ON only for orchestration. *→ [Part 6](./README.md#part-6-models-what-to-actually-use)*
 - [ ] Compaction runs on a cheap non-reasoning model (e.g. Cerebras Qwen), not on Gemini Flash or an Opus/GPT key. *→ [Part 15](./part15-infrastructure-hardening.md)*
 - [ ] Cron output is isolated (`memory/cron/` or suppressed) so bulk scheduled runs don't flood session memory. *→ [Part 3](./README.md#part-3-cron-session-bloat-the-hidden-killer)*
