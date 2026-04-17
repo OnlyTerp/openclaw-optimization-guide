@@ -43,6 +43,12 @@ Set an explicit compaction model that won't rate-limit you:
 
 **Never use for compaction:** Gemini Flash (rate limits), expensive models like Opus (waste of money for summarization).
 
+### The Reserve-Token Trap on Small Local Models (fixed in 2026.4.15-beta.1)
+
+If you pointed `compaction.model` at a small local model (a 14B Qwen with a 16K-32K context window), you could hit a *different* infinite loop. When `reserveTokens` was larger than the model's context window, compaction would compute "I need to free more tokens than this model even accepts" — fail — retry — forever. Same crash-loop symptom, different root cause.
+
+2026.4.15-beta.1 caps the reserve-token floor at the model's actual context window. If you're running a small local compaction worker, **upgrade to 2026.4.15-beta.1 or later** and this class of loop is gone. If you can't upgrade yet, keep `reserveTokens` strictly under your compaction model's window (e.g. `reserveTokens: 4000` on a 16K-context model — never higher than ~25% of the window).
+
 ---
 
 ## The Gemini Flash Trap
@@ -235,6 +241,30 @@ If you find anything, rotate those keys immediately. Git history is permanent �
 
 After the Claude Code leak, a developer built [secretgate](https://github.com/nickcaglar/secretgate) — a local proxy that intercepts outbound AI traffic and redacts secrets before they leave your machine. Early stage (v0.6, ~170 regex patterns) but addresses the root cause: secrets shouldn't leave your machine in API calls.
 
+### Gateway Auth Hot-Reload (new in 2026.4.15-beta.1)
+
+Before 2026.4.15-beta.1, rotating a gateway auth secret required a full gateway restart \u2014 every agent, every running sub-agent, every in-flight cron job got dropped. That made rotation so painful that most operators just\u2026 didn't. Expired OAuth tokens quietly degraded half the setup.
+
+2026.4.15-beta.1 adds `secrets.reload`: drop a new value into your secret store and the gateway picks it up without restarting. New requests use the new secret; in-flight requests finish on the old one.
+
+```bash
+# Example: rotate an Anthropic key without killing the gateway
+# (exact command depends on how your secrets are wired)
+openclaw secrets set ANTHROPIC_API_KEY "sk-ant-new-key-here"
+openclaw secrets reload
+openclaw doctor  # confirm new key picked up
+```
+
+**Use this to finally rotate those 12-month-old keys you're embarrassed about.** Ideally wire it into a quarterly cron or your password-manager rotation policy.
+
+### Approvals Secret Redaction (new in 2026.4.15-beta.1)
+
+When a tool call required approval, the approval prompt used to echo the full argument payload to the approver \u2014 including any API keys, tokens, or passwords the tool was about to send. A reviewer clicking "approve" on a `curl` call was reading the raw `Authorization: Bearer \u2026` header.
+
+2026.4.15-beta.1 redacts secret-shaped strings (`sk-*`, `sk-ant-*`, `AIza*`, `xai-*`, `Bearer *`, `password=*`, etc.) from approval prompts before they reach the reviewer. The tool still receives the real values \u2014 only the approval UI sees placeholders.
+
+**Practical impact:** if you run OpenClaw with human-in-the-loop approvals (most multi-user deployments should \u2014 see [Part 24](./part24-task-brain-control-plane.md)), upgrade. Before this fix, every approval was a credential leak to the approver.
+
 ### Gateway Crash Loop Fix
 
 While we're hardening — if your gateway enters a crash loop because a stale process is blocking the port (we had a 10-hour outage from this), add a pre-start cleanup to your `gateway.cmd`:
@@ -254,6 +284,7 @@ This kills any orphaned gateway process before starting a new one. Without this,
 ## The Hardening Checklist
 
 - [ ] Compaction model set explicitly (not defaulting to Flash)
+- [ ] `reserveTokens` safe for your compaction model's context window (2026.4.15-beta.1+ caps this automatically)
 - [ ] All agent fallbacks point to reliable providers (Cerebras, Groq, local)
 - [ ] Web search uses Tavily (not Gemini grounding)
 - [ ] Embedding server on dedicated GPU (not shared with gaming/inference)
@@ -263,6 +294,8 @@ This kills any orphaned gateway process before starting a new one. Without this,
 - [ ] No credentials written in memory/session files (rule in AGENTS.md)
 - [ ] Existing git history scanned for leaked secrets
 - [ ] Gateway startup script has stale-process cleanup
+- [ ] Gateway auth hot-reload tested (2026.4.15-beta.1+): rotate a test key via `openclaw secrets reload` without a gateway restart
+- [ ] Approval prompts show redacted secrets, not raw values (2026.4.15-beta.1+)
 - [ ] Config backed up before changes
 - [ ] Gateway restarted after config changes
 
