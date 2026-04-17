@@ -40,9 +40,15 @@ The reverse-engineered Claude Code / memory-core memory-consolidation pattern th
 
 ## Canvas UI
 
-The browser-based chat/task UI introduced in **v4.0**. Talks to the gateway daemon over WebSocket. In 2026.4.15-beta.1 it gained the **Model Auth status card** (OAuth/token health plus rate-limit pressure, backed by the `models.authStatus` gateway method).
+The browser-based chat/task UI introduced in **v4.0**. Talks to the gateway daemon over WebSocket. In 2026.4.15 it gained the **Model Auth status card** (OAuth/token health plus rate-limit pressure, backed by the `models.authStatus` gateway method).
 
 - **Covered in:** [Part 25 — Architecture Overview](./part25-architecture-overview.md), [Part 15 — Infrastructure Hardening](./part15-infrastructure-hardening.md).
+
+## Claude Opus 4.7
+
+Anthropic's new top-tier reasoning model. In **OpenClaw 2026.4.15 stable (Apr 16, 2026)** it became the default Anthropic selection: `opus` aliases, Claude CLI defaults, and bundled image understanding all resolve to Opus 4.7. Opus 4.6 is still supported; the difference is rounding-error for orchestration.
+
+- **Covered in:** [Part 6 — Models](./README.md#part-6-models-what-to-actually-use).
 
 ## ClawHavoc
 
@@ -58,7 +64,7 @@ Official OpenClaw skills marketplace, launched with **v4.1 (March 15, 2026)**. 1
 
 ## Compaction
 
-The process of summarizing older chat history when context gets close to the model's limit. Runs a secondary model (the **compaction model**). Pre-2026.4.15-beta.1 it could infinite-loop on 16K-context local models; now the `reserveTokens` floor is capped to the model's context window.
+The process of summarizing older chat history when context gets close to the model's limit. Runs a secondary model (the **compaction model**). Pre-2026.4.15 it could infinite-loop on 16K-context local models; now the `reserveTokens` floor is capped to the model's context window.
 
 - **Covered in:** [Part 2 — Context Bloat](./README.md#part-2-context-bloat-the-silent-performance-killer), [Part 15 — Infrastructure Hardening](./part15-infrastructure-hardening.md).
 
@@ -81,6 +87,12 @@ Nine CVEs in four days across mid-March. Task Brain and the 2026.3.31-beta.1 har
 
 - **Covered in:** [Part 24 — Task Brain Control Plane](./part24-task-brain-control-plane.md).
 
+## `dreaming.storage.mode`
+
+Memory-core config key that controls **where dreaming phase blocks get written**. `"inline"` appends `## Light Sleep` / `## REM Sleep` blocks into the daily memory file at `memory/YYYY-MM-DD.md`. `"separate"` writes them to `memory/dreaming/{phase}/YYYY-MM-DD.md` instead. The **default flipped from `inline` to `separate` in 2026.4.15 stable** so daily memory files stay readable and the ingestion scanner stops competing with hundreds of phase-block lines.
+
+- **Covered in:** [Part 22 — Built-In Dreaming](./README.md#part-22-built-in-dreaming), [Part 26 — Migration Guide](./part26-migration-guide.md).
+
 ## DREAMS.md
 
 A canonical memory file (alongside MEMORY.md) that holds **Dream Diary** entries produced by built-in Dreaming: human-readable narratives of what the agent consolidated in each sweep.
@@ -95,7 +107,7 @@ Memory-core's **native 3-phase memory consolidation** (Light → Deep → REM) i
 
 ## Embedding provider
 
-The model that converts text into vectors for vector search. Options: local Ollama (Qwen3, bge-m3, nomic-embed-text), cloud (OpenAI `text-embedding-3-large`, Voyage), or **GitHub Copilot** (new in 2026.4.15-beta.1). Picking the right one is usually more impactful than tuning the LLM.
+The model that converts text into vectors for vector search. Options: local Ollama (Qwen3, bge-m3, nomic-embed-text), cloud (OpenAI `text-embedding-3-large`, Voyage), or **GitHub Copilot** (new in 2026.4.15). Picking the right one is usually more impactful than tuning the LLM.
 
 - **Covered in:** [Part 4 — Memory](./README.md#part-4-memory-stop-forgetting-everything), [Part 10 — State-of-the-Art Embeddings](./part10-state-of-the-art-embeddings.md).
 
@@ -117,7 +129,7 @@ Graph-RAG layer that turns your vault into a **knowledge graph of entities + rel
 
 ## localModelLean
 
-Flag at `agents.defaults.experimental.localModelLean: true` (added in **2026.4.15-beta.1**) that drops heavyweight default tools (browser, cron, message) from weaker local models. Lets small quantized models actually function instead of burning tokens parsing tool definitions they'll never use.
+Flag at `agents.defaults.experimental.localModelLean: true` (added in **2026.4.15**) that drops heavyweight default tools (browser, cron, message) from weaker local models. Lets small quantized models actually function instead of burning tokens parsing tool definitions they'll never use.
 
 - **Covered in:** [Part 1 — Speed](./README.md#part-1-speed-stop-being-slow), [Part 6 — Models](./README.md#part-6-models-what-to-actually-use).
 
@@ -129,19 +141,19 @@ A pair of scripts (`preflight-context.js`, `memory-query.js`) that inject your v
 
 ## memory-core
 
-The first-party plugin that owns MEMORY.md and DREAMS.md, runs built-in Dreaming, and exposes `memory_get` / `memory_search` tools. As of **2026.4.15-beta.1**, `memory_get` is restricted to canonical memory files only (path-traversal hardening from the `memory-qmd` fix).
+The first-party plugin that owns MEMORY.md and DREAMS.md, runs built-in Dreaming, and exposes `memory_get` / `memory_search` tools. As of **2026.4.15**, `memory_get` is restricted to canonical memory files only (path-traversal hardening from the `memory-qmd` fix).
 
 - **Covered in:** [Part 4 — Memory](./README.md#part-4-memory-stop-forgetting-everything), [Part 22 — Built-In Dreaming](./README.md#part-22-built-in-dreaming).
 
 ## memory-lancedb
 
-The vector-search plugin backing `memory_search`. **2026.4.15-beta.1** added **cloud storage** (S3-compatible), so durable memory indexes can live on remote object storage instead of only on local disk.
+The vector-search plugin backing `memory_search`. **2026.4.15** added **cloud storage** (S3-compatible), so durable memory indexes can live on remote object storage instead of only on local disk.
 
 - **Covered in:** [Part 4 — Memory](./README.md#part-4-memory-stop-forgetting-everything), [Part 10 — State-of-the-Art Embeddings](./part10-state-of-the-art-embeddings.md).
 
 ## Model Auth status card
 
-New Canvas UI component in **2026.4.15-beta.1** that shows OAuth/token health and rate-limit pressure for each configured model provider. Backed by the `models.authStatus` gateway method. Refreshing it is the gateway auth hot-reload path.
+New Canvas UI component in **2026.4.15** that shows OAuth/token health and rate-limit pressure for each configured model provider. Backed by the `models.authStatus` gateway method. Refreshing it is the gateway auth hot-reload path.
 
 - **Covered in:** [Part 15 — Infrastructure Hardening](./part15-infrastructure-hardening.md), [Part 25 — Architecture Overview](./part25-architecture-overview.md).
 
@@ -150,6 +162,12 @@ New Canvas UI component in **2026.4.15-beta.1** that shows OAuth/token health an
 A vault file (usually per-domain) that links out to claim-named notes, acting as a curated index. Prevents vector search from drowning in similar-looking files.
 
 - **Covered in:** [Part 9 — Vault Memory System](./part9-vault-memory.md).
+
+## `memory_get` excerpt cap (default)
+
+As of **2026.4.15 stable**, `memory_get` no longer returns whole files by default. Excerpts are capped and the tool response includes **explicit continuation metadata** (a cursor the agent uses to fetch the next chunk deterministically). Combined with trimmed startup/skills prompt budgets, this keeps long sessions from silently ballooning. Skills that assumed full-file reads need a small cursor loop after the upgrade.
+
+- **Covered in:** [Part 4 — Memory](./README.md#part-4-memory-stop-forgetting-everything), [Part 26 — Migration Guide](./part26-migration-guide.md#path-5-v20264-15-beta-1-v20264-15-stable), [Part 27 — Gotchas & FAQ](./part27-gotchas-and-faq.md).
 
 ## Orchestrator / sub-agent / worker
 
@@ -204,6 +222,12 @@ OpenClaw's **control plane**, introduced in **v2026.3.31-beta.1**. Unifies ACP c
 Official name (from the 2026.3.31-beta.1 release notes) for the Task Brain ledger. Older internal design docs called this the "task ledger" or "tasks"; the published CLI verb is `openclaw flows`.
 
 - **Covered in:** [Part 24 — Task Brain Control Plane](./part24-task-brain-control-plane.md).
+
+## Tool-name normalize-collision rejection
+
+Gateway-level defense added in **2026.4.15 stable**: a client tool definition whose name normalizes to match a **built-in** (e.g. `Browser`, `Exec`, or `exec` with trailing whitespace) — or that collides with another client tool in the same request — is rejected with `400 invalid_request_error` on both JSON and SSE paths. Closes a local-media (`MEDIA:`) trust-inheritance vector where a malicious or compromised skill could register a tool that inherited a built-in's trust by name alone.
+
+- **Covered in:** [Part 15 — Infrastructure Hardening](./part15-infrastructure-hardening.md), [Part 23 — ClawHub Skills Marketplace](./part23-clawhub-skills-marketplace.md).
 
 ## Vault
 

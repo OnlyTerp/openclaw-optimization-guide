@@ -1,6 +1,6 @@
 # Part 27: Common Gotchas & FAQ
 
-> New in the 2026.4.15-beta.1 refresh. Every "I wasted a day on this" distilled into one page. Skim this before you debug; half your questions are answered here.
+> New in the 2026.4.15 refresh. Every "I wasted a day on this" distilled into one page. Skim this before you debug; half your questions are answered here.
 
 > **Read this if** something is broken, confusing, or behaving weirdly and you want to check the common-causes list before deep-diving.
 > **Skip if** nothing is broken — come back when it is.
@@ -43,7 +43,7 @@
 | Cause | Fix |
 |-------|-----|
 | Compaction model rate-limited | Set explicit compaction model (not Flash). [Part 15](./part15-infrastructure-hardening.md). |
-| `reserveTokens` larger than model context window | Upgrade to 2026.4.15-beta.1 (cap auto-applied) or manually set `reserveTokens` under the window. |
+| `reserveTokens` larger than model context window | Upgrade to 2026.4.15 (cap auto-applied) or manually set `reserveTokens` under the window. |
 | Compaction set to a reasoning model | Use an instruct model for compaction — reasoning burns tokens you're trying to save. |
 
 ### "Gateway keeps restarting / port 18789 in use"
@@ -51,7 +51,7 @@
 | Cause | Fix |
 |-------|-----|
 | Stale gateway process holding the port | Add cleanup to your startup script. See the [Gateway Crash Loop Fix](./part15-infrastructure-hardening.md#gateway-crash-loop-fix) in Part 15. |
-| Auth token expired | Check the Canvas **Model Auth status card** (added 2026.4.15-beta.1). Rotate the underlying credential, then refresh; the gateway's `models.authStatus` method picks it up without a full restart. |
+| Auth token expired | Check the Canvas **Model Auth status card** (added 2026.4.15). Rotate the underlying credential, then refresh; the gateway's `models.authStatus` method picks it up without a full restart. |
 | Config file has JSON syntax error after edit | `openclaw.json.clobbered.*` will exist — diff against your backup and fix. |
 
 ### "Sub-agent spawns suddenly require approval"
@@ -89,13 +89,40 @@
 | Orchestrator doing what workers should | See [Part 5](./README.md#part-5-orchestration-stop-doing-everything-yourself). |
 | Same key used for compaction + chat | Split compaction onto a different provider (Cerebras). |
 
+### "Tool registration suddenly returns `400 invalid_request_error`"
+
+| Cause | Fix |
+|-------|-----|
+| Client tool name normalize-collides with a built-in (`Browser`, `Exec`, or `exec` with trailing whitespace, etc.) | Rename. As of 2026.4.15 stable the gateway rejects these to prevent local-media trust inheritance. See [Part 15](./part15-infrastructure-hardening.md). |
+| Two client tools in the same request normalize to the same name | Deduplicate; keep one, rename the other. |
+
+### "My dreaming phase blocks disappeared from memory/YYYY-MM-DD.md"
+
+| Cause | Fix |
+|-------|-----|
+| 2026.4.15 stable flipped `dreaming.storage.mode` default from `inline` → `separate` | They're now at `memory/dreaming/{light-sleep,rem-sleep}/YYYY-MM-DD.md`. If you want the old behavior, set `plugins.entries.memory-core.config.dreaming.storage.mode: "inline"` in memory-core config. See [Part 22](./README.md#part-22-built-in-dreaming) + [Part 26](./part26-migration-guide.md#path-5-v20264-15-beta-1-v20264-15-stable). |
+| Scripts parsing the daily memory file for phase markers | Update to read the new `memory/dreaming/{phase}/` paths. |
+
+### "`memory_get` is returning truncated content now"
+
+| Cause | Fix |
+|-------|-----|
+| 2026.4.15 stable enabled default excerpt cap + continuation metadata | Follow the continuation cursor in the tool response to fetch the next chunk. Skills/hooks that assume a full-file return need a small cursor loop. See [Part 4](./README.md#part-4-memory-stop-forgetting-everything). |
+| You meant to read the whole file, not the canonical index | Use a plain file-read tool, not `memory_get`. |
+
+### "Skill 'lost context' after upgrading to 2026.4.15 stable"
+
+| Cause | Fix |
+|-------|-----|
+| Default startup/skills prompt budgets were trimmed in the stable release | If the skill genuinely needed that context, spell it out explicitly in the skill's system prompt — don't rely on the default injection. |
+
 ### "Secrets showed up in a git commit"
 
 | Cause | Fix |
 |-------|-----|
 | `.openclaw/` not in .gitignore | Add it. See [Part 15](./part15-infrastructure-hardening.md). |
 | Credentials written into memory/ or session transcripts | Add the no-credentials rule to AGENTS.md. [Part 15](./part15-infrastructure-hardening.md). |
-| Approval reviewer saw raw secrets pre-4.15 | Upgrade to 2026.4.15-beta.1 (redaction) and rotate exposed keys. |
+| Approval reviewer saw raw secrets pre-4.15 | Upgrade to 2026.4.15 (redaction) and rotate exposed keys. |
 
 ## FAQ
 

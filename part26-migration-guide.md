@@ -1,18 +1,19 @@
 # Part 26: Migration Guide
 
-> New in the 2026.4.15-beta.1 refresh. Opinionated, battle-tested upgrade paths from older OpenClaw versions to current. If something in this guide doesn't apply to your version yet, start here.
+> New in the 2026.4.15 refresh. Opinionated, battle-tested upgrade paths from older OpenClaw versions to current. If something in this guide doesn't apply to your version yet, start here.
 
-> **Read this if** you're on anything older than 2026.4.15-beta.1, or planning an upgrade.
+> **Read this if** you're on anything older than 2026.4.15, or planning an upgrade.
 > **Skip if** you're already on current-beta and don't maintain older instances.
 
 ## TL;DR By Version
 
 | You're on | Do this first | Then | Finally |
 |-----------|--------------|------|---------|
-| **v3.x** | Full v4.0 upgrade (not a drop-in) | v4.1 ClawHub | 2026.4.15-beta.1 |
-| **v4.0.x** | v2026.3.31-beta.1 (Task Brain) | 2026.4.x (built-in dreaming) | 2026.4.15-beta.1 |
-| **v2026.3.x** | Apply Task Brain approval policy | Upgrade to 2026.4.x | 2026.4.15-beta.1 |
-| **v2026.4.x pre-4.15** | Skip straight to 2026.4.15-beta.1 | Apply the 4.15 flags | Done |
+| **v3.x** | Full v4.0 upgrade (not a drop-in) | v4.1 ClawHub | 2026.4.15 |
+| **v4.0.x** | v2026.3.31-beta.1 (Task Brain) | 2026.4.x (built-in dreaming) | 2026.4.15 |
+| **v2026.3.x** | Apply Task Brain approval policy | Upgrade to 2026.4.x | 2026.4.15 |
+| **v2026.4.x pre-4.15** | Skip straight to 2026.4.15 | Apply the 4.15 flags | Done |
+| **v2026.4.15-beta.1** | Promote to 2026.4.15 stable | Opt in to Opus 4.7 defaults + `dreaming.storage.mode: separate` | Done |
 
 Each step is described below. Don't skip steps — the CVE wave fixes and Task Brain model changes are not optional for anyone running more than a personal-dev setup.
 
@@ -76,7 +77,7 @@ Significantly easier than v3\u2192v4.0. No data migration, but a policy migratio
 **Steps:**
 
 1. Upgrade the package. Restart the gateway.
-2. Run `openclaw flows list`. If it works: Task Brain is live. If you get "command not found": upgrade didn't take, re-check. (Older beta notes called this `openclaw tasks` — the published CLI verb as of 2026.4.15-beta.1 is `flows`.)
+2. Run `openclaw flows list`. If it works: Task Brain is live. If you get "command not found": upgrade didn't take, re-check. (Older beta notes called this `openclaw tasks` — the published CLI verb as of 2026.4.15 is `flows`.)
 3. Write a semantic approval policy (see [Part 24](./part24-task-brain-control-plane.md)). Don't leave it on defaults for more than a day — you want the policy to match your actual usage or you'll drown in approval prompts.
 4. Review `openclaw flows list` and the Canvas **Flows** panel at least once in the first week. You'll spot jobs you forgot existed (old cron, orphaned sub-agent spawns, stuck ACP calls).
 
@@ -103,13 +104,13 @@ This is mostly smooth.
 **Gotchas:**
 - If you had custom `memory_get` calls reading arbitrary paths, they'll still work in 4.x but will break at 4.15 — fix them now, don't wait.
 
-## Path 4: Anything v2026.4.x \u2192 v2026.4.15-beta.1
+## Path 4: Anything v2026.4.x \u2192 v2026.4.15
 
 Small jump. This is the version the guide is currently tested on.
 
 **What changes (the ones you should act on immediately):**
 - Compaction reserve-token floor is now capped at the model context window (fixes infinite loops on small local compaction workers).
-- Gateway supports hot-reload of auth secrets without a full restart (reuses the `models.authStatus` refresh path from 2026.4.15-beta.1). The CLI verb for manual reload has moved between betas — check `openclaw --help` on your installed version for the exact spelling.
+- Gateway supports hot-reload of auth secrets without a full restart (reuses the `models.authStatus` refresh path from 2026.4.15). The CLI verb for manual reload has moved between betas — check `openclaw --help` on your installed version for the exact spelling.
 - Approval prompts redact secrets before showing them to approvers. Previously every approval was a credential leak.
 - `memory_get` restricted to MEMORY.md + DREAMS.md only (path-traversal hardening against the qmd backend).
 - Memory-lancedb can persist to S3-compatible cloud storage.
@@ -126,6 +127,30 @@ Small jump. This is the version the guide is currently tested on.
 5. If you run multi-user approvals: verify the approval UI now shows `sk-***` redacted, not raw keys.
 6. Optional: enable `localModelLean` if you have a 14B-or-smaller local agent.
 7. Optional: switch to Copilot embeddings *only* if your org already pays for Copilot Business/Enterprise. Local Ollama is still the right default.
+
+## Path 5: v2026.4.15-beta.1 → v2026.4.15 (stable)
+
+Tiny jump. The stable release is a superset of the beta plus a few user-visible defaults changes. Still worth reading because one of them (dreaming storage) changes where your phase blocks land on disk.
+
+**What changes (the ones you should act on immediately):**
+
+- **Anthropic defaults → Claude Opus 4.7.** `opus` aliases, Claude CLI defaults, and bundled image understanding all point at Opus 4.7 now. If you had pinned `"model": "claude-opus-4-6"` explicitly, you keep it; if you used the alias, you silently upgrade.
+- **Dreaming storage mode default flipped: `inline` → `separate`.** Phase blocks (`## Light Sleep`, `## REM Sleep`) now land in `memory/dreaming/{phase}/YYYY-MM-DD.md` instead of being appended to the daily memory file at `memory/YYYY-MM-DD.md`. If you had scripts parsing `memory/YYYY-MM-DD.md` for phase markers, update them to read the new path (or opt back in with `plugins.entries.memory-core.config.dreaming.storage.mode: "inline"`).
+- **`memory_get` default excerpt cap + continuation metadata.** Long files come back in bounded chunks with a continuation cursor. If you had custom skills that assumed `memory_get` returns a full file, update them to read the cursor — otherwise you get silently truncated reads.
+- **Default startup/skills prompt budgets trimmed.** Long sessions pull less context by default. Usually invisible; if a skill suddenly "loses context it used to have," this is why — spell it out explicitly in the skill's system prompt.
+- **Gateway tool-name normalize-collision rejection.** If you had an in-house skill or client that registered a tool named the same as a built-in (e.g. `Browser`, `Exec`), it now returns `400 invalid_request_error`. Rename the tool. See [Part 15](./part15-infrastructure-hardening.md).
+- **Webchat localRoots containment** on audio embeddings — no action needed, but nice to have.
+- **Matrix pairing-auth tightened** — DM pairing-store entries can't authorize room control. No action needed unless you wrote custom Matrix pairing flows.
+- **Gemini TTS** in the bundled `google` plugin, plus the false-positive Model Auth alert fix for aliased providers and env-backed OAuth.
+
+**Steps:**
+
+1. Upgrade. Restart gateway. Run `openclaw doctor`.
+2. Open Canvas → Model Auth card. Confirm no false-positive alerts for aliased providers.
+3. Check your dreaming output: `ls memory/dreaming/{light-sleep,rem-sleep}/` should start showing phase files from tomorrow's run. If you want the old behavior, flip `dreaming.storage.mode` back to `"inline"` in memory-core config.
+4. If you have custom skills, grep them for `memory_get(` and audit their handling of truncated excerpts. Add cursor-following logic where needed.
+5. If you run in-house tools that shadow built-in names, rename them. They'll hard-fail at the gateway until you do.
+6. No rollback plan needed beyond package-pin — this release is additive over 4.15-beta.1. Config that worked on beta.1 works on stable.
 
 ## Rollback Plan (Every Path)
 

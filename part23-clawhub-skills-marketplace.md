@@ -1,6 +1,6 @@
 # Part 23: ClawHub Skills Marketplace
 
-> Added for OpenClaw 2026.4.15-beta.1. Covers the ClawHub marketplace launched with OpenClaw v4.1 (March 15, 2026) and the fallout from the first month of operation.
+> Added for OpenClaw 2026.4.15. Covers the ClawHub marketplace launched with OpenClaw v4.1 (March 15, 2026) and the fallout from the first month of operation.
 
 > **Read this if** you install ClawHub skills, or anyone on your team does. **This is the one security part non-negotiable for anyone using v4.1+.**
 > **Skip if** you run a fully sealed install with zero ClawHub skills and all your tools are first-party.
@@ -88,6 +88,8 @@ ClawHub surfaces:
 
 A brand-new author with one skill and no source link is not automatically malicious, but it's categorically riskier than an author with 6 months of public work behind them.
 
+> **New defense in 2026.4.15 stable — tool-name normalize-collision rejection.** One of the dirtier tricks researchers found during ClawHavoc was skills that registered a tool named to collide with a built-in (`Browser`, `Exec`, or `exec` with a trailing space) so that the client tool silently inherited the built-in's local-media (`MEDIA:`) trust envelope. As of 2026.4.15 stable, the gateway anchors local-media passthrough on the **exact raw name** of registered built-ins and rejects any client tool whose name normalize-collides with a built-in or with another client tool in the same request — `400 invalid_request_error`, on both JSON and SSE paths. A signed-but-compromised skill can no longer inherit a built-in's trust by name. See [Part 15 — Infrastructure Hardening](./part15-infrastructure-hardening.md).
+
 ### 5. Scope-limit every install
 
 Combine this with [Part 24 — Task Brain](./part24-task-brain-control-plane.md). ClawHub skills run under the same Task Brain trust boundaries as everything else. A skill that only needs to read files in `~/projects/` should not be allowed to read `~/.openclaw/`. Set approval categories accordingly:
@@ -138,7 +140,7 @@ If a skill you installed is on the removed list, or is behaving weirdly:
 1. `openclaw skills remove author/skill` — immediate.
 2. Audit what it had access to. Anything in `approvals` for that skill that was `allow`? Assume read, assume exfil.
 3. Rotate any credentials the skill could have read: API keys for every provider in `openclaw.json`, OAuth tokens in `auth-profiles.json`, anything in env vars the skill could see.
-4. Rotate without downtime using the 2026.4.15-beta.1 auth-refresh path described in [Part 15](./part15-infrastructure-hardening.md) (the `models.authStatus` gateway method + Canvas Model Auth card refresh; the exact CLI verb for manual reload varies between betas, check `openclaw --help`).
+4. Rotate without downtime using the 2026.4.15 auth-refresh path described in [Part 15](./part15-infrastructure-hardening.md) (the `models.authStatus` gateway method + Canvas Model Auth card refresh; the exact CLI verb for manual reload varies between betas, check `openclaw --help`).
 5. Scan the affected vault and memory files for exfil artifacts — anything written by the skill's hooks that references unfamiliar URLs.
 
 ## The 30-Second Install Checklist

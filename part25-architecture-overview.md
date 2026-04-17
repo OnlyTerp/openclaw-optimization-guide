@@ -1,6 +1,6 @@
 # Part 25: Architecture Overview (v4.0+)
 
-> New primer in the 2026.4.15-beta.1 refresh. If you came in after v4.0 shipped, the architecture underneath OpenClaw is probably different from the one you learned. This part is the shortest possible map of how the current system actually fits together — read it once, then the rest of the guide makes more sense.
+> New primer in the 2026.4.15 refresh. If you came in after v4.0 shipped, the architecture underneath OpenClaw is probably different from the one you learned. This part is the shortest possible map of how the current system actually fits together — read it once, then the rest of the guide makes more sense.
 
 > **Read this if** you're newish to OpenClaw v4.0+, or you've been following the guide part-by-part without a map of where each piece fits.
 > **Skip if** you already know the gateway daemon / Canvas / memory-core / Task Brain / ClawHub pieces and just want to tune a specific one — jump straight to the targeted part.
@@ -95,7 +95,7 @@ All three register tools with the gateway, which classifies them into semantic a
 The things you, a human, actually click or type in:
 
 - **CLI / IDE** — `openclaw` commands, editor integrations.
-- **Canvas UI** — the browser UI introduced in v4.0. Interactive chat + task ledger view + Model Auth status card (new 2026.4.15-beta.1).
+- **Canvas UI** — the browser UI introduced in v4.0. Interactive chat + task ledger view + Model Auth status card (new 2026.4.15).
 - **ACP callers** — anything that calls into an agent procedure programmatically (webhooks, scripts, other agents).
 - **Cron jobs** — scheduled runs. Native in v4.0+ (was a plugin before).
 
@@ -113,7 +113,8 @@ Short form, so you know what era a given piece of advice applies to:
 | **v4.2 — ACP** | 2026-03-28 | Agent Communication Protocol, thread-bound persistent sessions, sub-agent spawning, `session_status` tool | Protocol-level multi-agent plumbing. |
 | **v2026.3.31-beta.1 — Task Brain** | 2026-03-31 | Control plane, semantic approval categories, fail-closed plugin installs, gateway auth tightening | Structural response to the Feb–Mar CVE wave. See [Part 24](./part24-task-brain-control-plane.md). |
 | **v2026.4.x** | early 2026-04 | memory-core built-in dreaming; rolling fixes | Part 22 replaces the custom autoDream pattern. |
-| **v2026.4.15-beta.1** | 2026-04-15 | memory-lancedb cloud storage, GitHub Copilot embedding provider, `agents.defaults.experimental.localModelLean`, compaction reserve-token cap, `models.authStatus` gateway method + Canvas Model Auth card, approvals secret redaction, `memory_get` canonical-only | This guide's current baseline. |
+| **v2026.4.15-beta.1** | 2026-04-15 | memory-lancedb cloud storage, GitHub Copilot embedding provider, `agents.defaults.experimental.localModelLean`, compaction reserve-token cap, `models.authStatus` gateway method + Canvas Model Auth card, approvals secret redaction, `memory_get` canonical-only | Where the 4.15 line starts. |
+| **v2026.4.15 (stable)** | 2026-04-16 | Claude **Opus 4.7** new Anthropic default; dreaming default `inline` → `separate` (phase blocks to `memory/dreaming/{phase}/YYYY-MM-DD.md`); `memory_get` default excerpt cap + continuation metadata; trimmed startup/skills prompt budgets; gateway tool-name normalize-collision rejection (closes local-media trust inheritance); webchat localRoots containment; Gemini TTS in bundled `google` plugin; Matrix pairing-auth tightening | **This guide's current baseline.** Stable-promotes 4.15-beta.1 plus new features. |
 
 If you're on something older than v4.0, the first upgrade is not reading this guide — it's moving to v4.0+. See [Part 26 — Migration Guide](./part26-migration-guide.md).
 

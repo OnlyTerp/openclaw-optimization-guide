@@ -1,6 +1,6 @@
 # Part 24: Task Brain Control Plane
 
-> Added for OpenClaw 2026.4.15-beta.1. Covers Task Brain, introduced in v2026.3.31-beta.1 and hardened across the 2026.4.x line in response to the March 2026 CVE wave.
+> Added for OpenClaw 2026.4.15. Covers Task Brain, introduced in v2026.3.31-beta.1 and hardened across the 2026.4.x line in response to the March 2026 CVE wave.
 
 > **Read this if** you're on OpenClaw v2026.3.31-beta.1 or later (you are, if you're up to date), run sub-agents, use approvals, or do anything in production.
 > **Skip if** you're on a pre-Task-Brain build — but in that case you should upgrade first (see [Part 26](./part26-migration-guide.md)).
@@ -24,7 +24,7 @@ openclaw flows show <flow-id>
 openclaw flows cancel <flow-id>
 ```
 
-> The release notes call this the **task flow registry**. Internal design docs from earlier betas called it the "task ledger" / "tasks" — if you read anything from before April 2026, the nouns don't match, but the object model does. The published CLI as of 2026.4.15-beta.1 is `openclaw flows`.
+> The release notes call this the **task flow registry**. Internal design docs from earlier betas called it the "task ledger" / "tasks" — if you read anything from before April 2026, the nouns don't match, but the object model does. The published CLI as of 2026.4.15 is `openclaw flows`.
 
 Think of it as the Kubernetes control plane, but for AI agent actions: unified lifecycle, heartbeat monitoring with automatic recovery of lost tasks, parent-record tracking so subtask results trace back to the originating conversation, and blocked-state persistence so tasks retry on the same flow instead of fragmenting.
 
@@ -34,7 +34,7 @@ Task Brain wasn't a gentle roadmap item. It shipped as the structural response t
 
 - **Name-based allowlisting is not a security boundary.** The old approvals model let users write `approvals: { allow: ["bash", "exec"] }`. A malicious skill could register a new tool named `bash_v2` that did whatever it wanted — the allowlist matched on name, not intent.
 - **No cross-surface enforcement.** A tool blocked in an interactive session was often still runnable via cron or sub-agent spawn, because each surface enforced approvals independently.
-- **Approval prompts leaked credentials.** Covered in [Part 15](./part15-infrastructure-hardening.md) — 2026.4.15-beta.1 redacts these now.
+- **Approval prompts leaked credentials.** Covered in [Part 15](./part15-infrastructure-hardening.md) — 2026.4.15 redacts these now.
 
 Task Brain replaces name-based allowlisting with **semantic approval categories** and enforces them at a single choke point every surface goes through.
 
@@ -162,7 +162,7 @@ openclaw flows show <flow-id>
 openclaw flows cancel <flow-id>
 ```
 
-For longer-horizon auditing (7-day window, category filters, denied/approved breakdowns), subcommand flags have moved between betas — run `openclaw flows --help` against your installed version for the exact set. As of 2026.4.15-beta.1 the published verbs are `list`, `show`, and `cancel`. Category filtering and denied-flow rollups are primarily visible through the **Control UI** (Canvas → Flows), not via CLI flags.
+For longer-horizon auditing (7-day window, category filters, denied/approved breakdowns), subcommand flags have moved between betas — run `openclaw flows --help` against your installed version for the exact set. As of 2026.4.15 the published verbs are `list`, `show`, and `cancel`. Category filtering and denied-flow rollups are primarily visible through the **Control UI** (Canvas → Flows), not via CLI flags.
 
 You'll find:
 
@@ -179,7 +179,7 @@ You'll find:
 - [ ] Per-agent scopes configured for worker agents (narrower than the orchestrator)
 - [ ] `control-plane.skills` explicitly `deny` for all agents (install from CLI only)
 - [ ] `openclaw flows list` reviewed weekly — watch for stuck, denied, or orphaned flows (Canvas Flows panel gives the richer view)
-- [ ] Approval prompts show redacted secrets (2026.4.15-beta.1 — see [Part 15](./part15-infrastructure-hardening.md))
+- [ ] Approval prompts show redacted secrets (2026.4.15 — see [Part 15](./part15-infrastructure-hardening.md))
 - [ ] Agents are not punished for denying — denies are logged and used as signal
 - [ ] Unused plugins removed (fail-closed defaults apply, but unused surface is still surface)
 
