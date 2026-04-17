@@ -1,0 +1,24 @@
+# lychee link-checker config
+# See https://github.com/lycheeverse/lychee for all options.
+
+# Only run internal (offline) checks in CI — external checks are too flaky
+# for a prose guide full of third-party references.
+# (The CI workflow passes --offline; this file just documents intent.)
+
+# Paths that contain placeholder / template links that are valid in a user's
+# actual setup but not in this repo. Lychee treats these as broken, so exclude them.
+exclude_path = [
+  "templates/",
+]
+
+# Ignore specific URL patterns we know are placeholders or ephemeral.
+exclude = [
+  # Auto-generated session URLs in PR descriptions / examples
+  "^https://app\\.devin\\.ai/sessions/",
+  # Common placeholder URLs in example configs
+  "^https://example\\.com",
+]
+
+# Don't fail on missing fragments — GitHub's slug rules differ from lychee's,
+# and markdownlint's MD051 is too strict for emoji-prefixed headings.
+include_fragments = false

@@ -112,7 +112,7 @@ You can set different approval policies per agent. The pattern we use on our 14-
 }
 ```
 
-Narrow-scope workers get frictionless autonomy inside their scope and hard walls outside it. The orchestrator keeps humans in the loop on anything destructive. This is the CEO/COO/Worker model from [Part 5](./README.md#part-5-orchestration) but with enforcement, not honor system.
+Narrow-scope workers get frictionless autonomy inside their scope and hard walls outside it. The orchestrator keeps humans in the loop on anything destructive. This is the CEO/COO/Worker model from [Part 5](./README.md#part-5-orchestration-stop-doing-everything-yourself) but with enforcement, not honor system.
 
 ## Agent-Initiated Denies (new in v2026.3.31-beta.1)
 
