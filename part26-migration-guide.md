@@ -14,8 +14,11 @@
 | **v2026.3.x** | Apply Task Brain approval policy | Upgrade to 2026.4.x | 2026.4.15 |
 | **v2026.4.x pre-4.15** | Skip straight to 2026.4.15 | Apply the 4.15 flags | Done |
 | **v2026.4.15-beta.1** | Promote to 2026.4.15 stable | Opt in to Opus 4.7 defaults + `dreaming.storage.mode: separate` | Done |
+| **v2026.4.15 stable (current)** | Apply [Part 33](./part33-mcp-threat-model.md) MCP mitigations + [Part 6](./README.md#part-6-models-what-to-actually-use) Opus 4.7 regression posture | Optionally move to 2026.4.19-beta.1/beta.2 for subprocess env scrubbing + Opus model-ID registry fix | Hold for 4.19 stable |
 
 Each step is described below. Don't skip steps — the CVE wave fixes and Task Brain model changes are not optional for anyone running more than a personal-dev setup.
+
+> **April 21, 2026 in-line refresh notes.** No new stable release since 2026.4.15. The open betas (4.19-beta.1 Apr 19, 4.19-beta.2 Apr 19) are the first builds that carry `OPENCLAW_SUBPROCESS_ENV_SCRUB` (needed for the Part 33 MCP mitigation stack) and fix the `claude-opus-4-7` registry-rejection on 2026.4.15. If you're on stable, the MCP mitigation works *without* subprocess env scrubbing — just with less defence-in-depth. Decide per-deployment whether the beta is worth moving to now or waiting for 4.19 stable.
 
 ## Before You Upgrade (Every Upgrade, Every Time)
 

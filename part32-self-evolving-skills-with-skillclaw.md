@@ -127,6 +127,8 @@ This hasn't landed in the open-source SkillClaw repo yet (as of Apr 17, 2026) bu
 - *[AMAP-ML/SkillClaw](https://github.com/AMAP-ML/SkillClaw)* — the reference implementation. Created Apr 10, 2026. 687 stars in its first week.
 - *[SEA-Eval](https://arxiv.org/abs/2604.08377)* — Apr 14, 2026. The paper SkillClaw was built to evaluate.
 - *[Mem²Evolve](https://arxiv.org/html/2604.10923v1)* — Apr 14, 2026. Memory + skill co-evolution results. +18.53% over baseline.
+- *[Corpus2Skill — Don't Retrieve, Navigate](https://arxiv.org/abs/2604.14572)* — Apr 17, 2026, SIGIR 2026. Argues for compiling corpora into hierarchical skill directories instead of retrieval — a natural upstream for SkillClaw's evolution step, since it gives the population something richer to evolve.
+- *[M★ — Every Task Deserves Its Own Memory Harness](https://arxiv.org/abs/2604.11811)* — Apr 2026. Auto-discovers task-optimized memory harnesses via program evolution; sibling research line to SkillClaw on the memory side.
 - *[Anthropic — Multi-agent coordination patterns](https://claude.com/blog/multi-agent-coordination-patterns)* — Apr 10, 2026. The generator-verifier pattern SkillClaw uses internally.
 
 ## See Also

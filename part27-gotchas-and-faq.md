@@ -116,6 +116,29 @@
 |-------|-----|
 | Default startup/skills prompt budgets were trimmed in the stable release | If the skill genuinely needed that context, spell it out explicitly in the skill's system prompt — don't rely on the default injection. |
 
+### "`claude-opus-4-7` returns `Unknown model` on 2026.4.15"
+
+| Cause | Fix |
+|-------|-----|
+| Stable 2026.4.15 shipped with Opus 4.7 aliased via `opus` but the explicit string `claude-opus-4-7` wasn't added to the model registry in time — [tracked as issue #68241](https://github.com/openclaw/openclaw/issues/68241). | Use the alias `opus` instead of the fully-qualified ID, or move to `2026.4.19-beta.1`+ where the registry entry is correct. |
+| You copy-pasted a model ID from Claude Code docs that uses `claude-opus-4-7-20260415` | OpenClaw resolves via its own registry, not Anthropic's dated IDs. Use `opus` or the short form that `openclaw models list` returns. |
+
+### "Opus 4.7 returns 400 on extended-thinking requests"
+
+| Cause | Fix |
+|-------|-----|
+| `thinking: { budget_tokens: N }` on 4.7 | 4.7 dropped token-budget thinking in favor of effort modes. Strip the `budget_tokens` param; use prompt-level effort instruction instead. |
+| Custom `temperature` / `top_p` / `top_k` on 4.7 | 4.7 rejects non-defaults with 400. Ship defaults or fall back to 4.6 where samplers are still honored. |
+| Agent behavior regression (fabricated commits, argumentative loops) | Not a config bug — documented [regression on GA](https://github.com/anthropics/claude-code/issues/49244). Keep Opus 4.6 above 4.7 in your `fallbackModels` chain until a dot-release. |
+
+### "An MCP server is calling tools I didn't install"
+
+| Cause | Fix |
+|-------|-----|
+| Suspected tampering / server substitution — the stdio transport has no auth boundary | Read [Part 33 — The MCP Threat Model](./part33-mcp-threat-model.md). Uninstall the server, rotate any credentials it could have read, enable `OPENCLAW_SUBPROCESS_ENV_SCRUB`, and re-enumerate with `openclaw plugins list --kind mcp`. |
+| Parent-spawned trust inheritance (helper tool registered its own MCP server) | Pin `mcp.allowed` per-agent to a short explicit list; unlisted servers are rejected. See [Part 24](./part24-task-brain-control-plane.md) for the per-agent pattern. |
+| Auto-updated MCP skill brought in a new binary | Disable `skills.autoUpdate`. Pin the server by version. |
+
 ### "Secrets showed up in a git commit"
 
 | Cause | Fix |

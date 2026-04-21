@@ -2,7 +2,7 @@
 
 **A curated list of resources for getting the most out of OpenClaw.** Skills, guides, talks, templates, tools, research. Contributions welcome — see [CONTRIBUTING.md](./CONTRIBUTING.md).
 
-> This list is opinionated. Inclusion here means we've actually used it on a production OpenClaw deployment or seen it solve a real problem. Broken or abandoned links are removed aggressively. Last curated: **April 2026, tracking OpenClaw 2026.4.15 stable**.
+> This list is opinionated. Inclusion here means we've actually used it on a production OpenClaw deployment or seen it solve a real problem. Broken or abandoned links are removed aggressively. Last curated: **April 21, 2026 refresh, tracking OpenClaw 2026.4.15 stable (4.19-beta.2 incoming)**.
 
 ## Contents
 
@@ -34,7 +34,7 @@
 
 ## Guides & tutorials
 
-- **[OpenClaw Optimization Guide](./README.md)** — this repo. 32 parts, production-tested on 2026.4.15 stable.
+- **[OpenClaw Optimization Guide](./README.md)** — this repo. 33 parts, production-tested on 2026.4.15 stable.
 - **[Official "Getting Started" path](https://clawdocs.org/start)** — the minimum-viable setup. Read this first if you're brand new.
 - **[The OpenClaw CVE flood, Feb–Mar 2026](https://www.tryopenclaw.ai/blog/openclaw-cve-flood-march-2026/)** — the definitive writeup on the **ClawHavoc** supply-chain campaign.
 - **[Migration Guide — v3 → v4 → v2026.4.15 stable](./part26-migration-guide.md)** — opinionated upgrade paths.
@@ -72,6 +72,8 @@ See [Part 23 — ClawHub Skills Marketplace](./part23-clawhub-skills-marketplace
 - **[LightMem (arXiv 2604.07798)](https://arxiv.org/abs/2604.07798)** (Apr 12, 2026) — STM/MTM/LTM consolidation on a **small** model, 83 ms retrieval, +2.5 F1 on LoCoMo. The paper behind "run memory ops on an SLM."
 - **[Mem²Evolve (arXiv 2604.10923)](https://arxiv.org/html/2604.10923v1)** (Apr 14, 2026) — co-evolves skill + memory populations; +18.53% over skill-only baselines. Research direction for [Part 32](./part32-self-evolving-skills-with-skillclaw.md).
 - **[AMFS (Apache 2.0 MCP server)](https://dev.to/bruno_andrade_357863927e2/your-claude-code-and-cursor-agents-have-amnesia-heres-the-fix-2l3a)** (Apr 13, 2026) — drop-in MCP memory server, any model.
+- **[M★ — Every Task Deserves Its Own Memory Harness (arXiv 2604.11811)](https://arxiv.org/abs/2604.11811)** (Apr 2026) — auto-discovers task-optimized memory harnesses via executable program evolution. Sibling research line to LightMem / Mem²Evolve.
+- **[Corpus2Skill — Don't Retrieve, Navigate (arXiv 2604.14572)](https://arxiv.org/abs/2604.14572)** (Apr 17, 2026, SIGIR 2026) — hierarchical skill-directory navigation beats dense retrieval, RAPTOR, and agentic RAG on WixQA. The retrieval-to-navigation shift.
 
 ## Orchestration patterns
 
@@ -97,7 +99,11 @@ See [Part 23 — ClawHub Skills Marketplace](./part23-clawhub-skills-marketplace
 - **Antiy CERT — 1,184 malicious skills report** (Feb 2026) — scale of the skills-ecosystem incident.
 - **Trend Micro — Atomic Stealer via OpenClaw skills** (Mar 2026) — 39 skills distributing macOS infostealer.
 - **Kaspersky OpenClaw audit** — 512 vulns, 8 critical including `CVE-2026-25253` (1-click RCE) and WebSocket shared-auth scope escalation at CVSS 9.9.
+- **[OX Security — The Mother of All AI Supply Chains](https://www.ox.security/blog/the-mother-of-all-ai-supply-chains-critical-systemic-vulnerability-at-the-core-of-the-mcp/)** (Apr 15, 2026) — the MCP stdio design-flaw disclosure. Implicates ~200K servers across every major harness.
+- **[Anthropic says MCP flaw is "by design" — The Hacker News](https://thehackernews.com/2026/04/anthropic-mcp-design-vulnerability.html)** (Apr 16, 2026) — the official non-response that turned the disclosure into an operator-responsibility story.
+- **[MCP design flaw puts 200k servers at risk — The Register](https://www.theregister.com/2026/04/16/anthropic_mcp_design_flaw/)** (Apr 16, 2026) — the wider-ecosystem framing.
 - **This repo, [Part 15 — Infrastructure Hardening](./part15-infrastructure-hardening.md)** — operational hardening checklist.
+- **This repo, [Part 33 — The MCP Threat Model](./part33-mcp-threat-model.md)** — the operator-side mitigation stack for the MCP stdio flaw.
 
 ## Control plane & governance
 

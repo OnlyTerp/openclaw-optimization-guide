@@ -7,6 +7,8 @@ Your OpenClaw setup probably has hidden landmines that cause crash loops, GPU co
 > **Read this if** you're running OpenClaw in production, have more than one user on it, or have ever hit a gateway crash loop, GPU contention, or a secret leak in an approval prompt.
 > **Skip if** you're experimenting on a single-user dev box and don't mind restarting every few hours.
 
+> **⚠️ Read [Part 33 — The MCP Threat Model](./part33-mcp-threat-model.md) first** if you run any MCP server. OX Security's Apr 15, 2026 disclosure of an unpatched design flaw in MCP's stdio transport changes the default posture: treat stdio as hostile, pin transports, scope via per-agent `mcp.allowed`, and turn on `OPENCLAW_SUBPROCESS_ENV_SCRUB`.
+
 ## The Compaction Crash Loop
 
 ### The Problem
@@ -406,6 +408,29 @@ For sandbox isolation stronger than worktrees can provide (agent should not see 
 
 ---
 
+## Subprocess Env Scrubbing (new in 2026.4.19-beta.1)
+
+Mirrors [Claude Code v2.1.116's `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB`](https://code.claude.com/docs/en/changelog) (Apr 20, 2026). OpenClaw's equivalent is `OPENCLAW_SUBPROCESS_ENV_SCRUB=1`, a defence against any subprocess (MCP server, skill helper, hook command) silently inheriting your parent environment. Without scrubbing, an MCP server spawned by the gateway sees `ANTHROPIC_API_KEY`, `GITHUB_TOKEN`, `OPENAI_API_KEY`, and whatever else was in the gateway's env — even if the server has no legitimate reason to touch them.
+
+```json5
+{
+  "agents": {
+    "defaults": {
+      "subprocess": {
+        "envScrub": true,
+        "envAllow": ["PATH", "HOME", "LANG", "OPENCLAW_*"]
+      }
+    }
+  }
+}
+```
+
+On Linux, pair with PID-namespace isolation (same release) so a misbehaving subprocess can't ps-enumerate siblings. Turn this on for every agent that can spawn MCP servers — see [Part 33 — The MCP Threat Model](./part33-mcp-threat-model.md) for the full stack.
+
+> 2026.4.19-beta.1 and beta.2 shipped Apr 19, 2026. Stable is still 2026.4.15 as of Apr 21 — the envScrub flag works on the beta line now and will land in the next stable. If you want it today, move to the 4.19 beta on a non-production install first.
+
+---
+
 ## The Hardening Checklist
 
 - [ ] Compaction model set explicitly (not defaulting to Flash)
@@ -421,6 +446,8 @@ For sandbox isolation stronger than worktrees can provide (agent should not see 
 - [ ] Gateway startup script has stale-process cleanup
 - [ ] Gateway auth hot-reload tested (2026.4.15+): rotate a test key and confirm the Canvas **Model Auth status card** picks up the new credential without a full gateway restart (backed by the `models.authStatus` gateway method)
 - [ ] Approval prompts show redacted secrets, not raw values (2026.4.15+)
+- [ ] MCP servers enumerated, transports pinned, per-agent `mcp.allowed` scoping configured (see [Part 33](./part33-mcp-threat-model.md))
+- [ ] Subprocess env scrubbing enabled on agents that spawn MCP or shell subprocesses (2026.4.19-beta.1+)
 - [ ] Config backed up before changes
 - [ ] Gateway restarted after config changes
 

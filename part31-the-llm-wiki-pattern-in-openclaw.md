@@ -121,10 +121,22 @@ Weekly audit. 10 minutes:
 
 The pattern is simple. The discipline is everything.
 
+## Variant: "Don't Retrieve, Navigate" (Corpus2Skill, Apr 17, 2026)
+
+A week after Karpathy's wiki pattern landed, *[Corpus2Skill](https://arxiv.org/abs/2604.14572)* (SIGIR 2026 accepted) proposed a stronger version of the "curated summaries" tier: instead of flat retrieval, compile the whole corpus into a **hierarchical skill directory** the agent navigates. On the WixQA benchmark, the navigated-skill approach beat dense retrieval, RAPTOR, and agentic RAG.
+
+The OpenClaw translation: `skills/` is already hierarchical, already activated on demand, already human-auditable. Corpus2Skill's recipe is basically "turn more of your `memory/` rollups into `skills/` entries and let the agent pick instead of search." Two practical implications:
+
+- **Promote common retrieval paths into skills.** If your `memory_search` keeps returning the same three files for a class of question, those files want to become a skill, not a retrieval target. Less noise, less latency, deterministic picking.
+- **Let [SkillClaw (Part 32)](./part32-self-evolving-skills-with-skillclaw.md) prune.** Corpus2Skill without pruning becomes skill sprawl — SkillClaw is the evolutionary pressure that keeps the directory from bloating into what you were escaping.
+
+Don't overdo it. If everything becomes a skill, you've just re-invented a big prompt. Use the same "stays within the cap" discipline as the curated-summaries tier.
+
 ## Further Reading
 
 - Andrej Karpathy — LLM Wiki pattern walkthrough, YouTube (Apr 10, 2026, 4.3K views). The canonical source for the three-tier framing.
 - *[Karpathy's Pattern For An LLM Wiki In Production](https://aaronfulkerson.com/2026/04/12/karpathys-pattern-for-an-llm-wiki-in-production/)* — Aaron Fulkerson, Apr 12, 2026. Extends the pattern with concrete file-layout proposals.
+- *[Corpus2Skill — Don't Retrieve, Navigate](https://arxiv.org/abs/2604.14572)* — Apr 17, 2026, SIGIR 2026. Hierarchical skill directory beats dense retrieval / RAPTOR / agentic RAG on WixQA.
 - *[AaronRoeF/claude-code-patterns](https://github.com/AaronRoeF/claude-code-patterns)* — 153 curated patterns for Claude Code / OpenClaw including the LLM Wiki variant.
 - *[Amit Ray — CLAUDE.md vs AGENTS.md vs MEMORY.md vs SKILLS.md vs CONTEXT.md](https://amitray.com/claude-md-vs-agents-md-memory-md-skills-md-context-md-guide-2026/)* — Apr 14, 2026. The "most devs don't know which file is which" deep-dive.
 

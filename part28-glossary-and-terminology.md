@@ -64,7 +64,9 @@ The browser-based chat/task UI introduced in **v4.0**. Talks to the gateway daem
 
 ## Claude Opus 4.7
 
-Anthropic's new top-tier reasoning model. In **OpenClaw 2026.4.15 stable (Apr 16, 2026)** it became the default Anthropic selection: `opus` aliases, Claude CLI defaults, and bundled image understanding all resolve to Opus 4.7. Opus 4.6 is still supported; the difference is rounding-error for orchestration.
+Anthropic's new top-tier reasoning model. In **OpenClaw 2026.4.15 stable (Apr 16, 2026)** it became the default Anthropic selection: `opus` aliases, Claude CLI defaults, and bundled image understanding all resolve to Opus 4.7. Opus 4.6 is still supported.
+
+**Apr 17–21, 2026 regression watch.** The GA release drew [a loud developer backlash](https://github.com/anthropics/claude-code/issues/49244): fabricated commit hashes, argumentative loops on disagreement, lost-in-the-middle on long context. Two API-level breakages also landed: extended-thinking `budget_tokens` returns `400` (use effort-mode prompting instead), and non-default `temperature`/`top_p`/`top_k` returns `400`. Until a dot-release, many operators are keeping Opus 4.6 above 4.7 in their `fallbackModels` chain.
 
 - **Covered in:** [Part 6 — Models](./README.md#part-6-models-what-to-actually-use).
 

@@ -5,6 +5,8 @@
 > **Read this if** you're on OpenClaw v2026.3.31-beta.1 or later (you are, if you're up to date), run sub-agents, use approvals, or do anything in production.
 > **Skip if** you're on a pre-Task-Brain build — but in that case you should upgrade first (see [Part 26](./part26-migration-guide.md)).
 
+> **⚠️ MCP-related tool invocations need extra care.** [Part 33 — The MCP Threat Model](./part33-mcp-threat-model.md) (Apr 21, 2026 refresh) explains why: OX Security disclosed an unpatched MCP stdio design flaw on Apr 15 that Anthropic has declared "by design." Treat every MCP-originated `control-plane.*` as `deny` and every `write.network` as `ask`, regardless of what the server self-reports.
+
 ## What Task Brain Is
 
 Before 2026.3.31-beta.1, OpenClaw had four separate ways to run something:

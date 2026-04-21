@@ -3,14 +3,14 @@
 **Make your OpenClaw AI agent faster, smarter, cheaper, and actually safe to run in production.**
 
 [![Tested on 2026.4.15](https://img.shields.io/badge/OpenClaw-2026.4.15-2ea44f)](./part26-migration-guide.md)
-[![32 parts](https://img.shields.io/badge/parts-32-blue)](#full-table-of-contents)
+[![33 parts](https://img.shields.io/badge/parts-33-blue)](#full-table-of-contents)
 [![Scorecard](https://img.shields.io/badge/scorecard-50_items-8957e5)](./SCORECARD.md)
 [![Awesome](https://img.shields.io/badge/awesome-list-fc60a8)](./AWESOME.md)
 [![Benchmarks](https://img.shields.io/badge/benchmarks-reproducible-0a7bbb)](./benchmarks/METHODOLOGY.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey)](./LICENSE)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](./CONTRIBUTING.md)
 
-> **Tested on OpenClaw 2026.4.15 — April 16, 2026.** 32 parts + scorecard + awesome list + reproducible benchmarks. Battle-tested on a 14+ agent production deployment. Covers speed, memory, orchestration, models, web search, vault architecture, embeddings, hooks, graph RAG, codebase intelligence, observability, infrastructure hardening, skills marketplace, control-plane security, Ralph-loop autonomy, the LLM Wiki pattern, and self-evolving skills.
+> **Tested on OpenClaw 2026.4.15 — last refresh April 21, 2026.** 33 parts + scorecard + awesome list + reproducible benchmarks. Battle-tested on a 14+ agent production deployment. Covers speed, memory, orchestration, models, web search, vault architecture, embeddings, hooks, graph RAG, codebase intelligence, observability, infrastructure hardening, skills marketplace, control-plane security, Ralph-loop autonomy, the LLM Wiki pattern, self-evolving skills, and the MCP threat model.
 
 *By Terp — [Terp AI Labs](https://x.com/OnlyTerp)*
 
@@ -133,7 +133,7 @@ Full numbers in **[benchmarks/](./benchmarks/)**.
 
 ## Companion resources shipped with the guide
 
-Alongside the 32 parts themselves, this repo now includes the tooling that turns "I read the guide" into "I can audit and reproduce the results":
+Alongside the 33 parts themselves, this repo now includes the tooling that turns "I read the guide" into "I can audit and reproduce the results":
 
 - **[SCORECARD.md](./SCORECARD.md)** — The OpenClaw Production Readiness Scorecard. 50 items across Speed / Memory / Orchestration / Security / Observability, 2 points each, max 100. Designed to be copy-pasted into your own repo and shared publicly.
 - **[AWESOME.md](./AWESOME.md)** — A curated, opinionated list of OpenClaw resources: skills worth installing, memory and orchestration tools, observability stacks, research papers, talks, communities, adjacent ecosystems.
@@ -144,7 +144,19 @@ Alongside the 32 parts themselves, this repo now includes the tooling that turns
 
 ---
 
-## What Changed In This Release (2026.4.15 Refresh)
+## What Changed In This Release (Apr 21, 2026 Refresh)
+
+The 2026.4.15 stable line is still current, but the week of Apr 17–21 broke loose with enough new material to warrant a mid-cycle refresh:
+
+- **MCP threat model** (new [Part 33](./part33-mcp-threat-model.md)) — OX Security's Apr 15 disclosure of an unpatched design flaw in MCP's stdio transport, which [Anthropic declared "by design"](https://thehackernews.com/2026/04/anthropic-mcp-design-vulnerability.html). Mitigation stack: enumerate installed MCP servers, pin transports away from stdio, scope via per-agent `mcp.allowed`, gate with Task Brain categories, wrap in `secret-redact` + `cost-tripwire`, and enable subprocess env scrubbing. Boxed warnings added to [Part 15](./part15-infrastructure-hardening.md) and [Part 24](./part24-task-brain-control-plane.md).
+- **Opus 4.7 regression watch** ([Part 6](#part-6-models-what-to-actually-use), [Part 27](./part27-gotchas-and-faq.md), [Part 28](./part28-glossary-and-terminology.md)) — within 24h of GA, developer threads called 4.7 ["legendarily bad."](https://github.com/anthropics/claude-code/issues/49244) Two API breakages landed with it: extended-thinking `budget_tokens` now returns `400` (effort modes only), and non-default `temperature`/`top_p`/`top_k` also returns `400`. Practical posture: keep Opus 4.6 **above** 4.7 in your fallback chain until a dot-release.
+- **Corpus2Skill** (Apr 17, SIGIR 2026 accepted) — "Don't Retrieve, Navigate" added to [Part 31](./part31-the-llm-wiki-pattern-in-openclaw.md) and [Part 32](./part32-self-evolving-skills-with-skillclaw.md). Hierarchical skill directory beats dense retrieval / RAPTOR / agentic RAG on WixQA; natural upstream for SkillClaw's evolution loop.
+- **M★ — Every Task Deserves Its Own Memory Harness** added to Part 22's memory-on-SLM table, alongside LightMem / Mem²Evolve / AMFS / vbfs. Auto-discovers task-optimized memory harnesses via program evolution.
+- **OpenClaw 2026.4.19-beta.1/beta.2** (Apr 19) — not yet stable. Beta line fixes OpenAI streaming context reporting, nested agent session scoping, cross-agent subagent channel routing, and Telegram callback handling. Also introduces `OPENCLAW_SUBPROCESS_ENV_SCRUB` — the MCP-threat-model mitigation. Stay on 2026.4.15 stable, flag 4.19 as "incoming."
+- **`claude-opus-4-7` / `Unknown model` gotcha** ([Part 27](./part27-gotchas-and-faq.md)) — 2026.4.15 shipped the `opus` alias but not the fully-qualified model ID. Use `opus`, or move to 4.19-beta.
+- **Claude Code v2.1.116 (Apr 20) — `Monitor` tool** — event-streamed background processes instead of polled `read_bg_output`. OpenClaw's equivalent is `background.monitor` on 4.19-beta.2+. Noted in [Part 5](#part-5-orchestration-stop-doing-everything-yourself) and [Part 15](./part15-infrastructure-hardening.md).
+
+### Earlier (2026.4.15 Refresh — Apr 16)
 
 - **Task Brain control plane** (new [Part 24](./part24-task-brain-control-plane.md)) — unified task ledger, semantic approval categories, agent-initiated denies, fail-closed plugin defaults. Shipped as the structural fix for the March CVE wave.
 - **ClawHub skills marketplace** (new [Part 23](./part23-clawhub-skills-marketplace.md)) — 13K+ community skills, 1,184 removed for being malicious. Install policy, signing, scope-limiting, sleeper-update mitigation.
@@ -212,7 +224,7 @@ Not every part applies to every reader. Jump directly to the pillar that matches
 | **Stop it forgetting things** | [4 Memory](#part-4-memory-stop-forgetting-everything) · [9 Vault](#part-9-vault-memory-system-stop-losing-knowledge-between-sessions) · [10 Embeddings](./part10-state-of-the-art-embeddings.md) · [22 Built-In Dreaming](#part-22-built-in-dreaming) · [31 LLM Wiki Pattern](./part31-the-llm-wiki-pattern-in-openclaw.md) |
 | **Reduce cost** | [5 Orchestration](#part-5-orchestration-stop-doing-everything-yourself) · [6 Models](#part-6-models-what-to-actually-use) · [8 One-Shotting](#part-8-one-shotting-big-tasks-stop-iterating-start-researching) · [22 Memory you can afford](#part-22-built-in-dreaming) |
 | **Handle real codebases** | [18 LightRAG](./part18-lightrag-graph-rag.md) · [19 Repowise](./part19-repowise-codebase-intelligence.md) · [21 Real-time Sync](./part21-realtime-knowledge-sync.md) |
-| **Harden for production** | [15 Infra Hardening](./part15-infrastructure-hardening.md) · [23 ClawHub](./part23-clawhub-skills-marketplace.md) · [24 Task Brain](./part24-task-brain-control-plane.md) · [29 Hook Catalog](./part29-hook-catalog.md) |
+| **Harden for production** | [15 Infra Hardening](./part15-infrastructure-hardening.md) · [23 ClawHub](./part23-clawhub-skills-marketplace.md) · [24 Task Brain](./part24-task-brain-control-plane.md) · [29 Hook Catalog](./part29-hook-catalog.md) · [33 MCP Threat Model](./part33-mcp-threat-model.md) |
 | **See what my agents are doing** | [20 Observability](./part20-observability-and-services.md) · [24 Task Brain audit](./part24-task-brain-control-plane.md) |
 | **Automate self-improvement** | [11 Auto-Capture Hook](./part11-auto-capture-hook.md) · [12 Self-Improving System](./part12-self-improving-system.md) · [13 Memory Bridge](./part13-memory-bridge.md) · [32 Self-evolving skills (SkillClaw)](./part32-self-evolving-skills-with-skillclaw.md) |
 | **Run autonomous / overnight work** | [5 Orchestration patterns](#part-5-orchestration-stop-doing-everything-yourself) · [30 Ralph Loop](./part30-ralph-loop-in-openclaw.md) · [15 Worktrees](./part15-infrastructure-hardening.md) · [26 Spec-Driven Development](./part26-migration-guide.md) |
@@ -262,10 +274,11 @@ Not every part applies to every reader. Jump directly to the pillar that matches
 21. [Real-Time Knowledge Sync](./part21-realtime-knowledge-sync.md) — event-driven file watcher, <6s vault → LightRAG sync
 
 **🔒 Hardening & security**
-15. [Infrastructure Hardening](./part15-infrastructure-hardening.md) — compaction crash loops, GPU contention, secrets, gateway crash-loop fix, reserve-token cap, auth hot-reload, approval redaction, **parallel OpenClaw with git worktrees**
+15. [Infrastructure Hardening](./part15-infrastructure-hardening.md) — compaction crash loops, GPU contention, secrets, gateway crash-loop fix, reserve-token cap, auth hot-reload, approval redaction, **parallel OpenClaw with git worktrees**, subprocess env scrubbing
 23. [ClawHub Skills Marketplace](./part23-clawhub-skills-marketplace.md) — marketplace, malware, install policy
 24. [Task Brain Control Plane](./part24-task-brain-control-plane.md) — unified task ledger, semantic approvals, trust boundaries
 29. [The Hook Catalog](./part29-hook-catalog.md) — 8 copy-paste hooks, exit-code semantics, deterministic enforcement
+33. [The MCP Threat Model](./part33-mcp-threat-model.md) — unpatched stdio design flaw, mitigation stack, per-agent `mcp.allowed`, subprocess env scrubbing
 
 **🔭 Observability**
 20. [Agent Observability](./part20-observability-and-services.md) — LangFuse, reranker, n8n, workflow automation
@@ -365,7 +378,7 @@ Details live in vault/. The bot finds them via vector search in 45ms.
 
 This isn't a settings tweak - it's a **complete architecture change**: memory routing, context engineering, and orchestration working together. The one-shot prompt at the bottom does the entire setup automatically.
 
-> **Note:** Tested on Claude Opus 4.7 (the new Anthropic default as of 2026.4.15). Opus 4.6 also works fine — the differences are rounding-error for orchestration. Other frontier models should work if they can follow multi-step instructions.
+> **Note:** Tested on Claude Opus 4.7 (the new Anthropic default as of 2026.4.15). Until the Apr 17–21 regression (see [Part 6](#part-6-models-what-to-actually-use)) is resolved, Opus 4.6 is the safer default for production orchestration — the architectural patterns in this guide are model-agnostic. Other frontier models should work if they can follow multi-step instructions.
 
 > **Templates included:** Check [`/templates`](./templates) for ready-to-use versions of SOUL.md, AGENTS.md, MEMORY.md, TOOLS.md, and a sample vault/ structure.
 
@@ -739,6 +752,8 @@ The real unlock: a sub-agent is a disposable context window. You spawn one, it b
 
 If none of those are true, **don't spawn**. Sub-agent invocation has real overhead — cold-start prompts, tool-registration roundtrips, summarization cost. Use them surgically, not reflexively.
 
+> **New in Claude Code v2.1.116 (Apr 20, 2026) — `Monitor` tool for background scripts.** If you're spawning long-running background jobs via `Bash(run_in_background: true)` and then polling for output, that's the pattern the new `Monitor` tool replaces: each stdout line arrives as a notification instead of requiring an explicit read. The OpenClaw-side equivalent is exposed as `background.monitor` (2026.4.19-beta.2+) with the same one-line-per-event semantics. Use it for Ralph-loop runners ([Part 30](./part30-ralph-loop-in-openclaw.md)) and fan-out harnesses ([Part 15](./part15-infrastructure-hardening.md)) so the orchestrator stops burning turns on `read_bg_output` polls.
+
 Your main model should NEVER do heavy work directly. It should plan and delegate to cheaper, faster sub-agents — per the triggers above.
 
 ### Anthropic's Five Multi-Agent Coordination Patterns (Apr 10, 2026)
@@ -928,11 +943,17 @@ This writes a `CONTEXT.md` that the coding agent reads automatically — giving 
 
 ### Model Deep Dive
 
-**Claude Opus 4.7** - The Best Orchestrator (new default in 2026.4.15)
-- Unmatched multi-step reasoning and complex tool use
-- Follows long, nuanced system prompts better than any other model
+**Claude Opus 4.7** - The Best Orchestrator (new default in 2026.4.15) — **regression caveat below**
+- Unmatched multi-step reasoning and complex tool use *on paper*
+- Follows long, nuanced system prompts better than any other model when it's not arguing with them
 - 1M context window with prompt caching (up to 90% savings on cached tokens)
 - **Cost:** $5/M input, $25/M output, $0.50/M cached | **Max ($100/mo):** included - best value for heavy use
+
+> **⚠️ Opus 4.7 regression watch (Apr 17–21, 2026).** Within 24 hours of GA, developer threads called 4.7 ["legendarily bad"](https://www.abhs.in/blog/claude-opus-47-developer-backlash-legendarily-bad-arguing-april-2026): fabricated commit hashes, argumentative loops on disagreement, noticeable lost-in-the-middle on long-context work. [Claude Code issue #49244](https://github.com/anthropics/claude-code/issues/49244) is the canonical thread. Two API-level breakages landed with the release:
+> - Extended-thinking `budget_tokens` now returns `400` — the model exposes **effort modes** via prompt-level instruction instead of a token budget. If any of your skills, hooks, or CI tooling still sends `thinking: { budget_tokens: N }`, strip it.
+> - Non-default `temperature`, `top_p`, or `top_k` now returns `400`. Ship with defaults on 4.7 or get a 400 back on the first call.
+>
+> **Practical posture until a dot-release fixes the quality regression:** keep 4.7 behind Opus 4.6 in your `fallbackModels` chain (4.6 → 4.7 → cheap worker, not the other way around). Watch the [Model Auth card](./part25-architecture-overview.md) for 400-error clusters on 4.7 traffic — that's your signal to stay on 4.6 another week. If you're not on Max, the quality delta is not worth Opus-tier spend right now.
 
 **Claude Sonnet 4** - Solid Workhorse
 - 80% of Opus quality at 20% of the cost. Strong at coding.
@@ -1414,6 +1435,9 @@ Run through this in 30 minutes:
 - [ ] 2026.4.15 upgrade: `agents.defaults.experimental.localModelLean` set correctly for your model tier (Part 6)
 - [ ] 2026.4.15 upgrade: `memory_get` not called with arbitrary paths anywhere in your skills/hooks (Part 4/22)
 - [ ] Control UI Model Auth card checked — OAuth tokens healthy, no rate-limit red flags
+- [ ] **MCP threat model applied (Apr 21 refresh):** installed MCP servers enumerated, transports pinned off stdio where possible, per-agent `mcp.allowed` set, `secret-redact` + `cost-tripwire` scoped to MCP kind (Part 33)
+- [ ] **Opus 4.7 regression posture:** Opus 4.6 placed above 4.7 in `fallbackModels`; no `thinking: { budget_tokens }` or custom sampler params in skills/hooks (Part 6)
+- [ ] Subprocess env scrubbing enabled on 2026.4.19-beta.1+ if you spawn MCP or shell subprocesses (Part 15)
 
 ---
 
@@ -1784,7 +1808,7 @@ Zero-infrastructure entry point. No Docker, no database admin. For power users, 
 No. Your expensive model PLANS and JUDGES. Execution (code, research, analysis) gets delegated to cheaper models via sub-agents. Frontier judgment + budget execution.
 
 **Does this work with models other than Claude Opus?**
-Architecture works with any model supporting `memory_search` and `sessions_spawn` in OpenClaw. Tested on Opus 4.7 (the new Anthropic default as of 2026.4.15); most frontier models should handle the one-shot prompt.
+Architecture works with any model supporting `memory_search` and `sessions_spawn` in OpenClaw. Tested on Opus 4.7 (the new Anthropic default as of 2026.4.15) and on Opus 4.6 (the safer choice for production right now — see the [Part 6 regression watch](#part-6-models-what-to-actually-use)). Most frontier models should handle the one-shot prompt.
 
 **How is this different from other memory solutions?**
 Most add external databases or cloud services. This gives you 90% of the benefit with 10% of the parts - local files + vector search. Nothing to install except Ollama. Nothing leaves your machine.
@@ -1809,6 +1833,7 @@ The week of April 10–17 produced a pile of memory-system papers and benchmarks
 | **[LightMem](https://arxiv.org/abs/2604.07798)** | Apr 12, 2026 | **+2.5 F1** over baseline on LoCoMo, **83 ms** retrieval | **Small language model** for STM/MTM/LTM consolidation |
 | **[Mem²Evolve](https://arxiv.org/html/2604.10923v1)** | Apr 14, 2026 | **+18.53%** over baseline on mixed agent-task benchmark | Co-evolves skills + memory without expensive model calls |
 | **[AMFS (Apache 2.0 MCP server)](https://dev.to/bruno_andrade_357863927e2/your-claude-code-and-cursor-agents-have-amnesia-heres-the-fix-2l3a)** | Apr 13, 2026 | Drop-in MCP memory for any harness | Runs on whatever model you want, including local |
+| **[M★ — Every Task Deserves Its Own Memory Harness](https://arxiv.org/abs/2604.11811)** | Apr 2026 | Auto-discovers task-optimized memory harnesses via executable program evolution | Generated harness runs on whatever model you point at it — typically a small one |
 
 The unifying insight: **memory consolidation is cheap, dense, deterministic work**. Using Opus 4.7 on it burns $100/month you don't need to spend.
 

@@ -103,6 +103,11 @@ nav:
       - Realtime knowledge sync: part21-realtime-knowledge-sync.md
       - ClawHub skills marketplace: part23-clawhub-skills-marketplace.md
       - Task Brain control plane: part24-task-brain-control-plane.md
+      - Hook catalog: part29-hook-catalog.md
+      - Ralph loop in OpenClaw: part30-ralph-loop-in-openclaw.md
+      - The LLM Wiki pattern in OpenClaw: part31-the-llm-wiki-pattern-in-openclaw.md
+      - Self-evolving skills with SkillClaw: part32-self-evolving-skills-with-skillclaw.md
+      - The MCP threat model: part33-mcp-threat-model.md
   - Production:
       - Scorecard: SCORECARD.md
       - Benchmarks:

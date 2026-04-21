@@ -1,6 +1,6 @@
 {
   "$schema": "https://openclaw.dev/schema/openclaw.schema.json",
-  "_comment": "Reference config from the OpenClaw Optimization Guide. Tested on OpenClaw 2026.4.15 stable (2026-04-16). Copy to ~/.openclaw/openclaw.json (or your project root) and edit. Never commit real credentials — use env var references like ${ANTHROPIC_API_KEY}.",
+  "_comment": "Reference config from the OpenClaw Optimization Guide. Last refreshed 2026-04-21 for OpenClaw 2026.4.15 stable. Copy to ~/.openclaw/openclaw.json (or your project root) and edit. Never commit real credentials — use env var references like ${ANTHROPIC_API_KEY}. Apr 21 refresh notes: (1) MCP threat model — if you add MCP plugin entries, also set agents.defaults.subprocess.envScrub=true on 2026.4.19-beta.1+ and scope per-agent `mcp.allowed` (see Part 33); (2) Opus 4.7 regression watch — see the primary/fallback block below for the recommended posture.",
 
   "agents": {
     "defaults": {
@@ -14,9 +14,11 @@
     "primary": {
       "provider": "anthropic",
       "model": "opus",
-      "_comment": "`opus` alias resolves to Claude Opus 4.7 in OpenClaw 2026.4.15 stable. Pin explicitly (e.g. `claude-opus-4-7`) if you want to lock the version."
+      "_comment": "`opus` alias resolves to Claude Opus 4.7 in OpenClaw 2026.4.15 stable. Do NOT pin the fully-qualified string `claude-opus-4-7` on 2026.4.15 — it was missed from the registry (issue #68241). Leave the alias, or move to 2026.4.19-beta.1+. APR 21 REGRESSION CAVEAT: operators running production work are pinning primary to `opus-4-6` instead and keeping 4.7 as fallback[0] until the 4.7 quality issues resolve. Flip `primary` and `fallback[0]` below if that's your posture. See Part 6."
     },
     "fallback": [
+      { "provider": "anthropic", "model": "opus-4-6",
+        "_comment": "Intentionally above cheaper models: if Opus 4.7 primary flakes, fall back to 4.6 before anything smaller." },
       { "provider": "anthropic", "model": "sonnet" },
       { "provider": "openai",    "model": "gpt-5-mini" },
       { "provider": "google",    "model": "gemini-2.5-flash" }

@@ -4,6 +4,8 @@
 
 > Share your score: *"My OpenClaw Production Readiness Scorecard: XX / 100 — [github.com/OnlyTerp/openclaw-optimization-guide](https://github.com/OnlyTerp/openclaw-optimization-guide)"*
 
+> **April 21, 2026 refresh — bonus items (not yet part of the 50).** Two new checks you should verify post-refresh; we'll fold them into the next versioned scorecard once they've stabilized: (1) per-agent `mcp.allowed` scoping + subprocess env scrubbing enabled ([Part 33 — MCP Threat Model](./part33-mcp-threat-model.md)); (2) Opus 4.6 positioned **above** 4.7 in `fallbackModels`, with no `thinking: { budget_tokens }` or custom sampler params anywhere in skills/hooks ([Part 6 — Models](./README.md#part-6-models-what-to-actually-use), [Part 27 — Gotchas](./part27-gotchas-and-faq.md)). Treat these as hard checks for new production deploys; the 50-item list below is unchanged so historical scores remain comparable.
+
 ## How to use this
 
 1. Fork / clone this repo or copy this file into your own setup.
