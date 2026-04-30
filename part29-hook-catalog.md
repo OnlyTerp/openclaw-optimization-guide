@@ -332,7 +332,7 @@ Reference block for `openclaw.json` using current OpenClaw-style event names:
           "command": "./hooks/secret-redact.py"
         },
         "secret-redact-output": {
-          "event": "message:sent",
+          "event": "command",
           "command": "./hooks/secret-redact.py"
         },
         "block-dangerous-shell": {
