@@ -21,15 +21,16 @@ The practical rule from Amit Kothari's April 2026 post on hook debugging: *"If a
 
 ## Lifecycle Events & Exit Codes
 
-Modern agent harnesses (OpenClaw, Claude Code, Cursor) converged on similar lifecycle grammars, but the names are not identical. The Claude-style event names below are useful mental models; OpenClaw-native hook registration uses lower-case event names such as `command:new`, `session:compact:before`, `session:compact:after`, `agent:bootstrap`, `message:received`, and `gateway:startup`.
+Modern agent harnesses (OpenClaw, Claude Code, Cursor) converged on similar lifecycle grammars, but the names are not identical. The Claude-style event names below are useful mental models; OpenClaw-native hook registration uses lower-case event names such as `command:new`, `command`, `command:stop`, `session:compact:before`, `session:compact:after`, `agent:bootstrap`, `message:received`, `message:preprocessed`, `message:sent`, and `gateway:startup`.
 
 | Claude-style event | OpenClaw-native event(s) | Typical use |
 |--------------------|--------------------------|-------------|
 | **SessionStart** | `agent:bootstrap`, `gateway:startup` | Inject context, enforce preconditions, set budgets |
 | **SessionEnd** | `session:compact:before`, `session:compact:after` | Flush memory, write transcripts, capture learnings |
 | **PreToolUse** | `command:new` | Block dangerous commands, rewrite args, ask for approval |
-| **PostToolUse** | command/tool-result middleware | Redact secrets, transform output, count tokens |
+| **PostToolUse** | `command` for command-level accounting; plugin hook `after_tool_call` / `tool_result_persist` for true tool-result interception | Redact secrets, transform output, count tokens |
 | **UserPromptSubmit** | `message:received` | Redact secrets from user input, inject context |
+| **Stop** | `command:stop` for `/stop`; plugin hook `before_agent_finalize` for final-answer gating | Verify exit criteria |
 
 If you copy a hook from Claude Code/Cursor, map the event name before registration. The portable intent is usually right; the literal event string may not be.
 
@@ -330,15 +331,32 @@ Reference block for `openclaw.json` using current OpenClaw-style event names:
           "event": "message:received",
           "command": "./hooks/secret-redact.py"
         },
+        "secret-redact-output": {
+          "event": "message:sent",
+          "command": "./hooks/secret-redact.py"
+        },
         "block-dangerous-shell": {
           "event": "command:new",
           "match": { "tool": ["exec", "bash", "powershell"] },
           "command": "./hooks/block-dangerous-shell.sh"
         },
+        "cost-tripwire-check": {
+          "event": "command",
+          "command": "./hooks/cost-tripwire.py"
+        },
         "skill-install-deny": {
           "event": "command:new",
           "match": { "tool": ["clawhub.install", "skill.install"] },
           "command": "./hooks/skill-install-deny.sh"
+        },
+        "auto-formatter": {
+          "event": "command",
+          "match": { "tool": ["edit", "write_file", "patch"] },
+          "command": "./hooks/auto-formatter.sh"
+        },
+        "dreaming-phase-gate": {
+          "event": "command:stop",
+          "command": "./hooks/dreaming-phase-gatekeeper.sh"
         },
         "session-end-flush": {
           "event": "session:compact:before",
@@ -349,6 +367,8 @@ Reference block for `openclaw.json` using current OpenClaw-style event names:
   }
 }
 ```
+
+`command` is the broad internal listener for command lifecycle accounting. If your build exposes true tool-result plugin hooks (`after_tool_call`, `tool_result_persist`, or a modifying result hook), prefer those for `secret-redact-output`, `cost-tripwire-check`, and `auto-formatter`; they run closer to the actual tool payload. `command:stop` observes `/stop`, not every natural final answer. Use the plugin hook `before_agent_finalize` if you need to block a final answer until the dreaming gate passes.
 
 Test every hook with a `--dry-run` flag before you ship it. A hook that throws because of a missing env var exits with code **1** (`Error — continue`) per the exit-code table above — which means every tool call **proceeds anyway** and your safety hook silently fails open. Catch exceptions at the top of each hook and `exit 2` explicitly if you want a hard block on error.
 

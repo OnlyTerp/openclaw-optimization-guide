@@ -22,7 +22,7 @@ flowchart TB
         M[Memory layer<br/>memory-core + LightRAG + dreaming]
         O[Orchestration<br/>5 coordination patterns]
     end
-    subgraph Model["The Model (5%)"]
+    subgraph Model["The Model (weights)"]
         W[Weights]
     end
     Harness --> Results[What the agent can do]
