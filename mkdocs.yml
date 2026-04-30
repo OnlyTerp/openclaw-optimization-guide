@@ -1,5 +1,5 @@
 site_name: OpenClaw Optimization Guide
-site_description: Make your OpenClaw AI agent faster, smarter, cheaper, and actually safe to run in production. Tested on OpenClaw 2026.4.15 stable.
+site_description: Make your OpenClaw AI agent faster, smarter, cheaper, and actually safe to run in production. Updated for OpenClaw 2026.4.27 stable and 2026.4.29 beta.
 site_url: https://onlyterp.github.io/openclaw-optimization-guide/
 repo_url: https://github.com/OnlyTerp/openclaw-optimization-guide
 repo_name: OnlyTerp/openclaw-optimization-guide
@@ -86,6 +86,7 @@ extra:
 nav:
   - Home: README.md
   - Start here:
+      - Late-April 2026 field guide: part33-late-april-2026-field-guide.md
       - Architecture overview: part25-architecture-overview.md
       - Migration guide: part26-migration-guide.md
       - Gotchas & FAQ: part27-gotchas-and-faq.md

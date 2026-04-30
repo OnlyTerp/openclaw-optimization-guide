@@ -82,7 +82,7 @@ Every session starts fresh. The files are the memory.
 ## Key Facts
 
 - **358 memory files** in memory/, mostly date-named
-- **Vector search** (nomic-embed-text, 45ms, $0) works but finds similar, not connected
+- **Vector search** (`qwen3-embedding:0.6b`, <100ms local, $0) works but finds similar, not connected
 - **MEMORY.md** must stay under 5K — it's injected on every message
 - **The more you teach, the dumber it gets** — MEMORY.md overflow truncated context
 
@@ -912,4 +912,3 @@ node scripts/vault-graph/graph-indexer.mjs
 ```
 
 That's it. Your agent now has structured memory, graph navigation, auto-capture, and cross-session continuity. It stops losing knowledge and starts building on it.
-

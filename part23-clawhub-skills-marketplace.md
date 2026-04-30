@@ -42,6 +42,18 @@ This is not unique to OpenClaw. Every agent marketplace has or will have this pr
 
 If you take nothing else from this part, take these rules:
 
+### 0. Read the manifest first
+
+Late-April OpenClaw moved a lot of plugin metadata into manifests: model catalog rows, aliases, suppressions, setup providers, auth methods, env var names, channel configs, and runtime-dependency repair hints. Read that manifest before runtime code. It tells you what the plugin claims it will register and which credentials it wants.
+
+Red flags:
+
+- surprise model aliases or suppressions
+- `control-plane.*` setup permissions for a normal skill
+- broad env-var discovery when only one provider key is needed
+- runtime dependency repair that pulls packages from unexpected registries
+- channel configs for surfaces the skill never mentioned
+
 ### 1. Auto-update: OFF by default
 
 ```json5

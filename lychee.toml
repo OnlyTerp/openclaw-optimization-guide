@@ -21,4 +21,4 @@ exclude = [
 
 # Don't fail on missing fragments — GitHub's slug rules differ from lychee's,
 # and markdownlint's MD051 is too strict for emoji-prefixed headings.
-include_fragments = false
+include_fragments = "none"

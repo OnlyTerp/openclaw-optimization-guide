@@ -66,7 +66,7 @@ install_template "MEMORY.md" 4
 install_template "TOOLS.md" 2
 
 # Step 4: Install Ollama + embedding model
-echo "[4/5] Setting up Ollama + nomic-embed-text..."
+echo "[4/5] Setting up Ollama + qwen3-embedding:0.6b..."
 
 if command -v ollama &> /dev/null; then
     echo "  ✓ Ollama already installed"
@@ -81,12 +81,12 @@ else
 fi
 
 # Pull embedding model
-if ollama list 2>/dev/null | grep -q "nomic-embed-text"; then
-    echo "  ✓ nomic-embed-text already available"
+if ollama list 2>/dev/null | grep -q "qwen3-embedding:0.6b"; then
+    echo "  ✓ qwen3-embedding:0.6b already available"
 else
-    echo "  Pulling nomic-embed-text (300MB)..."
-    ollama pull nomic-embed-text
-    echo "  ✓ nomic-embed-text ready"
+    echo "  Pulling qwen3-embedding:0.6b (500MB)..."
+    ollama pull qwen3-embedding:0.6b
+    echo "  ✓ qwen3-embedding:0.6b ready"
 fi
 
 # Step 5: Verify

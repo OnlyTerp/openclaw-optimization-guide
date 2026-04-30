@@ -10,9 +10,9 @@ We publish numbers from three deliberately different setups, so readers can see 
 
 | Label | Machine | OpenClaw version | Purpose |
 |---|---|---|---|
-| **Prod** | Windows 11, RTX 5090 (24 GB VRAM), 128 GB RAM, AMD Ryzen 9 7950X | 2026.4.15 stable | Real 14-agent production deployment (TerpHQ). "Best case with local embedding server." |
-| **Baseline** | MacBook Pro M3 Max (36 GB), stock OpenClaw + Ollama | 2026.4.15 stable | Typical developer laptop. Most readers land near this. |
-| **Minimal** | Linux VM, 8 GB RAM, no GPU, cloud embedding | 2026.4.15 stable | Low-end. Shows the floor of what the guide still buys you. |
+| **Prod** | Windows 11, RTX 5090 (24 GB VRAM), 128 GB RAM, AMD Ryzen 9 7950X | 2026.4.27 stable | Real 14-agent production deployment (TerpHQ). "Best case with local embedding server." |
+| **Baseline** | MacBook Pro M3 Max (36 GB), stock OpenClaw + Ollama | 2026.4.27 stable | Typical developer laptop. Most readers land near this. |
+| **Minimal** | Linux VM, 8 GB RAM, no GPU, cloud embedding | 2026.4.27 stable | Low-end. Shows the floor of what the guide still buys you. |
 
 Readers' numbers will fall somewhere in the envelope defined by these three. If yours are wildly outside that envelope, open an issue — that's the kind of data we want.
 

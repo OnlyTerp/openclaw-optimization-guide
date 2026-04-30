@@ -1,11 +1,21 @@
 # Part 27: Common Gotchas & FAQ
 
-> New in the 2026.4.15 refresh. Every "I wasted a day on this" distilled into one page. Skim this before you debug; half your questions are answered here.
+> Updated in the late-April 2026 refresh. Every "I wasted a day on this" distilled into one page. Skim this before you debug; half your questions are answered here.
 
 > **Read this if** something is broken, confusing, or behaving weirdly and you want to check the common-causes list before deep-diving.
 > **Skip if** nothing is broken — come back when it is.
 
 ## Gotchas, Grouped By Symptom
+
+### "The late-April upgrade broke my old workflow"
+
+| Cause | Fix |
+|-------|-----|
+| Claude worked last month and now costs money / fails auth | Anthropic's April 4 cutoff ended the old subscription-backed path for many OpenClaw users. Move to explicit API/Bedrock/provider routing, set budget caps, add non-Anthropic fallbacks. See [Part 33](./part33-late-april-2026-field-guide.md). |
+| `/models add` no longer works | It was deprecated in 2026.4.24 after provider-catalog work. Use `/models` or `openclaw models list` to inspect, then edit config/catalogs deliberately. |
+| Active Memory recalls the wrong group chat | Broad recall enabled without chat filters. Add `allowedChatIds` / `deniedChatIds`; deny public channels by default. |
+| Agent replies invisibly or in the wrong channel during long runs | Shared channel not enforcing the visible reply path. Enable `messages.visibleReplies`; use steering for follow-ups at model boundaries. |
+| Browser automation clicks miss dynamic UI | Selector-only automation on overlays/canvas/shadow DOM. Use coordinate clicks sparingly and document viewport assumptions. |
 
 ### "memory_search returns nothing / takes 5 seconds"
 
@@ -32,7 +42,7 @@
 | Cause | Fix |
 |-------|-----|
 | SOUL.md / AGENTS.md / MEMORY.md too big (>5KB combined) | Trim. See [Part 1](./README.md#part-1-speed-stop-being-slow). |
-| Context pruning disabled | `contextPruning: { mode: "cache-ttl", ttl: "5m" }`. See [Part 2](./README.md#part-2-context-engineering--the-discipline). |
+| Context pruning disabled | Set `agents.defaults.contextPruning: { mode: "cache-ttl", ttl: "5m" }`. See [Part 2](./README.md#part-2-context-engineering--the-discipline). |
 | Reasoning mode on for trivial tasks | Turn reasoning off for the default model, on only for orchestration. See [Part 6](./README.md#part-6-models-what-to-actually-use). |
 | Orchestrator doing work it should delegate | Add the sub-agent rules to AGENTS.md. See [Part 5](./README.md#part-5-orchestration-stop-doing-everything-yourself). |
 | Compaction model is Gemini Flash (rate-limited) | Switch compaction to Cerebras Qwen. See [Part 15](./part15-infrastructure-hardening.md). |
@@ -84,7 +94,7 @@
 
 | Cause | Fix |
 |-------|-----|
-| Using API keys instead of membership | Switch to OAuth if you have Pro/Max. See [Part 6](./README.md#part-6-models-what-to-actually-use). |
+| No budget cap or paid route visibility | Move off subscription assumptions; use explicit provider/API billing with caps. See [Part 6](./README.md#part-6-models-what-to-actually-use). |
 | No fallback model configured | Add 2-3 fallbacks. See [Part 6](./README.md#part-6-models-what-to-actually-use). |
 | Orchestrator doing what workers should | See [Part 5](./README.md#part-5-orchestration-stop-doing-everything-yourself). |
 | Same key used for compaction + chat | Split compaction onto a different provider (Cerebras). |

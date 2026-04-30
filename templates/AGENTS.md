@@ -37,8 +37,9 @@ Rules: workers can't see your conversation — every prompt must be self-contain
 OpenClaw 2026.4+ ships memory-core's native dreaming (3 phases: Light → Deep → REM). You do not hand-roll dream state.
 
 - On session start: let memory-core run its scheduled dreaming. Do not implement a custom `.dream-state.json` protocol.
-- Phase blocks land in `memory/dreaming/{phase}/YYYY-MM-DD.md` (2026.4.15 stable default: `dreaming.storage.mode: "separate"`). Flip to `"inline"` in memory-core config if you want them in the daily memory file instead.
-- `memory_search` before claiming you don't remember. `memory_get` returns capped excerpts with continuation metadata as of 2026.4.15 stable — follow the cursor if you need more.
+- Phase blocks land in `memory/dreaming/{phase}/YYYY-MM-DD.md` (current default: `dreaming.storage.mode: "separate"`). Flip to `"inline"` in memory-core config if you want them in the daily memory file instead.
+- `memory_search` before claiming you don't remember. `memory_get` returns capped excerpts with continuation metadata — follow the cursor if you need more.
+- If Active Memory is enabled, scope it per conversation with `allowedChatIds` / `deniedChatIds`; don't recall broadly in public channels.
 
 ## Micro-Learning Loop (Every Message — Silent)
 
@@ -66,4 +67,4 @@ Tune in `openclaw.json` under `taskBrain.approvals`.
 - Back up `openclaw.json` before any config change.
 - Never write credentials, API keys, or OAuth tokens into memory files, session transcripts, or vault notes.
 - PowerShell on Windows (no bash-only commands).
-- Reject tool-name collisions — client tools that normalize-collide with built-ins are rejected at the gateway (2026.4.15 stable). Rename instead.
+- Reject tool-name collisions — client tools that normalize-collide with built-ins are rejected at the gateway. Rename instead.

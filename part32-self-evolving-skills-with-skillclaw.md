@@ -46,20 +46,22 @@ This creates:
 - `./skills/.skillclaw/trials/` — per-run outcome records. Append-only.
 - `./skills/.skillclaw/config.yaml` — evolution parameters (mutation rate, prune floor, population cap).
 
-Wire the scheduler into Task Brain so every flow's outcome becomes a signal:
+Wire the scheduler into Task Brain so every flow's outcome becomes a signal. Older examples used Claude-style `SessionEnd` / `PreToolUse`; current OpenClaw internal hooks should be registered under `hooks.internal.entries` with native event names:
 
 ```json5
 {
   "hooks": {
-    "SessionEnd": {
-      "skillclaw-record": {
-        "command": "skillclaw record --outcome ${OPENCLAW_EXIT_STATUS} --skill-invocations ${OPENCLAW_SKILL_TRACE}"
-      }
-    },
-    "PreToolUse": {
-      "skillclaw-select": {
-        "match": { "tool": ["skill.run"] },
-        "command": "skillclaw select --candidate ${OPENCLAW_TOOL_ARGS_SKILL} --task ${OPENCLAW_CURRENT_TASK_TYPE}"
+    "internal": {
+      "entries": {
+        "skillclaw-record": {
+          "event": "session:compact:before",
+          "command": "skillclaw record --outcome ${OPENCLAW_EXIT_STATUS} --skill-invocations ${OPENCLAW_SKILL_TRACE}"
+        },
+        "skillclaw-select": {
+          "event": "command:new",
+          "match": { "tool": ["skill.run"] },
+          "command": "skillclaw select --candidate ${OPENCLAW_TOOL_ARGS_SKILL} --task ${OPENCLAW_CURRENT_TASK_TYPE}"
+        }
       }
     }
   }

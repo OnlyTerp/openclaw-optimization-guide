@@ -63,7 +63,7 @@ The handler reads config from environment variables. Set these before starting y
 export CEREBRAS_API_KEY="csk-your-key-here"
 ```
 
-**Option B: Anthropic (if you're on Claude Max and don't want another provider)**
+**Option B: Anthropic API (paid route, use sparingly)**
 ```bash
 export AUTOCAPTURE_API_URL="https://api.anthropic.com/v1/messages"
 export AUTOCAPTURE_API_KEY="sk-ant-your-key-here"

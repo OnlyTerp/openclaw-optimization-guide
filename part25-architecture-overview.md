@@ -7,13 +7,13 @@
 
 ## The Harness Thesis
 
-> **95% of agent capability comes from the harness, 5% from the model.**
+> **Most agent capability comes from the harness, not the weights.**
 
-Nine independent writers between April 10 and April 17, 2026 converged on the same claim — Princeton NLP, Atlan ([1](https://atlan.com/blog/agent-harness-2026), [2](https://atlan.com/)), [Trensee](https://trensee.ai/blog/the-harness-is-everything), a widely-shared [Medium essay](https://medium.com/@reliabledataengineering/the-harness-is-everything-a4114e8a54d1), [heyuan110](https://www.heyuan110.com/posts/ai/2026-04-13-harness-subagent-architecture/), a Korean YouTube explainer (14.9K views), The AI Corner, Towards AI, and [ivanmagda.dev](https://ivanmagda.dev). The precise percentages vary; the direction doesn't. Changing the model is worth single-digit improvements; changing the harness routinely moves benchmarks by 30–60 points.
+The exact 95/5 split was always a mnemonic, not a law. The useful part survived the late-April release wave: changing weights helps, but the big operator wins come from context budgets, memory discipline, provider routing, hooks, approvals, run steering, and verification.
 
 ```mermaid
 flowchart TB
-    subgraph Harness["The Harness (95% of capability)"]
+    subgraph Harness["The Harness (operator-controlled capability)"]
         direction TB
         I[Instructions<br/>SOUL / AGENTS / MEMORY / skills]
         C[Context engineering<br/>budgets + progressive disclosure]
@@ -29,7 +29,7 @@ flowchart TB
     Model --> Results
 ```
 
-OpenClaw is a harness. This guide is the operator's manual for that harness. Every part that follows — the five moving parts below, and the 31 other parts in the guide — is about configuring one axis of the 95%.
+OpenClaw is a harness. This guide is the operator's manual for that harness. Every part that follows — the five moving parts below, and the rest of the guide — is about configuring one axis of the operator-controlled layer.
 
 If you take one idea from this guide: **the model you pick is the smallest lever. The harness is the system.**
 

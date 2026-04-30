@@ -98,7 +98,7 @@ The coding agent now knows your exact training pipeline, what worked, what didn'
 
 - Node.js 24+
 - `openclaw` CLI in PATH
-- Memory system configured (Qwen3-VL, nomic-embed-text, or any OpenClaw-compatible embedding provider)
+- Memory system configured (`qwen3-embedding:0.6b`, Qwen3-Embedding-8B, or any OpenClaw-compatible embedding provider)
 
 ### Installation
 

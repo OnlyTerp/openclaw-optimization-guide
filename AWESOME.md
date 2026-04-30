@@ -2,7 +2,7 @@
 
 **A curated list of resources for getting the most out of OpenClaw.** Skills, guides, talks, templates, tools, research. Contributions welcome — see [CONTRIBUTING.md](./CONTRIBUTING.md).
 
-> This list is opinionated. Inclusion here means we've actually used it on a production OpenClaw deployment or seen it solve a real problem. Broken or abandoned links are removed aggressively. Last curated: **April 2026, tracking OpenClaw 2026.4.15 stable**.
+> This list is opinionated. Inclusion here means we've actually used it on a production OpenClaw deployment or seen it solve a real problem. Broken or abandoned links are removed aggressively. Last curated: **April 30, 2026, tracking OpenClaw 2026.4.27 stable + 2026.4.29-beta.1**.
 
 ## Contents
 
@@ -34,10 +34,11 @@
 
 ## Guides & tutorials
 
-- **[OpenClaw Optimization Guide](./README.md)** — this repo. 32 parts, production-tested on 2026.4.15 stable.
+- **[OpenClaw Optimization Guide](./README.md)** — this repo. 33 parts, refreshed for the late-April 2026 release wave.
+- **[Late-April 2026 Field Guide](./part33-late-april-2026-field-guide.md)** — the fast catch-up map from 2026.4.15 to 2026.4.27/2026.4.29-beta.1.
 - **[Official "Getting Started" path](https://clawdocs.org/start)** — the minimum-viable setup. Read this first if you're brand new.
 - **[The OpenClaw CVE flood, Feb–Mar 2026](https://www.tryopenclaw.ai/blog/openclaw-cve-flood-march-2026/)** — the definitive writeup on the **ClawHavoc** supply-chain campaign.
-- **[Migration Guide — v3 → v4 → v2026.4.15 stable](./part26-migration-guide.md)** — opinionated upgrade paths.
+- **[Migration Guide — v3 → v4 → late April 2026](./part26-migration-guide.md)** — opinionated upgrade paths.
 
 ## Reference configs & starter kits
 
@@ -65,6 +66,7 @@ See [Part 23 — ClawHub Skills Marketplace](./part23-clawhub-skills-marketplace
 
 - **[memory-core](https://github.com/openclaw/memory-core)** — the built-in memory plugin with native dreaming (3 phases). Replaced the custom-autoDream patterns in v4.
 - **[memory-lancedb](https://github.com/openclaw/memory-lancedb)** — LanceDB vector store. 2026.4.15-beta.1 added cloud storage mode.
+- **Active Memory filters** — 2026.4.29-beta.1 adds per-conversation `allowedChatIds` / `deniedChatIds`, partial recall on timeout, and people-aware wiki provenance views.
 - **[Ollama](https://ollama.com/)** — local embedding runtime. `qwen3-embedding:0.6b` is the right default for most setups.
 - **[LightRAG](https://github.com/HKUDS/LightRAG)** — graph + vector hybrid RAG. The right upgrade once your vault crosses ~500 files. See [Part 18](./part18-lightrag-graph-rag.md).
 - **[Repowise](https://github.com/repowise/repowise)** — structural index for codebases. Feeds workers a map instead of re-reading files. See [Part 19](./part19-repowise-codebase-intelligence.md).
@@ -113,7 +115,7 @@ See [Part 23 — ClawHub Skills Marketplace](./part23-clawhub-skills-marketplace
 ## Research papers
 
 - **[Lost in the Middle: How Language Models Use Long Contexts](https://arxiv.org/abs/2307.03172)** — the foundational "why context bloat is lethal" paper. The entire Speed pillar is downstream of this.
-- **[MMEB: Massive Multimodal Embedding Benchmark](https://arxiv.org/abs/2410.05160)** — where Qwen3-VL-Embedding-8B earned its #1 rank. Relevant to [Part 10](./part10-state-of-the-art-embeddings.md).
+- **[MMEB: Massive Multimodal Embedding Benchmark](https://arxiv.org/abs/2410.05160)** — useful background if you actually need multimodal embeddings. For markdown memory, Part 10 now prefers text-only Qwen3-Embedding.
 - **[LightRAG: Simple and Fast Retrieval-Augmented Generation](https://arxiv.org/abs/2410.05779)** — the paper behind [Part 18](./part18-lightrag-graph-rag.md).
 
 ## Talks, blog posts, podcasts
@@ -139,7 +141,7 @@ See [Part 23 — ClawHub Skills Marketplace](./part23-clawhub-skills-marketplace
 ## Benchmarks & leaderboards
 
 - **[SWE-bench](https://www.swebench.com/)** — coding-agent leaderboard. Relevant to model selection in [Part 6](./README.md#part-6-models-what-to-actually-use).
-- **[MMEB leaderboard](https://embedding-benchmark.github.io/)** — multimodal embedding rankings. Qwen3-VL-Embedding-8B currently #1.
+- **[MTEB leaderboard](https://huggingface.co/spaces/mteb/leaderboard)** — text embedding rankings. Relevant to the Qwen3-Embedding recommendation in [Part 10](./part10-state-of-the-art-embeddings.md).
 - **[benchmarks/](./benchmarks/)** — this repo's numbers. Submit yours via PR.
 
 ## Communities

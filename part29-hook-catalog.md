@@ -21,7 +21,19 @@ The practical rule from Amit Kothari's April 2026 post on hook debugging: *"If a
 
 ## Lifecycle Events & Exit Codes
 
-Modern agent harnesses (OpenClaw, Claude Code, Cursor) converged on a similar lifecycle grammar over the past month. OpenClaw's event set tracks Claude Code's closely enough that hooks written for one port to the other with small adjustments. The events you actually use:
+Modern agent harnesses (OpenClaw, Claude Code, Cursor) converged on similar lifecycle grammars, but the names are not identical. The Claude-style event names below are useful mental models; OpenClaw-native hook registration uses lower-case event names such as `command:new`, `session:compact:before`, `session:compact:after`, `agent:bootstrap`, `message:received`, and `gateway:startup`.
+
+| Claude-style event | OpenClaw-native event(s) | Typical use |
+|--------------------|--------------------------|-------------|
+| **SessionStart** | `agent:bootstrap`, `gateway:startup` | Inject context, enforce preconditions, set budgets |
+| **SessionEnd** | `session:compact:before`, `session:compact:after` | Flush memory, write transcripts, capture learnings |
+| **PreToolUse** | `command:new` | Block dangerous commands, rewrite args, ask for approval |
+| **PostToolUse** | command/tool-result middleware | Redact secrets, transform output, count tokens |
+| **UserPromptSubmit** | `message:received` | Redact secrets from user input, inject context |
+
+If you copy a hook from Claude Code/Cursor, map the event name before registration. The portable intent is usually right; the literal event string may not be.
+
+The events you actually use as concepts:
 
 | Event | Fires when | Typical use |
 |-------|-----------|-------------|
@@ -34,7 +46,7 @@ Modern agent harnesses (OpenClaw, Claude Code, Cursor) converged on a similar li
 | **Compact** | Before compaction | Decide what to keep, not the compaction model |
 | **UserPromptSubmit** | On user message | Redact secrets from user input, inject context |
 
-The April 2026 baseline is **18 events × 4 hook types** (`command`, `python`, `http`, `mcp`). Matt Arceneaux's *[Claude Code Hooks: The Complete Automation Guide](https://claudelab.net/en/articles/claude-code/claude-code-hooks-automation-master-guide)* (Apr 10, 2026) and the *[dev.to automation guide](https://dev.to/kfuras/claude-code-hooks-automate-your-coding-workflow-in-2026-3dkg)* (Apr 12, 2026) both land on essentially the same taxonomy.
+The broader April 2026 ecosystem baseline is **18 events × 4 hook types** (`command`, `python`, `http`, `mcp`). Matt Arceneaux's *[Claude Code Hooks: The Complete Automation Guide](https://claudelab.net/en/articles/claude-code/claude-code-hooks-automation-master-guide)* (Apr 10, 2026) and the *[dev.to automation guide](https://dev.to/kfuras/claude-code-hooks-automate-your-coding-workflow-in-2026-3dkg)* (Apr 12, 2026) both land on essentially the same taxonomy. Treat that as a portability map, not proof that every literal event name exists in your OpenClaw build.
 
 Exit codes are the contract:
 
@@ -49,7 +61,7 @@ Exit codes are the contract:
 
 ## The Eight Hooks Every Deployment Should Run
 
-Each of the hooks below is a self-contained script. They assume a Unix-ish shell; PowerShell equivalents follow the same logic. Register each in `openclaw.json` under `hooks.<event>.<name>`.
+Each of the hooks below is a self-contained script. They assume a Unix-ish shell; PowerShell equivalents follow the same logic. In current OpenClaw builds, register internal hooks under `hooks.internal.entries` (or use `openclaw hooks enable`) and map the event names using the table above. Older examples that use `hooks.<event>.<name>` are legacy/portable pseudocode.
 
 ### Hook 1 — `block-dangerous-shell`
 
@@ -85,10 +97,13 @@ Wire it in:
 ```json
 {
   "hooks": {
-    "PreToolUse": {
-      "block-dangerous-shell": {
-        "match": { "tool": ["exec", "bash", "powershell"] },
-        "command": "./hooks/block-dangerous-shell.sh"
+    "internal": {
+      "entries": {
+        "block-dangerous-shell": {
+          "event": "command:new",
+          "match": { "tool": ["exec", "bash", "powershell"] },
+          "command": "./hooks/block-dangerous-shell.sh"
+        }
       }
     }
   }
@@ -296,35 +311,40 @@ Coupled with the [Part 22](./README.md#part-22-built-in-dreaming) Deep-phase sco
 
 ## Wiring Them All Up
 
-Reference block for `openclaw.json`:
+Reference block for `openclaw.json` using current OpenClaw-style event names:
 
 ```json5
 {
   "hooks": {
-    "SessionStart": {
-      "cost-tripwire-init":      { "command": "./hooks/cost-tripwire.py" },
-      "tool-collision-alarm":    { "command": "./hooks/tool-name-collision-alarm.py" }
-    },
-    "UserPromptSubmit": {
-      "secret-redact-input":     { "command": "./hooks/secret-redact.py" }
-    },
-    "PreToolUse": {
-      "block-dangerous-shell":   { "match": { "tool": ["exec","bash","powershell"] },
-                                    "command": "./hooks/block-dangerous-shell.sh" },
-      "skill-install-deny":      { "match": { "tool": ["clawhub.install","skill.install"] },
-                                    "command": "./hooks/skill-install-deny.sh" }
-    },
-    "PostToolUse": {
-      "secret-redact-output":    { "command": "./hooks/secret-redact.py" },
-      "cost-tripwire-check":     { "command": "./hooks/cost-tripwire.py" },
-      "auto-formatter":          { "match": { "tool": ["edit","write_file","patch"] },
-                                    "command": "./hooks/auto-formatter.sh" }
-    },
-    "Stop": {
-      "dreaming-phase-gate":     { "command": "./hooks/dreaming-phase-gatekeeper.sh" }
-    },
-    "SessionEnd": {
-      "session-end-flush":       { "command": "./hooks/session-end-memory-flush.sh" }
+    "internal": {
+      "entries": {
+        "cost-tripwire-init": {
+          "event": "agent:bootstrap",
+          "command": "./hooks/cost-tripwire.py"
+        },
+        "tool-collision-alarm": {
+          "event": "gateway:startup",
+          "command": "./hooks/tool-name-collision-alarm.py"
+        },
+        "secret-redact-input": {
+          "event": "message:received",
+          "command": "./hooks/secret-redact.py"
+        },
+        "block-dangerous-shell": {
+          "event": "command:new",
+          "match": { "tool": ["exec", "bash", "powershell"] },
+          "command": "./hooks/block-dangerous-shell.sh"
+        },
+        "skill-install-deny": {
+          "event": "command:new",
+          "match": { "tool": ["clawhub.install", "skill.install"] },
+          "command": "./hooks/skill-install-deny.sh"
+        },
+        "session-end-flush": {
+          "event": "session:compact:before",
+          "command": "./hooks/session-end-memory-flush.sh"
+        }
+      }
     }
   }
 }

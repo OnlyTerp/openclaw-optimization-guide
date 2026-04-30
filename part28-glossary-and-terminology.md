@@ -52,7 +52,7 @@ The architectural alternative to running OpenClaw on your own box: **delegate th
 
 ## Context Engineering
 
-The discipline — named by Karpathy and picked up by Gartner in the week of April 10-17, 2026 — of **treating every token in the context window as a budgeted resource**. Includes pruning, progressive disclosure (keep big things out of the default prompt until activated), cache-friendly ordering, and explicit file-hierarchy tiers (SOUL/AGENTS/MEMORY/skills). Part 2 is this guide's practical treatment of the discipline.
+The discipline of **treating every token in the context window as a budgeted resource**. Includes pruning, progressive disclosure (keep big things out of the default prompt until activated), cache-friendly ordering, and explicit file-hierarchy tiers (SOUL/AGENTS/MEMORY/skills). Part 2 is this guide's practical treatment of the discipline.
 
 - **Covered in:** [Part 2 — Context Engineering](./README.md#part-2-context-engineering--the-discipline), [Part 31 — The LLM Wiki Pattern](./part31-the-llm-wiki-pattern-in-openclaw.md).
 
@@ -131,7 +131,7 @@ Hooks communicate with the OpenClaw runtime via POSIX exit codes. **`0` = allow 
 
 ## Embedding provider
 
-The model that converts text into vectors for vector search. Options: local Ollama (Qwen3, bge-m3, nomic-embed-text), cloud (OpenAI `text-embedding-3-large`, Voyage), or **GitHub Copilot** (new in 2026.4.15). Picking the right one is usually more impactful than tuning the LLM.
+The model that converts text into vectors for vector search. Options: local Ollama (`qwen3-embedding:0.6b` for most setups, Qwen3-Embedding-8B for GPU boxes), cloud (OpenAI `text-embedding-3-large`, Voyage), or **GitHub Copilot** (new in 2026.4.15). Picking the right one is usually more impactful than tuning the LLM.
 
 - **Covered in:** [Part 4 — Memory](./README.md#part-4-memory-stop-forgetting-everything), [Part 10 — State-of-the-Art Embeddings](./part10-state-of-the-art-embeddings.md).
 
@@ -149,7 +149,7 @@ The **single long-running process** every OpenClaw surface talks to. Holds the T
 
 ## Harness Thesis
 
-"**95% of agent capability comes from the harness, 5% from the model.**" Nine independent writers — Princeton NLP, Atlan, Trensee, heyuan110, The AI Corner, Towards AI, ivanmagda.dev, a Korean YouTube explainer (14.9K views), and a viral Medium essay — converged on this in the week of April 10-17, 2026. The harness is instructions + context engineering + tools/approvals + guardrails + memory + orchestration. Same weights, different harness, different benchmarks. OpenClaw *is* a harness; this guide is the operator's manual for one.
+The claim that most agent capability comes from the **harness**, not just the model weights. The exact 95/5 split is rhetoric; the useful lesson is that instructions, context engineering, tools/approvals, guardrails, memory, orchestration, and verification often move outcomes more than a model swap. OpenClaw *is* a harness; this guide is the operator's manual for one.
 
 - **Covered in:** [README intro](./README.md), [Part 25 — Architecture Overview](./part25-architecture-overview.md).
 
@@ -311,13 +311,13 @@ The per-workspace personality / tone / core-rules file. Injected on every messag
 
 ## Task Brain
 
-OpenClaw's **control plane**, introduced in **v2026.3.31-beta.1**. Unifies ACP calls, cron jobs, sub-agent spawns, and background CLI jobs into a **SQLite-backed task flow registry** with one lifecycle, heartbeat monitoring + automatic recovery, parent-task tracking, blocked-state persistence, and semantic approval categories. Exposed via `openclaw flows list | show | cancel` and the Canvas Flows panel.
+OpenClaw's **control plane**, introduced in **v2026.3.31-beta.1**. Unifies ACP calls, cron jobs, sub-agent spawns, and background CLI jobs into a **SQLite-backed task ledger** with one lifecycle, heartbeat monitoring + automatic recovery, parent-task tracking, blocked-state persistence, and semantic approval categories. Current docs expose it via `openclaw tasks list | show | cancel`, with `openclaw tasks flow ...` for flow views.
 
 - **Covered in:** [Part 24 — Task Brain Control Plane](./part24-task-brain-control-plane.md).
 
 ## Task flow registry
 
-Official name (from the 2026.3.31-beta.1 release notes) for the Task Brain ledger. Older internal design docs called this the "task ledger" or "tasks"; the published CLI verb is `openclaw flows`.
+Release-note name for the Task Brain ledger. Older 2026.4.15-era docs and screenshots used `openclaw flows`; current docs use `openclaw tasks` plus `openclaw tasks flow`.
 
 - **Covered in:** [Part 24 — Task Brain Control Plane](./part24-task-brain-control-plane.md).
 
