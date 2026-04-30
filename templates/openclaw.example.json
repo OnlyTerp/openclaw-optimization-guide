@@ -111,7 +111,7 @@
         "auto-capture": {
           "enabled": true,
           "path": "./hooks/auto-capture/handler.ts",
-          "events": ["session:compact:before"],
+          "event": "session:compact:before",
           "_comment": "Extracts claim-named knowledge notes into vault/00_inbox/. See Part 11 and Part 29 for current hook registration."
         }
       }
