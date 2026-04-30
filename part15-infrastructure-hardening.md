@@ -35,7 +35,7 @@ Set an explicit compaction model that won't rate-limit you:
       "compaction": {
         "model": "cerebras/gpt-oss-120b",
         "mode": "safeguard",
-        "reserveTokens": 15000,
+        "reserveTokens": 8000,
         "maxActiveTranscriptBytes": 300000
       }
     }

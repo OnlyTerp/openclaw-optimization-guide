@@ -45,7 +45,7 @@
 | Context pruning disabled | Set `agents.defaults.contextPruning: { mode: "cache-ttl", ttl: "5m" }`. See [Part 2](./README.md#part-2-context-engineering--the-discipline). |
 | Reasoning mode on for trivial tasks | Turn reasoning off for the default model, on only for orchestration. See [Part 6](./README.md#part-6-models-what-to-actually-use). |
 | Orchestrator doing work it should delegate | Add the sub-agent rules to AGENTS.md. See [Part 5](./README.md#part-5-orchestration-stop-doing-everything-yourself). |
-| Compaction model is Gemini Flash (rate-limited) | Switch compaction to Cerebras Qwen. See [Part 15](./part15-infrastructure-hardening.md). |
+| Compaction model is Gemini Flash (rate-limited) | Switch compaction to Cerebras `gpt-oss-120b`. See [Part 15](./part15-infrastructure-hardening.md). |
 | Local model loaded but not used | `ollama ps` + `ollama stop <model>` for ones you're not using. |
 
 ### "Compaction crashes in a loop"

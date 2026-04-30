@@ -26,7 +26,7 @@ Do your agents respond in seconds, not minutes? If every turn feels sluggish, co
 - [ ] Total injected context per message is under 8 KB (verified by logging a turn). *→ [Part 1](./README.md#part-1-speed-stop-being-slow)*
 - [ ] `contextPruning.mode: "cache-ttl"` with a 5-minute TTL. *→ [Part 2](./README.md#part-2-context-engineering--the-discipline)*
 - [ ] Reasoning mode is OFF on the default model, ON only for orchestration. *→ [Part 6](./README.md#part-6-models-what-to-actually-use)*
-- [ ] Compaction runs on a cheap non-reasoning model (e.g. Cerebras Qwen), not on Gemini Flash or an Opus/GPT key. *→ [Part 15](./part15-infrastructure-hardening.md)*
+- [ ] Compaction runs on a cheap non-reasoning model (e.g. Cerebras `gpt-oss-120b`), not on Gemini Flash or an Opus/GPT key. *→ [Part 15](./part15-infrastructure-hardening.md)*
 - [ ] Cron output is isolated (`memory/cron/` or suppressed) so bulk scheduled runs don't flood session memory. *→ [Part 3](./README.md#part-3-cron-session-bloat-the-hidden-killer)*
 - [ ] For small local models (≤14B), `agents.defaults.experimental.localModelLean: true` is set. *→ [Part 6](./README.md#part-6-models-what-to-actually-use)*
 

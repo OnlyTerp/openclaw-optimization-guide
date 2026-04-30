@@ -115,7 +115,7 @@ Each note gets a **claim-based filename** — the filename IS the knowledge:
 ```
 threading-lock-prevents-cuda-concurrent-errors.md
 winrm-requires-allowunencrypted-true-for-basic-auth.md
-qwen3-vl-embedding-8b-is-top-mmeb-model.md
+qwen3-embedding-8b-is-top-mteb-model.md
 ```
 
 ---
