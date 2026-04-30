@@ -1,48 +1,41 @@
 {
   "$schema": "https://openclaw.dev/schema/openclaw.schema.json",
-  "_comment": "Reference config from the OpenClaw Optimization Guide. Tested on OpenClaw 2026.4.15 stable (2026-04-16). Copy to ~/.openclaw/openclaw.json (or your project root) and edit. Never commit real credentials — use env var references like ${ANTHROPIC_API_KEY}.",
+  "_comment": "Reference config from the OpenClaw Optimization Guide. Updated for the 2026.4.27 stable / 2026.4.29-beta.1 era. Copy to ~/.openclaw/openclaw.json (or your project root) and edit. Never commit real credentials — use env var references like ${ANTHROPIC_API_KEY}. Treat this as a starting point; newer provider catalogs may prefer provider-owned manifests over hand-written model rows.",
 
   "agents": {
     "defaults": {
+      "model": {
+        "primary": "anthropic/opus",
+        "fallbacks": [
+          "deepseek/deepseek-v4-flash",
+          "moonshot/kimi-k2.6",
+          "google/gemini-3-flash"
+        ],
+        "_comment": "`opus` aliases resolve to Claude Opus 4.7 on current Anthropic/Bedrock routes. Do not assume Claude Pro/Max subscription usage covers OpenClaw after the April 4 cutoff; set budget caps on paid routes."
+      },
+      "compaction": {
+        "model": "cerebras/gpt-oss-120b",
+        "reserveTokens": 8000,
+        "maxActiveTranscriptBytes": 300000,
+        "_comment": "Keep compaction on a cheap, fast, non-reasoning model. The transcript byte guard prevents runaway compaction on huge sessions."
+      },
+      "memorySearch": {
+        "provider": "ollama",
+        "model": "qwen3-embedding:0.6b",
+        "endpoint": "http://localhost:11434",
+        "inputType": "search_query",
+        "documentInputType": "search_document",
+        "_comment": "Local Ollama is the right default. Switch to `copilot` only if your org already pays for Copilot Business/Enterprise and accepts cloud-latency memory search."
+      },
+      "contextPruning": {
+        "mode": "cache-ttl",
+        "ttl": "5m",
+        "_comment": "Stops SOUL+AGENTS+MEMORY re-injection every turn. Single biggest latency win on frontier models."
+      },
       "experimental": {
         "localModelLean": false
       }
     }
-  },
-
-  "models": {
-    "primary": {
-      "provider": "anthropic",
-      "model": "opus",
-      "_comment": "`opus` alias resolves to Claude Opus 4.7 in OpenClaw 2026.4.15 stable. Pin explicitly (e.g. `claude-opus-4-7`) if you want to lock the version."
-    },
-    "fallback": [
-      { "provider": "anthropic", "model": "sonnet" },
-      { "provider": "openai",    "model": "gpt-5-mini" },
-      { "provider": "google",    "model": "gemini-2.5-flash" }
-    ],
-    "compaction": {
-      "provider": "cerebras",
-      "model": "qwen-3-coder",
-      "_comment": "Keep compaction on a cheap, fast, non-reasoning model. Never share a key with the chat provider."
-    },
-    "embedding": {
-      "provider": "ollama",
-      "model": "qwen3-embedding:0.6b",
-      "endpoint": "http://localhost:11434",
-      "_comment": "Local Ollama is the right default. Switch to `copilot` (2026.4.15-beta.1+) only if your org already pays for Copilot Business/Enterprise."
-    }
-  },
-
-  "contextPruning": {
-    "mode": "cache-ttl",
-    "ttl": "5m",
-    "_comment": "Stops SOUL+AGENTS+MEMORY re-injection every turn. Single biggest latency win on frontier models."
-  },
-
-  "compaction": {
-    "reserveTokens": 8000,
-    "_comment": "Cap is auto-applied in 2026.4.15+ (to the model context window). Setting it explicitly anyway is belt-and-suspenders."
   },
 
   "plugins": {
@@ -55,7 +48,7 @@
             "schedule": "0 3 * * *",
             "storage": {
               "mode": "separate",
-              "_comment": "2026.4.15 stable default. Phase blocks land in memory/dreaming/{phase}/YYYY-MM-DD.md. Flip to `inline` if you want them in the daily memory file."
+              "_comment": "Current default. Phase blocks land in memory/dreaming/{phase}/YYYY-MM-DD.md. Flip to `inline` if you want them in the daily memory file."
             }
           }
         }
@@ -65,11 +58,30 @@
         "config": {
           "storage": {
             "mode": "local",
-            "_comment": "Switch to `cloud` with S3-compatible creds if you want durable memory indexes on object storage (2026.4.15-beta.1+)."
+            "_comment": "Switch to `cloud` with S3-compatible creds if you want durable memory indexes on object storage. Keep embeddings local unless you accept 2-5s memory-search latency."
           }
+        }
+      },
+      "active-memory": {
+        "enabled": false,
+        "config": {
+          "allowedChatTypes": ["dm"],
+          "allowedChatIds": [],
+          "deniedChatIds": [],
+          "timeoutMs": 3000,
+          "queryMode": "balanced",
+          "_comment": "2026.4.29-beta.1+: enable per surface. Deny public/group channels until you have a retention policy."
         }
       }
     }
+  },
+
+  "messages": {
+    "visibleReplies": true,
+    "groupChat": {
+      "visibleReplies": true
+    },
+    "_comment": "2026.4.29-beta.1+: force visible output in shared channels through the message tool; keep channel overrides explicit."
   },
 
   "skills": {
@@ -94,11 +106,15 @@
   },
 
   "hooks": {
-    "auto-capture": {
-      "enabled": true,
-      "path": "./hooks/auto-capture/handler.ts",
-      "event": "session-end",
-      "_comment": "Extracts claim-named knowledge notes into vault/00_inbox/. See Part 11."
+    "internal": {
+      "entries": {
+        "auto-capture": {
+          "enabled": true,
+          "path": "./hooks/auto-capture/handler.ts",
+          "event": "session:compact:before",
+          "_comment": "Extracts claim-named knowledge notes into vault/00_inbox/. See Part 11 and Part 29 for current hook registration."
+        }
+      }
     }
   },
 

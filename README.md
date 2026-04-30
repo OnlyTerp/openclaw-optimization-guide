@@ -2,34 +2,45 @@
 
 **Make your OpenClaw AI agent faster, smarter, cheaper, and actually safe to run in production.**
 
-[![Tested on 2026.4.15](https://img.shields.io/badge/OpenClaw-2026.4.15-2ea44f)](./part26-migration-guide.md)
-[![32 parts](https://img.shields.io/badge/parts-32-blue)](#full-table-of-contents)
+[![Current sweep: 2026.4.29 beta](https://img.shields.io/badge/OpenClaw-2026.4.29--beta.1-2ea44f)](./part33-late-april-2026-field-guide.md)
+[![Stable baseline: 2026.4.27](https://img.shields.io/badge/stable-2026.4.27-blue)](./part26-migration-guide.md)
+[![33 parts](https://img.shields.io/badge/parts-33-blue)](#full-table-of-contents)
 [![Scorecard](https://img.shields.io/badge/scorecard-50_items-8957e5)](./SCORECARD.md)
 [![Awesome](https://img.shields.io/badge/awesome-list-fc60a8)](./AWESOME.md)
 [![Benchmarks](https://img.shields.io/badge/benchmarks-reproducible-0a7bbb)](./benchmarks/METHODOLOGY.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey)](./LICENSE)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](./CONTRIBUTING.md)
 
-> **Tested on OpenClaw 2026.4.15 — April 16, 2026.** 32 parts + scorecard + awesome list + reproducible benchmarks. Battle-tested on a 14+ agent production deployment. Covers speed, memory, orchestration, models, web search, vault architecture, embeddings, hooks, graph RAG, codebase intelligence, observability, infrastructure hardening, skills marketplace, control-plane security, Ralph-loop autonomy, the LLM Wiki pattern, and self-evolving skills.
+> **April 30, 2026 sweep.** Stable baseline: **OpenClaw 2026.4.27**. Beta tracked: **2026.4.29-beta.1**. This refresh removes subscription-era Claude assumptions, replaces stale model/setup advice, and adds the late-April operator tricks people actually need now: Active Memory filters, people wiki provenance, visible-reply enforcement, active-run steering, manifest-backed model catalogs, browser coordinate clicks, Codex Computer Use setup, DeepSeek/DeepInfra/NVIDIA provider expansion, safer config handling, and the new security posture.
 
 *By Terp — [Terp AI Labs](https://x.com/OnlyTerp)*
 
 ---
 
+## Start With The Late-April Reality Check
+
+OpenClaw changed more in the last two weeks of April than most agent projects change in a quarter. If you last read this guide at 2026.4.15, these are the new rules:
+
+1. **Claude subscription-era advice is dead.** Anthropic's April 4 policy change broke the old "Claude Pro/Max covers OpenClaw" path. Treat Claude as paid API / Bedrock / provider-routed usage unless your own install proves otherwise.
+2. **Model config is now provider-catalog driven.** 2026.4.24 moved model rows toward manifest-backed catalogs and deprecated `/models add` after it briefly shipped in 2026.4.22. Stop telling agents to edit model config from chat.
+3. **Memory became an operator surface, not just a search tool.** 2026.4.29-beta.1 adds people-aware wiki metadata, provenance reports, per-conversation Active Memory filters, partial recall on timeout, and bounded REM previews.
+4. **Messaging has real run control now.** Active-run queueing defaults toward steering, `messages.visibleReplies` can force visible channel replies through the message tool, and spawned sub-agent events carry routing metadata.
+5. **Browser and Codex automation got practical.** Coordinate clicks, longer action budgets, per-profile headless overrides, Codex Computer Use status/install commands, and fail-closed MCP checks remove a lot of brittle manual setup.
+
+Read **[Part 33 — Late-April 2026 Field Guide](./part33-late-april-2026-field-guide.md)** first if you want the latest tricks before the deep dives.
+
 ## The Harness Thesis
 
-> **95% of agent capability comes from the harness, 5% from the model.** Same weights, different harness, different benchmarks.
+> **Most agent capability comes from the harness, not the weights.**
 
-That line isn't ours. It's what nine independent writers — Princeton NLP, [Atlan](https://atlan.com/blog/agent-harness-2026), [Trensee](https://trensee.ai/blog/the-harness-is-everything) (Apr 12, 2026), a [Medium deep-dive](https://medium.com/@reliabledataengineering/the-harness-is-everything-a4114e8a54d1) (Apr 13, 2026), a [Korean YouTube explainer with 14.9K views](https://www.youtube.com/), [heyuan110](https://www.heyuan110.com/posts/ai/2026-04-13-harness-subagent-architecture/), [The AI Corner](https://medium.com/the-ai-corner), [Towards AI](https://pub.towardsai.net/), and [ivanmagda.dev](https://ivanmagda.dev) — all converged on in the week of April 10–17, 2026.
-
-This guide is what operating that thesis looks like, end-to-end, on a real production OpenClaw deployment. It is the harness.
+The exact percentage is rhetoric. The operator lesson is concrete: model swaps help, but the big wins come from context budgets, memory discipline, tool permissions, flow control, provider routing, hooks, and verification loops.
 
 ```mermaid
 flowchart LR
-    subgraph Model["The Model (5%)"]
+    subgraph Model["The Model (weights)"]
         M[Claude Opus 4.7<br/>or your choice]
     end
-    subgraph Harness["The Harness (95%) — this guide"]
+    subgraph Harness["The Harness (operator-controlled) — this guide"]
         direction TB
         Inst[Instructions<br/>SOUL/AGENTS/MEMORY/skills]
         Ctx[Context engineering<br/>budgets + progressive disclosure]
@@ -42,14 +53,14 @@ flowchart LR
     Harness -.-> Results[Production results]
 ```
 
-The 5% you can't change: the weights. The 95% you can: everything else. The rest of this guide is the 95%.
+You usually cannot change the weights. You can change everything else: context, memory, tools, approvals, verification, cost controls, and orchestration. The rest of this guide is that operator-controlled layer.
 
 ## Jump straight to the payoff
 
 | Do this | For this outcome |
 |---|---|
 | **[Grade your setup →](./SCORECARD.md)** | 50-item Production Readiness Scorecard, score out of 100, shareable. |
-| **[Copy the reference config →](./templates/)** | Working `openclaw.example.json` + SOUL / AGENTS / MEMORY / TOOLS templates for 2026.4.15 stable. |
+| **[Copy the reference config →](./templates/)** | Working SOUL / AGENTS / MEMORY / TOOLS templates plus a conservative example config. |
 | **[See the numbers →](./benchmarks/METHODOLOGY.md)** | Reproducible benchmark methodology + harness + run template. |
 | **[Browse the ecosystem →](./AWESOME.md)** | Curated list of skills, tools, papers, talks, adjacent projects. |
 | **[Hit a wall? →](./part27-gotchas-and-faq.md)** | Gotchas & FAQ, symptom-indexed. Most questions answered in one page. |
@@ -123,7 +134,7 @@ Full reasoning and update rules in **[Part 31 — The LLM Wiki Pattern In OpenCl
 |--------|-------:|------:|--------|
 | Context file size (SOUL + AGENTS + MEMORY) | ~15 KB | ~5 KB | [Part 1](#part-1-speed-stop-being-slow) |
 | Memory search latency | 2–5s (cloud) | <100ms (local) | [Part 4](#part-4-memory-stop-forgetting-everything), [Part 10](./part10-state-of-the-art-embeddings.md) |
-| Compaction crash rate | loops on 16K models | 0 (fixed in 4.15 stable) | [Part 15](./part15-infrastructure-hardening.md) |
+| Compaction crash rate | loops on 16K models | fixed in 4.15+ | [Part 15](./part15-infrastructure-hardening.md) |
 | Coding-agent token usage | baseline | –60% | [Part 19 — Repowise](./part19-repowise-codebase-intelligence.md) |
 | Sessions before audit trail | 0 surfaces | all surfaces | [Part 24 — Task Brain](./part24-task-brain-control-plane.md) |
 
@@ -133,18 +144,26 @@ Full numbers in **[benchmarks/](./benchmarks/)**.
 
 ## Companion resources shipped with the guide
 
-Alongside the 32 parts themselves, this repo now includes the tooling that turns "I read the guide" into "I can audit and reproduce the results":
+Alongside the 33 parts themselves, this repo now includes the tooling that turns "I read the guide" into "I can audit and reproduce the results":
 
 - **[SCORECARD.md](./SCORECARD.md)** — The OpenClaw Production Readiness Scorecard. 50 items across Speed / Memory / Orchestration / Security / Observability, 2 points each, max 100. Designed to be copy-pasted into your own repo and shared publicly.
 - **[AWESOME.md](./AWESOME.md)** — A curated, opinionated list of OpenClaw resources: skills worth installing, memory and orchestration tools, observability stacks, research papers, talks, communities, adjacent ecosystems.
-- **[templates/](./templates/)** — A working reference config starter kit: `openclaw.example.json`, tiny SOUL.md / AGENTS.md / MEMORY.md / TOOLS.md templates, and a `vault/` skeleton. All aligned to 2026.4.15 stable (Opus 4.7, semantic approvals, `dreaming.storage.mode: "separate"`).
+- **[templates/](./templates/)** — A starter kit: tiny SOUL.md / AGENTS.md / MEMORY.md / TOOLS.md templates, a `vault/` skeleton, and an example config that documents both legacy JSON blocks and the newer provider-catalog direction.
 - **[benchmarks/METHODOLOGY.md](./benchmarks/METHODOLOGY.md)** + **[benchmarks/harness/](./benchmarks/harness/)** + **[benchmarks/runs/TEMPLATE.md](./benchmarks/runs/TEMPLATE.md)** — A reproducible benchmark methodology (4 pillars, 3 reference environments) plus a contract for submitting your own numbers via PR.
 - **[CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)** · **[SECURITY.md](./SECURITY.md)** · **[SUPPORT.md](./SUPPORT.md)** — Community standards so you know how to file issues, report problems, and get help.
 - **GitHub Pages site** — rendered from this repo via MkDocs-material: <https://onlyterp.github.io/openclaw-optimization-guide/>.
 
 ---
 
-## What Changed In This Release (2026.4.15 Refresh)
+## What Changed In This Release (Late-April 2026 Refresh)
+
+- **New [Part 33 — Late-April 2026 Field Guide](./part33-late-april-2026-field-guide.md)** — concise upgrade map from 2026.4.15 to 2026.4.27/2026.4.29-beta.1: provider catalogs, Active Memory, people wiki, visible replies, active-run steering, browser clicks, Codex Computer Use, plugin manifests, security changes.
+- **Removed subscription-era Claude guidance** — OpenClaw users should no longer assume Claude Pro/Max subscriptions cover OpenClaw usage after Anthropic's April 4 cutoff. The model section now recommends explicit paid API/provider routing, Bedrock, or cheaper provider fallbacks.
+- **Updated models and providers** — Kimi K2.6 replaces K2.5 as the current Moonshot default in bundled setup; DeepSeek V4 Flash is the new onboarding default in 2026.4.24; DeepInfra and NVIDIA were added as bundled provider paths; OpenAI Codex auth import is no longer recommended.
+- **Updated memory guidance** — Active Memory filters, people-aware wiki metadata, provenance reports, partial recall on timeout, hybrid search score inspection, and `doctor.memory.remHarness` are now called out.
+- **Updated automation guidance** — `/models add` is explicitly marked deprecated; browser coordinate clicks, `browser.actionTimeoutMs`, per-profile headless overrides, `messages.visibleReplies`, queue steering, and Codex Computer Use checks are added.
+
+### Previous 2026.4.15 refresh
 
 - **Task Brain control plane** (new [Part 24](./part24-task-brain-control-plane.md)) — unified task ledger, semantic approval categories, agent-initiated denies, fail-closed plugin defaults. Shipped as the structural fix for the March CVE wave.
 - **ClawHub skills marketplace** (new [Part 23](./part23-clawhub-skills-marketplace.md)) — 13K+ community skills, 1,184 removed for being malicious. Install policy, signing, scope-limiting, sleeper-update mitigation.
@@ -208,6 +227,7 @@ Not every part applies to every reader. Jump directly to the pillar that matches
 
 | I want to… | Start with |
 |-------------|-----------|
+| **Catch up on the latest changes** | [33 Late-April Field Guide](./part33-late-april-2026-field-guide.md) · [26 Migration Guide](./part26-migration-guide.md) · [27 Gotchas & FAQ](./part27-gotchas-and-faq.md) |
 | **Make my agent faster** | [1 Speed](#part-1-speed-stop-being-slow) · [2 Context Engineering](#part-2-context-engineering--the-discipline) · [3 Cron Bloat](#part-3-cron-session-bloat-the-hidden-killer) · [6 Models](#part-6-models-what-to-actually-use) |
 | **Stop it forgetting things** | [4 Memory](#part-4-memory-stop-forgetting-everything) · [9 Vault](#part-9-vault-memory-system-stop-losing-knowledge-between-sessions) · [10 Embeddings](./part10-state-of-the-art-embeddings.md) · [22 Built-In Dreaming](#part-22-built-in-dreaming) · [31 LLM Wiki Pattern](./part31-the-llm-wiki-pattern-in-openclaw.md) |
 | **Reduce cost** | [5 Orchestration](#part-5-orchestration-stop-doing-everything-yourself) · [6 Models](#part-6-models-what-to-actually-use) · [8 One-Shotting](#part-8-one-shotting-big-tasks-stop-iterating-start-researching) · [22 Memory you can afford](#part-22-built-in-dreaming) |
@@ -230,8 +250,9 @@ Not every part applies to every reader. Jump directly to the pillar that matches
 - [26. Migration Guide](./part26-migration-guide.md) — upgrade paths + rollback plans
 - [27. Gotchas & FAQ](./part27-gotchas-and-faq.md) — symptom → fix table + frequently asked questions
 - [28. Glossary & Terminology](./part28-glossary-and-terminology.md) — every term this guide assumes, on one page
+- [33. Late-April 2026 Field Guide](./part33-late-april-2026-field-guide.md) — what changed after 2026.4.15 and what to do now
 - [14. Quick Checklist](#part-14-quick-checklist) — 30-minute setup
-- [17. The One-Shot Prompt](#part-17-the-one-shot-prompt) — automation prompt (2026.4.15)
+- [17. The One-Shot Prompt](#part-17-the-one-shot-prompt) — automation prompt, updated for late-April defaults
 
 **⚡ Speed & context**
 1. [Speed — Stop Being Slow](#part-1-speed-stop-being-slow) — trim context, add fallbacks, reasoning mode, `localModelLean`
@@ -247,6 +268,7 @@ Not every part applies to every reader. Jump directly to the pillar that matches
 13. [Memory Bridge](./part13-memory-bridge.md) — give Codex / Claude Code access to your vault
 22. [Built-In Dreaming (memory-core)](#part-22-built-in-dreaming) — official 3-phase consolidation, DREAMS.md, memory-you-can-afford (LightMem + vbfs)
 31. [The LLM Wiki Pattern In OpenClaw](./part31-the-llm-wiki-pattern-in-openclaw.md) — Karpathy's three-tier pattern mapped onto SOUL/AGENTS/MEMORY/skills
+33. [Late-April 2026 Field Guide](./part33-late-april-2026-field-guide.md) — Active Memory filters, people wiki, provider catalogs, run steering, browser/Codex updates
 
 **🤝 Orchestration & models**
 5. [Orchestration](#part-5-orchestration-stop-doing-everything-yourself) — sub-agents-as-GC, Anthropic's 5 coordination patterns, CEO/COO/Worker, verification
@@ -361,11 +383,11 @@ You coordinate; sub-agents execute. Never write 50+ lines of code yourself.
 - Person A - role, relationship → vault/people/person-a.md
 ```
 
-Details live in vault/. The bot finds them via vector search in 45ms.
+Details live in vault/. The bot finds them via local vector search instead of paying the hot-path context tax every turn.
 
 This isn't a settings tweak - it's a **complete architecture change**: memory routing, context engineering, and orchestration working together. The one-shot prompt at the bottom does the entire setup automatically.
 
-> **Note:** Tested on Claude Opus 4.7 (the new Anthropic default as of 2026.4.15). Opus 4.6 also works fine — the differences are rounding-error for orchestration. Other frontier models should work if they can follow multi-step instructions.
+> **Note:** The examples assume a frontier orchestrator that can follow multi-step instructions. Opus 4.7 is still a strong default if you have a paid route and budget caps; Gemini/DeepSeek/Kimi/local workers handle most execution.
 
 > **Templates included:** Check [`/templates`](./templates) for ready-to-use versions of SOUL.md, AGENTS.md, MEMORY.md, TOOLS.md, and a sample vault/ structure.
 
@@ -376,15 +398,15 @@ This isn't a settings tweak - it's a **complete architecture change**: memory ro
 > **Read this if** your agent feels laggy, you're on a Gemini/GPT default, or you just want to know which levers matter most. **Start here if you only read one part.**
 > **Skip if** you've already tuned context, fallbacks, reasoning mode, and model selection.
 
-Every message you send, OpenClaw injects ALL your workspace files into the prompt. Bloated files = slower, more expensive replies. This is the #1 speed issue people don't realize they have.
+Every message you send, OpenClaw injects selected hot-path context: system prompt, workspace bootstrap files, current conversation state, tool schemas, and sometimes skill/plugin context. Bloated files = slower, more expensive replies. This is the #1 speed issue people don't realize they have.
 
 ### Why Trimming Works
 
-**You don't need big files once you have vector search.**
+**You don't need big hot-path files once you have vector search.**
 
 Old approach: Stuff everything into MEMORY.md so the bot "sees" it every message → 15KB+ context, slow responses, wasted tokens on irrelevant info.
 
-New approach: MEMORY.md is a slim index of pointers. Full details live in vault/. `memory_search()` finds them instantly via local Ollama embeddings ($0). Your workspace files stay tiny without losing any knowledge.
+New approach: MEMORY.md is a slim index of pointers. Full details live in vault/. `memory_search()` retrieves them via local Ollama embeddings ($0). Your hot-path files stay tiny without losing any knowledge.
 
 ### Trim Your Context Files
 
@@ -401,10 +423,22 @@ New approach: MEMORY.md is a slim index of pointers. Full details live in vault/
 ### Add a Fallback Model
 
 ```json
-"fallbackModels": ["your-provider/faster-cheaper-model"]
+"agents": {
+  "defaults": {
+    "model": {
+      "primary": "anthropic/opus",
+      "fallbacks": [
+        "deepseek/deepseek-v4-flash",
+        "openrouter/moonshotai/kimi-k2.6"
+      ]
+    }
+  }
+}
 ```
 
-OpenClaw automatically switches when your main model is rate-limited or slow.
+OpenClaw's late-April releases moved hard toward provider-owned catalogs and fallback policy. Use `provider/model` refs where your install supports them. Explicit user `/model` selections are strict; configured defaults can fall through primary → fallback. The operator rule is stable: every production agent needs a primary, at least two fallbacks, and budget caps per expensive provider.
+
+> **Late-April gotcha:** `/models add` briefly shipped in 2026.4.22, then was deprecated in 2026.4.24. Use `/models` for browsing and copy-friendly examples, but treat durable model registration as config/catalog work, not chat-time mutation.
 
 ### Reasoning Mode - Know the Tradeoff
 
@@ -434,7 +468,7 @@ New in 2026.4.15: if you're running a small local model (≤14B params, 16K-32K 
 }
 ```
 
-This drops the heavyweight default tools (browser, cron, message) from the system prompt. You keep `memory_search`, `exec`, `sessions_spawn`, and the essentials — which is everything most local setups actually use. On a 16K-context Qwen3-14B, freeing ~3KB of tool definitions is the difference between "usable" and "can't fit a single retrieval result."
+This drops the heavyweight default tools (browser, cron, message) from the system prompt. You keep `memory_search`, `exec`, `sessions_spawn`, and the essentials — which is everything most local setups actually use. 2026.4.29 also relaxed fixed preflight cutoffs so small local models use guard thresholds derived from their effective context window instead of hard-coded 16K/32K floors.
 
 ### Ollama Housekeeping
 
@@ -447,13 +481,13 @@ The default model for memory search should be `qwen3-embedding:0.6b` (500 MB, 10
 
 > **New in 2026.4.15 — memory-lancedb cloud storage.** `memory-lancedb` can now persist its index to S3-compatible object storage instead of local disk (`storage.type: "s3"` + `bucket` + `prefix` + `endpoint`). Useful for multi-machine setups where you want every box to see the same index, or for backing up a single-machine index without rsync. The hot path is still in-memory — cloud is just durable storage. Don't confuse this with cloud *embeddings* (still a bad idea for the hot path).
 
-> **New in 2026.4.15 — GitHub Copilot embedding provider.** If your team already pays for Copilot Business/Enterprise, `memorySearch.provider: "copilot"` reuses that seat for embeddings. It's still cloud (2-5s round trips, same caveats as OpenAI/Voyage) so local Ollama is still the right default for personal setups — but for a corporate deployment that's already standardized on Copilot, this removes another vendor from the procurement list.
+> **New in 2026.4.15 — GitHub Copilot embedding provider.** If your team already pays for Copilot Business/Enterprise, `agents.defaults.memorySearch.provider: "copilot"` reuses that seat for embeddings. It's still cloud (2-5s round trips, same caveats as OpenAI/Voyage) so local Ollama is still the right default for personal setups — but for a corporate deployment that's already standardized on Copilot, this removes another vendor from the procurement list.
 
 ---
 
 ## Part 2: Context Engineering — The Discipline
 
-> **Renamed in the April 2026 refresh.** "Context Bloat" was the *problem*; context engineering is the *discipline*. [Karpathy coined it](https://karpathy.ai/) and [Gartner picked it up](https://www.gartner.com/) within a week. The Part 2 material is the practical version of that discipline for OpenClaw.
+> **Renamed in the April 2026 refresh.** "Context Bloat" was the *problem*; context engineering is the *discipline*. The Part 2 material is the practical version of that discipline for OpenClaw.
 
 > **Read this if** you notice each message getting slower, you're hitting compaction often, or your SOUL.md / MEMORY.md / AGENTS.md are over a few KB combined.
 > **Skip if** your total injected context is already under 15 KB and compaction rarely fires.
@@ -467,12 +501,12 @@ LLM attention scales **quadratically** with context length:
 
 When context goes from 50K to 100K tokens, the model does **four times** the work. That means slower responses and higher bills.
 
-### What Happens at 50% of Your Context Window
+### What Happens As Context Fills
 
 Just because a model *advertises* 1M context doesn't mean it *performs well* at 1M:
 
-- **11 of 12 models** tested dropped below 50% accuracy by 32K tokens
-- **GPT-4.1** showed a **50x increase in response time** at ~133K tokens
+- Long-context evals repeatedly show accuracy falling well before the advertised maximum.
+- Latency can spike non-linearly once prompts move from "large" to "huge."
 - Models exhibit **"lost-in-the-middle" bias** - they track the beginning and end but lose the middle
 - Effective context is usually a fraction of the max
 
@@ -490,7 +524,7 @@ Just because a model *advertises* 1M context doesn't mean it *performs well* at 
 
 ### The Numbers That Matter
 
-Production agents consume **100 tokens of context for every 1 token generated.** Your context window IS your performance budget.
+Production agents often consume far more context than they generate. Your context window IS your performance budget.
 
 **Compression targets** (from Maxim AI production data):
 - Historical context: **3:1 to 5:1** compression ratio
@@ -661,12 +695,12 @@ vault/             ← Deep storage, searched via memory
 ```bash
 # Windows: winget install Ollama.Ollama
 # Mac/Linux: curl -fsSL https://ollama.com/install.sh | sh
-ollama pull nomic-embed-text
+ollama pull qwen3-embedding:0.6b
 ```
 
 OpenClaw detects Ollama on localhost:11434 automatically. No config needed.
 
-> **GPU users:** For a major quality upgrade (768-dim → 4096-dim vectors), see [Part 10: State-of-the-Art Embeddings](./part10-state-of-the-art-embeddings.md).
+> **Low-RAM fallback:** `nomic-embed-text` still works, but it is now the fallback, not the recommendation. For a major quality upgrade (768-dim → 4096-dim vectors), see [Part 10: State-of-the-Art Embeddings](./part10-state-of-the-art-embeddings.md).
 
 **Step 2: Create the directory structure**
 
@@ -705,6 +739,8 @@ Session memory files pile up fast — 200+ files in a month. OpenClaw 2026.4+ ha
 > **Security note (2026.4.15):** `memory_get` is now restricted to canonical memory files — MEMORY.md and DREAMS.md. It no longer reads arbitrary files from the workspace by path. If you were doing `memory_get("vault/projects/x.md")` directly, switch to `memory_search` or a plain file read — the dedicated memory tool is strictly for the canonical agent indexes now. This closes a path-traversal vector that the `memory-qmd` backend allowed before.
 
 > **Context budget change (2026.4.15 stable):** `memory_get` now caps excerpt length by default and returns explicit **continuation metadata** instead of dumping entire files into context. If an excerpt was truncated, the tool response includes a follow-up cursor the agent can use to fetch the next chunk deterministically. On top of that, default startup and skills prompt budgets were trimmed — long sessions pull less context by default without losing deterministic follow-up reads. Practical effect: your MEMORY.md and DREAMS.md can grow without silently blowing up every reply. If you had custom skills that assumed `memory_get` returns the whole file, update them to respect the continuation cursor (it's noisy but one-line).
+
+> **Late-April upgrade:** Active Memory now supports per-conversation `allowedChatIds` / `deniedChatIds`, partial recall summaries on timeout, and people-aware wiki provenance reports in 2026.4.29-beta.1. Do not enable broad automatic recall in every group chat. Scope it to the conversations where durable memory is actually appropriate, then audit provenance when the agent makes claims about people.
 
 ### The Golden Rule
 
@@ -789,7 +825,7 @@ You are the ORCHESTRATOR. You coordinate; sub-agents execute.
 - Sub-agents (workers): Cheaper/faster model - execution, code, research
 ```
 
-> **2026.3.31-beta.1+ — every spawn is a Task Brain flow.** Sub-agents, ACP runs, and cron jobs all flow through the same unified task flow registry now (`openclaw flows list`). Semantic approval categories (`execution.*`, `read-only.*`, `control-plane.*`) replace the old name-based allowlist. If you're seeing unexpected "approval required" prompts on sub-agent spawns, check [Part 24 — Task Brain Control Plane](./part24-task-brain-control-plane.md) for how to configure categories and trust boundaries.
+> **2026.3.31-beta.1+ — every spawn is a Task Brain task/flow.** Sub-agents, ACP runs, and cron jobs all flow through the same unified task ledger now (`openclaw tasks list`, with `openclaw tasks flow ...` for flow views). Semantic approval categories (`execution.*`, `read-only.*`, `control-plane.*`) replace the old name-based allowlist. If you're seeing unexpected "approval required" prompts on sub-agent spawns, check [Part 24 — Task Brain Control Plane](./part24-task-brain-control-plane.md) for how to configure categories and trust boundaries.
 
 Your expensive model decides WHAT to build. The cheap model builds it. Right model, right job.
 
@@ -917,12 +953,12 @@ This writes a `CONTEXT.md` that the coding agent reads automatically — giving 
 | Role | What It Does | Best Model(s) | Why |
 |------|-------------|----------------|-----|
 | **Orchestrator** | Plans, judges, coordinates | Claude Opus 4.7 | Best complex reasoning + tool use (new default in 2026.4.15) |
-| **Sub-agents** | Execute delegated tasks | Kimi K2.5, MiMo V2 Pro, Gemini Flash | Fast, cheap, capable enough |
+| **Sub-agents** | Execute delegated tasks | Kimi K2.6, DeepSeek V4 Flash, MiMo V2 Pro, Gemini Flash | Fast, cheap, capable enough |
 | **Infrastructure** | Compaction, fallbacks, bulk work | Cerebras gpt-oss-120b | $0.60/M, 3000 tok/s, reliable |
 | **Knowledge Graph RAG** | Entity extraction, graph queries | Cerebras qwen-3-235b | 1400 tok/s, high accuracy for entity extraction |
 | **Coding (hard)** | Architecture, complex bugs | Claude Opus 4.7 | Top SWE-bench — the new Anthropic default as of 2026.4.15 |
-| **Coding (batch)** | Scaffolding, CRUD, refactors | GPT-5.4 Codex | Fast, $0 on subscription, good with Memory Bridge |
-| **Research** | Web search, analysis | Kimi K2.5 + Tavily | Cheap, fast, good at research synthesis |
+| **Coding (batch)** | Scaffolding, CRUD, refactors | GPT-5.4 Codex | Fast for code when your Codex route is healthy; pair with Memory Bridge |
+| **Research** | Web search, analysis | Kimi K2.6 + Tavily | Cheap, fast, good at research synthesis |
 | **Local inference** | $0 forever, private, no rate limits | QwOpus (27B), TerpBot (Nemotron 30B), Nemotron Nano 4B | Ollama on any GPU |
 | **Free tier** | Zero-cost operations | Gemini (all variants), Cerebras free tier, OpenRouter free models | $0 with generous limits |
 
@@ -932,12 +968,12 @@ This writes a `CONTEXT.md` that the coding agent reads automatically — giving 
 - Unmatched multi-step reasoning and complex tool use
 - Follows long, nuanced system prompts better than any other model
 - 1M context window with prompt caching (up to 90% savings on cached tokens)
-- **Cost:** $5/M input, $25/M output, $0.50/M cached | **Max ($100/mo):** included - best value for heavy use
+- **Cost:** paid provider/API route. Do not assume Claude Pro/Max subscription usage covers OpenClaw after Anthropic's April 4 cutoff.
 
 **Claude Sonnet 4** - Solid Workhorse
 - 80% of Opus quality at 20% of the cost. Strong at coding.
 - **Note:** Some power users (including the author) have dropped Sonnet entirely in favor of Opus for orchestration + Cerebras/Gemini for sub-agents. The quality gap matters when your agent makes architectural decisions.
-- **Cost:** $3/M input, $15/M output | **Pro ($20/mo):** included
+- **Cost:** paid provider/API route; check your current provider catalog and billing dashboard.
 
 **Cerebras gpt-oss-120b** - Infrastructure Workhorse
 - 3000 tok/s, $0.60/M input+output. Perfect for compaction, fallbacks, and bulk work where speed matters more than nuance.
@@ -950,7 +986,7 @@ This writes a `CONTEXT.md` that the coding agent reads automatically — giving 
 - Use for: LightRAG entity extraction, complex analysis, anything where accuracy matters more than raw speed.
 - The 235B beats 120B on structured extraction tasks where hallucinated relationships would poison your knowledge graph.
 
-> **💡 Pro tip:** Don't pay API rates for Claude if you have a subscription. Pro ($20/mo) covers Sonnet, Max ($100/mo) covers Opus. For power users, Max is the best value in AI right now.
+> **April 2026 correction:** older versions of this guide recommended using Claude Pro/Max membership as the cheapest OpenClaw path. That is no longer safe advice after Anthropic's April 4 cutoff for third-party OpenClaw usage. Use explicit API billing, Bedrock/Mantle, or a provider route you have verified in your own install.
 
 **Gemini 3.1 Pro / 3 Pro** - Free Powerhouse
 - Competitive with Sonnet on most tasks - and it's free. 1M context, multimodal.
@@ -967,8 +1003,9 @@ This writes a `CONTEXT.md` that the coding agent reads automatically — giving 
 - Grok 4.20 has a massive 2M context window. Grok 4.1 Fast is insanely cheap.
 - **Cost:** Grok 4: $3/M in, $15/M out | Grok 4.1 Fast: $0.20/M in, $0.50/M out
 
-**Kimi K2.5** - Budget Sub-Agent King
-- 262K context, multimodal, $0.45/M input, $2.20/M output - excellent price-to-performance.
+**Kimi K2.6 / K2.5** - Budget Sub-Agent King
+- OpenClaw 2026.4.20 moved bundled Moonshot setup, web search, and media-understanding surfaces to `kimi-k2.6` while keeping K2.5 available for compatibility.
+- Kimi remains a strong cheap worker lane. Verify current pricing in your provider catalog before running a large swarm.
 
 **MiMo V2 Pro (Xiaomi)** - The Sleeper
 - 1T parameter model, 1M context. Great for agentic sub-agents on a budget. $1/M in, $3/M out.
@@ -979,7 +1016,7 @@ This writes a `CONTEXT.md` that the coding agent reads automatically — giving 
 
 - **`openrouter/free`** - auto-routes to the best free model for your request. Perfect for $0 sub-agents.
 - **MiMo V2 Pro** - Currently free (launch promotion). Add: `openrouter/xiaomi/mimo-v2-pro`
-- **Kimi K2.5** - Budget powerhouse. Add: `openrouter/moonshotai/kimi-k2.5`
+- **Kimi K2.6 / K2.5** - Budget powerhouse. Prefer the catalog's current `kimi-k2.6` row when present; keep `kimi-k2.5` for compatibility.
 - **Perplexity Sonar** - Built-in web search, no separate tool needed. Add: `openrouter/perplexity/sonar`
 
 ### Local Models: $0 Forever, No Rate Limits
@@ -992,31 +1029,32 @@ If you have a GPU, local models via Ollama = unlimited inference at zero cost.
 
 > **2026.4.15 — if you drive a small local model, turn on `localModelLean`.** Set `agents.defaults.experimental.localModelLean: true` and the gateway stops injecting the heavyweight default tools (browser, cron, message) into the system prompt. You keep `memory_search`, `exec`, `sessions_spawn` — i.e. the tools a local model can actually *use*. Frees ~3KB of prompt, which on a 16K-context 14B model is the difference between "fits one retrieval result" and "crashes out of context." Leave this off for frontier models — you want them to have everything.
 
-### Using Anthropic Membership (The Best Way)
+### Claude Subscription Path Retired
 
-Your Claude Pro/Max subscription includes API access. OpenClaw can use it directly:
+Do **not** build a new OpenClaw deployment around Claude Pro/Max subscription-backed usage. The April 4 Anthropic cutoff forced third-party OpenClaw usage onto explicit paid routes for many users. If your install still has a working Claude OAuth path, treat it as legacy and fragile, not a baseline.
 
-```
-1. Run `claude` in terminal → login via browser (OAuth)
-2. Run `openclaw onboard` → detects your credentials → uses membership
-3. Done. No separate API key needed.
-```
+Current safer paths:
+
+1. Use an explicit Anthropic API key with budget caps.
+2. Use Bedrock/Mantle for Opus 4.7 if that is how your org buys Anthropic.
+3. Put cheaper fallbacks behind every Claude primary.
+4. Watch the Model Auth card before big runs.
 
 ### Recommended Setups
 
 **Budget ($0/month):**
 ```
-Main: Gemini 3.1 Pro (free tier) | Sub-agents: Gemini Flash (free tier) | Local: Qwen 3.5 Opus Distilled
+Main: DeepSeek V4 Flash or Gemini free tier | Workers: Kimi / Flash / local | Embeddings: qwen3-embedding:0.6b
 ```
 
-**Balanced (~$20/month - Claude Pro):**
+**Balanced (low paid spend):**
 ```
-Main: Sonnet 4 (membership) | Fallback: Gemini 3.1 Pro | Sub-agents: MiMo V2 Pro / Kimi K2.5
+Main: Sonnet or Gemini Pro via API | Fallback: DeepSeek V4 Flash | Workers: Kimi K2.6 / DeepInfra / local
 ```
 
-**Power (~$100/month - Claude Max):**
+**Power (paid provider caps required):**
 ```
-Main: Opus 4.7 (membership) | Fallback: Gemini 3.1 Pro | Sub-agents: Kimi / MiMo / Flash
+Main: Opus 4.7 via API/Bedrock | Fallback: Gemini Pro / DeepSeek V4 Pro | Sub-agents: Kimi / MiMo / Flash / DeepInfra
 Code (hard): Opus directly | Code (batch): Codex + Memory Bridge
 Self-improving: .learnings/ micro-loop ($0) | Memory: Qwen3-Embedding-8B on local GPU
 Knowledge Graph: LightRAG + Cerebras qwen-3-235b (Part 18)
@@ -1027,10 +1065,12 @@ Codebase Intel: Repowise (Part 19) | Observability: LangFuse (Part 20)
 
 - **Always set 2-3 fallbacks.** Auto-switch beats breaking.
 - **Match model to task.** Don't use Opus for scripts. Don't use Flash for architecture.
-- **Enable prompt caching** on Anthropic: `cacheRetention: "extended"` + cache-ttl pruning.
-- **Membership > API keys.** If you're paying for Pro/Max, use it via OAuth. Don't pay twice.
+- **Enable prompt caching** on Anthropic: explicit prompt cache-control TTLs + cache-ttl pruning.
+- **Set budget caps.** The post-cutoff provider world makes unbounded fallback chains dangerous.
+- **Use provider catalogs.** Late-April OpenClaw relies on manifest-backed model rows; stale hand-written model aliases break more often.
+- **Don't use `/models add` for durable config.** It was added in 2026.4.22, then deprecated in 2026.4.24. Use `/models` to inspect, then update config/catalogs deliberately.
 - **Free models are real.** Gemini's free tier is legitimately good for daily driving.
-- **Watch the Model Auth card (new 2026.4.15).** Control UI now shows per-provider OAuth token health and rate-limit pressure. Before a big run, eyeball it — catching an expiring Claude Max token or a rate-limited Gemini key there beats debugging mid-task.
+- **Watch the Model Auth card (new 2026.4.15).** Control UI shows per-provider OAuth token health and rate-limit pressure. Before a big run, eyeball it — catching an expiring provider token or a rate-limited Gemini key there beats debugging mid-task.
 
 ---
 
@@ -1086,10 +1126,11 @@ Without web search, your agent guesses at anything after its training cutoff.
 
 Most people type a vague prompt, iterate 15 times, burn context and money, end up at 60% quality. **The model isn't the problem - your prompt is.**
 
-### The Data
+### The Pattern
 
-- Vague prompts → **1.7x more issues**, **39% more cognitive complexity**, **2.74x more security vulnerabilities**
-- Detailed specifications → **95%+ first-attempt accuracy**
+- Vague prompts produce vague plans, extra iterations, and security blind spots.
+- Detailed specifications give the agent constraints it can actually verify.
+- Research-first prompts beat "just implement it" prompts on any task with unknowns.
 
 **The quality of your output is capped by the quality of your input.**
 
@@ -1258,7 +1299,7 @@ A MOC connects related notes with `[[wiki-links]]`. Example:
 
 ## Key Facts
 - 358 memory files in memory/, mostly date-named
-- Vector search (qwen3-embedding or nomic-embed-text, ~45ms local, $0) finds similar, not connected
+- Vector search (`qwen3-embedding:0.6b`, <100ms local, $0) finds similar, not connected
 - MEMORY.md must stay under 5K - injected on every message
 
 ## Connected Topics
@@ -1370,6 +1411,11 @@ Run through this in 30 minutes:
 - [ ] Cron sessions cleaned up / isolated sessions configured
 - [ ] Ollama installed + embedding model pulled (`qwen3-embedding:0.6b` recommended, see Part 10 for tiers)
 - [ ] vault/ directory structure created
+- [ ] Claude usage moved off subscription assumptions and onto verified API/provider routing
+- [ ] Provider fallbacks and budget caps configured for every expensive primary
+- [ ] `/models add` removed from your runbooks; model registration happens through config/catalogs
+- [ ] Active Memory scoped with `allowedChatIds` / `deniedChatIds` if you use group or channel surfaces
+- [ ] Browser automation uses coordinate clicks / longer action budgets where selector-based actions are flaky
 - [ ] Model strategy chosen (orchestrator + sub-agents + fallbacks)
 - [ ] Faster/cheaper fallback model added
 - [ ] Web search API configured (Tavily recommended, Gemini grounding for free)
@@ -1410,7 +1456,7 @@ Run through this in 30 minutes:
 - [ ] Test: write a vault file → confirm it's queryable in LightRAG within 10 seconds
 - [ ] **ClawHub hygiene** — every installed skill reviewed, source repo pinned, auto-update disabled (Part 23)
 - [ ] **Task Brain** — semantic approval categories configured; `control-plane.*` kept approval-required (Part 24)
-- [ ] `openclaw flows list` runs clean — no orphaned or denied flows lingering (Part 24)
+- [ ] `openclaw tasks list` runs clean — no orphaned or denied tasks lingering (Part 24)
 - [ ] 2026.4.15 upgrade: `agents.defaults.experimental.localModelLean` set correctly for your model tier (Part 6)
 - [ ] 2026.4.15 upgrade: `memory_get` not called with arbitrary paths anywhere in your skills/hooks (Part 4/22)
 - [ ] Control UI Model Auth card checked — OAuth tokens healthy, no rate-limit red flags
@@ -1534,7 +1580,7 @@ Pull the embedding model (pick ONE based on your hardware):
 - **Most setups (recommended):** ollama pull qwen3-embedding:0.6b (best quality-to-size ratio, 1024 dims, 32K context, same family as MTEB #1 model)
 - **32GB+ RAM or dedicated GPU:** ollama pull qwen3-embedding:4b (higher quality, ~3GB RAM)
 - **RTX 3090+ or 5080+ with 16GB+ VRAM:** Use Qwen3-Embedding-8B via Fireworks or local vLLM (4096 dims, SOTA quality — see Part 10)
-- **Low RAM or potato hardware:** ollama pull nomic-embed-text (768 dims, smallest footprint — noticeably worse quality)
+- **Low RAM or potato hardware:** `ollama pull qwen3-embedding:0.6b` (1024 dims, 500 MB). Use `nomic-embed-text` only if 500 MB is still too much.
 
 Do NOT use cloud embeddings (Gemini, OpenAI, Voyage, Copilot) as your primary — 2-5 second round-trip latency per search vs <100ms local. Cloud embeddings defeat the entire purpose of fast memory search. (Copilot is new in 2026.4.15 — useful for corporate setups with existing Copilot seats, but still cloud-latency.)
 
@@ -1677,7 +1723,7 @@ After all changes:
 3. Test memory_search by asking about something in your vault files
 4. Test Memory Bridge: node scripts/memory-bridge/memory-query.js "test query"
 5. Check Control UI → Model Auth card (2026.4.15+): all OAuth tokens green, no rate-limit warnings
-6. Run `openclaw flows list` (2026.3.31-beta.1+): no orphaned or denied control-plane flows
+6. Run `openclaw tasks list` (2026.3.31-beta.1+): no orphaned or denied control-plane tasks
 7. Report what you changed with before/after file sizes
 
 ## IMPORTANT RULES
@@ -1700,7 +1746,7 @@ That's it. One paste, your bot does everything. If anything fails, your config b
 Re-paste just the steps that didn't complete. The prompt is idempotent - running a step twice won't break anything.
 
 **memory_search not working:**
-Make sure Ollama is running (`ollama serve` or `ollama ps`) and your embedding model is pulled (qwen3-embedding:0.6b or nomic-embed-text). OpenClaw auto-detects on localhost:11434. If search takes 2+ seconds, you're hitting a cloud embedding provider instead of local — check your embedding config in openclaw.json.
+Make sure Ollama is running (`ollama serve` or `ollama ps`) and your embedding model is pulled (`qwen3-embedding:0.6b`). OpenClaw auto-detects on localhost:11434. If search takes 2+ seconds, you're hitting a cloud embedding provider instead of local — check your embedding config in openclaw.json.
 
 **Auto-capture hook not working:**
 The built-in `session-memory` hook is NOT the auto-capture hook. The built-in one just dumps raw text. Check `openclaw hooks list` for 🧠 auto-capture. If it's missing, you need to install the custom hook from this repo's hooks/auto-capture/ directory. Also verify your API key is set: the handler needs CEREBRAS_API_KEY or AUTOCAPTURE_API_KEY as an environment variable.
@@ -1737,7 +1783,7 @@ If you launch servers via background processes (Start-Process, nohup) and they c
 ⚠️ `DELETE /documents` with a body of `{"ids":[...]}` performs a FULL WIPE of all storage, not a selective delete. This is a LightRAG API gotcha — the batch delete is nuclear. If you need to delete a single document, use the individual document endpoint. If you accidentally wipe, re-run your ingestion script (it tracks state so it won't re-upload already-processed files if you keep the state file).
 
 **LightRAG ingestion stuck on huge files:**
-Files over 100KB (especially 1MB+) can clog the pipeline for hours as the LLM tries to extract entities from hundreds of chunks. Fix: add a size guard to your ingestion script — skip files over 100KB. Those monster files produce noisy graphs anyway. The 95% of value comes from your normal-sized vault files.
+Files over 100KB (especially 1MB+) can clog the pipeline for hours as the LLM tries to extract entities from hundreds of chunks. Fix: add a size guard to your ingestion script — skip files over 100KB. Those monster files produce noisy graphs anyway; most useful graph edges come from your normal-sized vault files.
 
 **Repowise crashes on Windows:**
 Common Windows issues:
@@ -2008,7 +2054,7 @@ If this guide saved you time, a ⭐ helps other OpenClaw operators find it.
 |---|---|
 | **[SCORECARD.md](./SCORECARD.md)** | 50-item Production Readiness Scorecard (2 pts each, max 100). Shareable. |
 | **[AWESOME.md](./AWESOME.md)** | Curated list of skills, guides, talks, research, adjacent ecosystems. |
-| **[templates/](./templates/)** | Reference config starter kit: `openclaw.example.json`, SOUL / AGENTS / MEMORY / TOOLS templates for 2026.4.15 stable. |
+| **[templates/](./templates/)** | Reference config starter kit: `openclaw.example.json`, SOUL / AGENTS / MEMORY / TOOLS templates updated for late-April 2026. |
 | **[benchmarks/](./benchmarks/)** | Reproducible benchmark methodology + harness + run template. Submit your numbers via PR. |
 | **[CONTRIBUTING.md](./CONTRIBUTING.md)** · **[SECURITY.md](./SECURITY.md)** · **[CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)** · **[SUPPORT.md](./SUPPORT.md)** | Contributor + community policy. |
 

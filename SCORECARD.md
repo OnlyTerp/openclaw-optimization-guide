@@ -1,6 +1,6 @@
 # The OpenClaw Production Readiness Scorecard
 
-**Score your OpenClaw setup against the patterns in the [OpenClaw Optimization Guide](./README.md). 50 items across 5 pillars. 2 points each. 100 possible. Tested on OpenClaw 2026.4.15 stable.**
+**Score your OpenClaw setup against the patterns in the [OpenClaw Optimization Guide](./README.md). 50 items across 5 pillars. 2 points each. 100 possible. Updated for OpenClaw 2026.4.27 stable and 2026.4.29 beta.**
 
 > Share your score: *"My OpenClaw Production Readiness Scorecard: XX / 100 — [github.com/OnlyTerp/openclaw-optimization-guide](https://github.com/OnlyTerp/openclaw-optimization-guide)"*
 
@@ -26,7 +26,7 @@ Do your agents respond in seconds, not minutes? If every turn feels sluggish, co
 - [ ] Total injected context per message is under 8 KB (verified by logging a turn). *→ [Part 1](./README.md#part-1-speed-stop-being-slow)*
 - [ ] `contextPruning.mode: "cache-ttl"` with a 5-minute TTL. *→ [Part 2](./README.md#part-2-context-engineering--the-discipline)*
 - [ ] Reasoning mode is OFF on the default model, ON only for orchestration. *→ [Part 6](./README.md#part-6-models-what-to-actually-use)*
-- [ ] Compaction runs on a cheap non-reasoning model (e.g. Cerebras Qwen), not on Gemini Flash or an Opus/GPT key. *→ [Part 15](./part15-infrastructure-hardening.md)*
+- [ ] Compaction runs on a cheap non-reasoning model (e.g. Cerebras `gpt-oss-120b`), not on Gemini Flash or an Opus/GPT key. *→ [Part 15](./part15-infrastructure-hardening.md)*
 - [ ] Cron output is isolated (`memory/cron/` or suppressed) so bulk scheduled runs don't flood session memory. *→ [Part 3](./README.md#part-3-cron-session-bloat-the-hidden-killer)*
 - [ ] For small local models (≤14B), `agents.defaults.experimental.localModelLean: true` is set. *→ [Part 6](./README.md#part-6-models-what-to-actually-use)*
 
@@ -40,7 +40,7 @@ Can your agent remember what it did yesterday, what you decided last week, and w
 - [ ] Embeddings run locally on Ollama (e.g. `qwen3-embedding:0.6b`), not on a cloud provider. *→ [Part 10](./part10-state-of-the-art-embeddings.md)*
 - [ ] Search latency on your live vault is under ~150ms on a warm cache. *→ [Part 4](./README.md#part-4-memory-stop-forgetting-everything), [Part 10](./part10-state-of-the-art-embeddings.md)*
 - [ ] Memory-core built-in dreaming is enabled with a nightly schedule. *→ [Part 22](./README.md#part-22-built-in-dreaming)*
-- [ ] Dream phase blocks live under `memory/dreaming/{phase}/` (`dreaming.storage.mode: "separate"`, the 2026.4.15 stable default). *→ [Part 22](./README.md#part-22-built-in-dreaming)*
+- [ ] Dream phase blocks live under `memory/dreaming/{phase}/` (`dreaming.storage.mode: "separate"`, the current default). *→ [Part 22](./README.md#part-22-built-in-dreaming)*
 - [ ] `DREAMS.md` has at least one real sweep entry from the last 7 days. *→ [Part 22](./README.md#part-22-built-in-dreaming)*
 - [ ] Auto-capture hook is wired to extract claim-named notes from session transcripts. *→ [Part 11](./part11-auto-capture-hook.md)*
 - [ ] LightRAG is enabled if your vault has ≥500 files. (Otherwise, credit this item.) *→ [Part 18](./part18-lightrag-graph-rag.md)*
@@ -64,7 +64,7 @@ Does the frontier model plan while cheap workers execute, or is your orchestrato
 
 If a compromised skill ships tomorrow, how much of your system does it reach?
 
-- [ ] Task Brain is live (`openclaw flows list` returns output). *→ [Part 24](./part24-task-brain-control-plane.md)*
+- [ ] Task Brain is live (`openclaw tasks list` returns output). *→ [Part 24](./part24-task-brain-control-plane.md)*
 - [ ] Approval policy uses **semantic categories** (`read-only.*`, `execution.*`, `write.*`, `control-plane.*`), not raw tool names. *→ [Part 24](./part24-task-brain-control-plane.md)*
 - [ ] `control-plane.*` is set to `deny` for every non-admin agent. *→ [Part 24](./part24-task-brain-control-plane.md)*
 - [ ] `write.fs.outside-workspace` is `deny` by default. *→ [Part 24](./part24-task-brain-control-plane.md)*
@@ -79,7 +79,7 @@ If a compromised skill ships tomorrow, how much of your system does it reach?
 
 When something breaks at 3am, can you answer "what ran, with what permissions, and why did it fail" in under 5 minutes?
 
-- [ ] Every ACP call, cron job, and sub-agent spawn shows up in `openclaw flows list` (i.e. nothing runs outside Task Brain). *→ [Part 24](./part24-task-brain-control-plane.md)*
+- [ ] Every ACP call, cron job, and sub-agent spawn shows up in `openclaw tasks list` / `openclaw tasks flow list` (i.e. nothing runs outside Task Brain). *→ [Part 24](./part24-task-brain-control-plane.md)*
 - [ ] Gateway startup script has stale-process cleanup so a zombie doesn't block port 18789. *→ [Part 15](./part15-infrastructure-hardening.md)*
 - [ ] Compaction `reserveTokens` is capped to the model's context window (auto in 2026.4.15+; verify anyway). *→ [Part 15](./part15-infrastructure-hardening.md)*
 - [ ] You run `openclaw doctor` after every upgrade and commit the output. *→ [Part 26](./part26-migration-guide.md)*

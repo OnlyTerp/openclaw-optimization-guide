@@ -30,4 +30,4 @@
 - Search memory before saying "I don't remember".
 - Back up `openclaw.json` before any config change.
 - Details live in `vault/` — this file is an index only.
-- Dream phase blocks are under `memory/dreaming/{phase}/` (2026.4.15 stable default).
+- Dream phase blocks are under `memory/dreaming/{phase}/` by default.

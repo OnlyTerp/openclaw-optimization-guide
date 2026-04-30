@@ -1,19 +1,20 @@
 # Part 26: Migration Guide
 
-> New in the 2026.4.15 refresh. Opinionated, battle-tested upgrade paths from older OpenClaw versions to current. If something in this guide doesn't apply to your version yet, start here.
+> Updated in the late-April 2026 refresh. Opinionated, battle-tested upgrade paths from older OpenClaw versions to current. If something in this guide doesn't apply to your version yet, start here.
 
-> **Read this if** you're on anything older than 2026.4.15, or planning an upgrade.
+> **Read this if** you're on anything older than 2026.4.27, or planning an upgrade.
 > **Skip if** you're already on current-beta and don't maintain older instances.
 
 ## TL;DR By Version
 
 | You're on | Do this first | Then | Finally |
 |-----------|--------------|------|---------|
-| **v3.x** | Full v4.0 upgrade (not a drop-in) | v4.1 ClawHub | 2026.4.15 |
-| **v4.0.x** | v2026.3.31-beta.1 (Task Brain) | 2026.4.x (built-in dreaming) | 2026.4.15 |
-| **v2026.3.x** | Apply Task Brain approval policy | Upgrade to 2026.4.x | 2026.4.15 |
-| **v2026.4.x pre-4.15** | Skip straight to 2026.4.15 | Apply the 4.15 flags | Done |
-| **v2026.4.15-beta.1** | Promote to 2026.4.15 stable | Opt in to Opus 4.7 defaults + `dreaming.storage.mode: separate` | Done |
+| **v3.x** | Full v4.0 upgrade (not a drop-in) | v4.1 ClawHub | 2026.4.27 |
+| **v4.0.x** | v2026.3.31-beta.1 (Task Brain) | 2026.4.x (built-in dreaming) | 2026.4.27 |
+| **v2026.3.x** | Apply Task Brain approval policy | Upgrade to 2026.4.x | 2026.4.27 |
+| **v2026.4.x pre-4.15** | Skip straight to 2026.4.15 | Apply the 4.15 flags | 2026.4.27 |
+| **v2026.4.15** | Remove subscription-era model assumptions | Apply provider-catalog changes | 2026.4.27 |
+| **v2026.4.27** | Stable baseline | Optional memory/messaging beta | 2026.4.29-beta.1 |
 
 Each step is described below. Don't skip steps — the CVE wave fixes and Task Brain model changes are not optional for anyone running more than a personal-dev setup.
 
@@ -77,9 +78,9 @@ Significantly easier than v3\u2192v4.0. No data migration, but a policy migratio
 **Steps:**
 
 1. Upgrade the package. Restart the gateway.
-2. Run `openclaw flows list`. If it works: Task Brain is live. If you get "command not found": upgrade didn't take, re-check. (Older beta notes called this `openclaw tasks` — the published CLI verb as of 2026.4.15 is `flows`.)
+2. Run `openclaw tasks list`. If it works: Task Brain is live. If your older binary only exposes `openclaw flows list`, treat it as the same ledger and plan to update runbooks after upgrading.
 3. Write a semantic approval policy (see [Part 24](./part24-task-brain-control-plane.md)). Don't leave it on defaults for more than a day — you want the policy to match your actual usage or you'll drown in approval prompts.
-4. Review `openclaw flows list` and the Canvas **Flows** panel at least once in the first week. You'll spot jobs you forgot existed (old cron, orphaned sub-agent spawns, stuck ACP calls).
+4. Review `openclaw tasks list` / `openclaw tasks flow list` and the Control UI task/flow panels at least once in the first week. You'll spot jobs you forgot existed (old cron, orphaned sub-agent spawns, stuck ACP calls).
 
 **What to watch for post-upgrade:**
 - Sub-agent spawns suddenly requiring approval that didn't before — means your per-agent approval policy is too loose at the orchestrator level or too tight at the worker level. Adjust per [Part 24](./part24-task-brain-control-plane.md).
@@ -104,7 +105,7 @@ This is mostly smooth.
 **Gotchas:**
 - If you had custom `memory_get` calls reading arbitrary paths, they'll still work in 4.x but will break at 4.15 — fix them now, don't wait.
 
-## Path 4: Anything v2026.4.x \u2192 v2026.4.15
+## Path 4: Anything v2026.4.x → v2026.4.15
 
 Small jump. This is the version the guide is currently tested on.
 
@@ -151,6 +152,57 @@ Tiny jump. The stable release is a superset of the beta plus a few user-visible 
 4. If you have custom skills, grep them for `memory_get(` and audit their handling of truncated excerpts. Add cursor-following logic where needed.
 5. If you run in-house tools that shadow built-in names, rename them. They'll hard-fail at the gateway until you do.
 6. No rollback plan needed beyond package-pin — this release is additive over 4.15-beta.1. Config that worked on beta.1 works on stable.
+
+## Path 6: v2026.4.15 → v2026.4.27 stable
+
+This is the current stable baseline for this guide. It is worth doing even if you skip 2026.4.29 beta.
+
+**What changes (the ones you should act on immediately):**
+
+- Claude subscription-backed guidance is stale after Anthropic's April 4 cutoff. Move to explicit provider/API routes and budget caps.
+- Kimi K2.6 becomes the bundled Moonshot default; K2.5 remains available for compatibility.
+- Session-store pruning runs by default, reducing cron/executor backlog OOM risk.
+- `/models add` is deprecated after the provider-catalog work. Use `/models` and `openclaw models list` for inspection; do durable config changes deliberately.
+- DeepSeek V4 Flash/Pro enter the bundled catalog, with V4 Flash as an onboarding default.
+- Browser automation gets coordinate clicks, 60s default action budgets, and per-profile headless overrides.
+- DeepInfra joins the bundled provider set.
+- Codex Computer Use gets `status` / `install` commands and fail-closed MCP checks.
+- Plugin/model catalogs move toward manifest-first metadata.
+- Docker sandbox GPU passthrough and outbound proxy routing are available as explicit opt-ins.
+
+**Steps:**
+
+1. Upgrade to 2026.4.27. Restart gateway. Run `openclaw doctor`.
+2. Remove Claude Pro/Max membership assumptions from your runbooks. Add budget caps to paid providers.
+3. Replace Kimi K2.5 default references with Kimi K2.6 where your provider catalog exposes it.
+4. Delete any `/models add` automation. Inspect with `/models`, then edit config/catalogs deliberately.
+5. If you use browser automation, update flaky selector-based skills to prefer coordinate clicks only where selectors are unreliable.
+6. If you use Codex desktop control, run `openclaw codex computer-use status` and install/fix missing MCP pieces before a real task.
+7. Audit plugin manifests before runtime code when installing/updating providers.
+
+## Path 7: v2026.4.27 stable → v2026.4.29-beta.1
+
+Beta jump. Do this in a separate profile unless you specifically need the memory/messaging features.
+
+**What changes (the ones you should act on immediately):**
+
+- Active Memory can be scoped with per-conversation `allowedChatIds` / `deniedChatIds`.
+- Partial recall summaries are returned when the hidden memory sub-agent times out.
+- People wiki metadata adds aliases, person cards, relationship graphs, provenance reports, evidence drilldowns, and raw-claim search modes.
+- `messages.visibleReplies` can force visible channel output through the message tool.
+- Active-run queueing defaults toward steering at the next model boundary.
+- Sub-agent event payloads include `spawnedBy` routing metadata.
+- NVIDIA provider and Bedrock Opus 4.7 thinking parity arrive.
+- OpenGrep scanning and sharper GHSA triage policy land.
+
+**Steps:**
+
+1. Test on a copy of your profile. Back up memory and config first.
+2. Enable Active Memory only for specific chat IDs. Deny broad/public channels by default.
+3. Turn on visible-reply enforcement for group/channel surfaces.
+4. Ask the agent for provenance when it makes claims about people.
+5. Use `doctor.memory.remHarness` to preview REM output before trusting a new memory policy.
+6. Roll back to 2026.4.27 if memory recall or channel routing behaves unexpectedly.
 
 ## Rollback Plan (Every Path)
 
@@ -258,7 +310,7 @@ Anything more than this in the first pass is over-engineering. Grow the schema w
 ## After Every Upgrade
 
 - `openclaw doctor` — sanity check.
-- `openclaw flows list` (and the Canvas Flows panel) — confirm Task Brain is recording.
+- `openclaw tasks list` / `openclaw tasks flow list` (and the Control UI task/flow panels) — confirm Task Brain is recording.
 - Memory smoke test: search for something you know is in memory. Confirm it comes back fast (<100ms local).
 - Run one sub-agent spawn end-to-end. Confirm the approval categories behave the way your policy says they should.
 - Check Canvas UI \u2192 Model Auth card. Tokens healthy, no rate-limit warnings.

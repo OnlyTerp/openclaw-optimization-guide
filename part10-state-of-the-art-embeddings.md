@@ -17,7 +17,7 @@ The main guide's one-shot prompt installs a local embedding model via Ollama. Pi
 | **Recommended** | `qwen3-embedding:0.6b` | 1024 | ~500MB | Fast | Great | Most setups (Mac Mini, laptops) |
 | **Power** | `qwen3-embedding:4b` | 2048 | ~3GB | Medium | Excellent | 32GB+ RAM, want best local quality |
 | **GPU Beast** | Qwen3-Embedding-8B | 4096 | ~8GB VRAM (INT8) | Fast | SOTA | Dedicated GPU (RTX 3090+, 5080+) |
-| **Cloud** ⚠️ | Gemini, OpenAI, Voyage, Copilot | varies | 0 | **SLOW (2-5s)** | Excellent | **NOT recommended** — latency kills UX |
+| **Cloud** ⚠️ | Gemini, OpenAI, Voyage, Copilot, DeepInfra | varies | 0 | **SLOW (2-5s)** | Excellent | Fallback / corporate standard only |
 
 > **⚠️ Do not use cloud embeddings as your primary provider.** Every memory search round-trips to an API server, adding 2-5 seconds of latency PER QUERY. This defeats the entire purpose of fast memory search. Local embeddings respond in <100ms. Use cloud only as a fallback if you have no local option at all.
 
@@ -44,9 +44,19 @@ OpenClaw 2026.4.15 added a `copilot` memory-search provider. If your org already
 
 **Gotcha:** Copilot embeddings share rate limits with Copilot chat completions. If you also use Copilot as an agent model, heavy memory-search traffic can starve chat — watch the new Model Auth card in Control UI for rate-limit pressure and keep a local fallback configured.
 
+### Late-April memory-search changes
+
+OpenClaw 2026.4.24+ exposes raw `vectorScore` and `textScore` on hybrid memory search results, alongside the combined `score`. Use those fields when a result feels "wrong":
+
+- high `vectorScore`, low `textScore` → semantically similar, weak lexical evidence
+- low `vectorScore`, high `textScore` → exact words matched, but the passage may be contextually irrelevant
+- both low, combined high → temporal decay or MMR ordering may be doing more work than the text deserves
+
+2026.4.29-beta.1 also adds Active Memory partial recall summaries on timeout. That is a safety net, not a replacement for fast local embeddings. If recall often times out, fix the embedding/index path instead of accepting partial summaries as normal.
+
 The `qwen3-embedding:0.6b` model is the sweet spot for most users — it's from the same Qwen3 family that holds #1 on MTEB, runs on anything, and blows away nomic on quality. Install via `ollama pull qwen3-embedding:0.6b`.
 
-If you have a dedicated GPU with 16GB+ VRAM, read on for the power user setup with Qwen3-VL-Embedding-8B.
+If you have a dedicated GPU with 16GB+ VRAM, read on for the power user setup with Qwen3-Embedding-8B.
 
 ---
 
@@ -75,7 +85,7 @@ Qwen3-Embedding-8B is from the Qwen3 family that holds #1 on MTEB. 4096 dimensio
 
 ## The Architecture: Stark Edition Server
 
-Don't just point Ollama at Qwen3-VL. Ollama uses GGUF format and can't serve this model efficiently. Instead, build a proper production embedding server — we called ours the "Stark Edition" because GPT-5.4 (Codex) built it and it's absurdly overengineered for a personal memory system.
+Don't just point Ollama at the 8B model. Ollama is great for `qwen3-embedding:0.6b`; for the 8B tier, build a proper production embedding server — we called ours the "Stark Edition" because GPT-5.4 (Codex) built it and it's absurdly overengineered for a personal memory system.
 
 ### Core features
 - **Dynamic request batching** — collects requests for up to 10ms, merges into single GPU batch
@@ -112,7 +122,7 @@ Wait for `"Warmup complete"` in the output before restarting OpenClaw.
     "defaults": {
       "memorySearch": {
         "provider": "openai",
-        "model": "Qwen3-VL-Embedding-8B",
+        "model": "Qwen3-Embedding-8B",
         "remote": {
           "baseUrl": "http://YOUR-GPU-PC-IP:8100/v1/",
           "apiKey": "local"
@@ -201,9 +211,9 @@ Once connected, you can restart the embedding server remotely, push updated file
 
 After running this setup in production:
 
-| Metric | nomic-embed-text | Qwen3-VL Stark Edition |
+| Metric | `qwen3-embedding:0.6b` | Qwen3-Embedding-8B Stark Edition |
 |--------|-----------------|------------------------|
-| **Dimensions** | 768 | 4096 |
+| **Dimensions** | 1024 | 4096 |
 | **Cache hit rate** | N/A (no cache) | 99.8% |
 | **Avg latency** | ~45ms (Ollama) | 14ms (cached) / 29ms (new) |
 | **L2 cache entries** | None | 6,000+ after first week |
@@ -217,8 +227,8 @@ The 99.8% cache hit rate is the real win. After a week of use, almost everything
 
 ## The Upgrade Path
 
-1. **Still getting started?** Use `nomic-embed-text` on Ollama (Part 4). Zero setup, works fine.
-2. **Have a GPU with 16GB+ VRAM?** Upgrade to Qwen3-VL with the Stark Edition server.
+1. **Still getting started?** Use `qwen3-embedding:0.6b` on Ollama (Part 4). Zero setup beyond `ollama pull`, much better retrieval than nomic.
+2. **Have a GPU with 16GB+ VRAM?** Upgrade to Qwen3-Embedding-8B with the Stark Edition server.
 3. **GPU PC is separate from your main PC?** Set up WinRM for remote control.
 
 Don't over-engineer if you don't need it. But if you're running 900+ vault files and doing serious AI work, 4096-dim embeddings with persistent caching make a real difference.

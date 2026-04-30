@@ -1,16 +1,16 @@
 All benchmarks from a production system running on Windows with RTX 5090 (embedding server) + TerpHQ gateway. Your numbers will vary based on hardware, vault size, and model choice.
 
 ## Memory Search Performance
-| Metric | nomic-embed-text (768-dim) | Qwen3-VL-Embedding-8B (4096-dim) |
+| Metric | nomic-embed-text (768-dim) | Qwen3-Embedding-8B (4096-dim) |
 |--------|---------------------------|----------------------------------|
 | Dimensions | 768 | 4096 |
-| MMEB Rank | ~Top 20 | #1 |
+| MTEB Rank | ~Top 20 | #1 family |
 | Search latency | ~45ms | ~45ms (L1 cache hit) / ~70ms (cold) |
 | Index size (our system) | 73-180 chunks per agent | 24,700+ chunks per agent |
 | Files indexed | 5-16 per agent | 947-962 per agent |
 | Cache entries | 59-293 | 6,682-41,617 |
-| Multimodal | No | Yes (text + image) |
-| VRAM required | ~300MB (Ollama) | ~16GB (custom Python server) |
+| Multimodal | No | No (text-only, what markdown memory needs) |
+| VRAM required | ~300MB (Ollama) | ~8GB INT8 / ~14GB FP16 (custom Python server) |
 
 ## Context Optimization
 | Metric | Stock OpenClaw | After Optimization |
@@ -55,7 +55,7 @@ All benchmarks from a production system running on Windows with RTX 5090 (embedd
 | Search relevance | 15 partial matches, 3 useful | 3-5 connected results |
 
 ## Agent Reindex (768→4096 dim)
-| Agent | Before (nomic) | After (Qwen3-VL) |
+| Agent | Before (nomic) | After (Qwen3-Embedding-8B) |
 |-------|---------------|------------------|
 | ops | 951 files, 24,733 chunks, 768-dim | 951 files, 24,752 chunks, 4096-dim |
 | alpha | 5 files, 73 chunks, 768-dim | 950 files, 24,789 chunks, 4096-dim |

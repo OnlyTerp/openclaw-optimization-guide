@@ -46,7 +46,7 @@ The key insight: **no context bleeds between iterations**. Every call is a fresh
 - **Git history** — commits are the durable trail of what changed.
 - **memory-core (MEMORY.md + DREAMS.md)** — what the agent learned, scored and promoted by the Deep-phase sweep (see [Part 22](./README.md#part-22-built-in-dreaming)).
 
-Because context is wiped between iterations, the loop is immune to context bloat. It also composes cleanly with Task Brain — every iteration produces a parent flow; every sub-agent spawn produces a child flow; you can `openclaw flows list` and see the entire run.
+Because context is wiped between iterations, the loop is immune to context bloat. It also composes cleanly with Task Brain — every iteration produces a parent task/flow; every sub-agent spawn produces a child task/flow; you can `openclaw tasks list` or `openclaw tasks flow list` and see the entire run.
 
 ## PRD Schema
 

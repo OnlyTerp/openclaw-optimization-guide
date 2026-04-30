@@ -16,17 +16,21 @@ Before 2026.3.31-beta.1, OpenClaw had four separate ways to run something:
 
 Each had its own execution path, its own audit trail (or lack of one), and its own approval semantics. Getting a complete picture of "what is this OpenClaw instance actually doing right now?" meant grepping four different log locations.
 
-Task Brain unified all of it onto a **SQLite-backed task flow registry**. Every non-trivial action in OpenClaw — regardless of who kicked it off — is now a flow in one ledger. You see it with:
+Task Brain unified all of it onto a **SQLite-backed task ledger**. Every non-trivial action in OpenClaw — regardless of who kicked it off — is now a task/flow in one ledger. Current CLI docs expose the ledger through the `openclaw tasks` command family:
 
 ```bash
-openclaw flows list
-openclaw flows show <flow-id>
-openclaw flows cancel <flow-id>
+openclaw tasks list
+openclaw tasks show <task-id>
+openclaw tasks cancel <task-id>
+openclaw tasks flow list
+openclaw tasks flow show <flow-id>
 ```
 
-> The release notes call this the **task flow registry**. Internal design docs from earlier betas called it the "task ledger" / "tasks" — if you read anything from before April 2026, the nouns don't match, but the object model does. The published CLI as of 2026.4.15 is `openclaw flows`.
+> Older 2026.4.15-era notes and screenshots used `openclaw flows`. If your installed binary still has that alias, it is the same ledger. Prefer `openclaw tasks --help` in new docs/runbooks.
 
 Think of it as the Kubernetes control plane, but for AI agent actions: unified lifecycle, heartbeat monitoring with automatic recovery of lost tasks, parent-record tracking so subtask results trace back to the originating conversation, and blocked-state persistence so tasks retry on the same flow instead of fragmenting.
+
+Late-April update: spawned sub-agent events now carry `spawnedBy` routing metadata, so channel clients can attach child-session progress to the parent run without an extra lookup. Combine that with active-run steering (covered in [Part 33](./part33-late-april-2026-field-guide.md)) and humans can correct a running agent at the next model boundary instead of starting a competing thread.
 
 ## The February–March CVE Wave (Why This Matters)
 
@@ -126,7 +130,7 @@ Task Brain added the inverse of the approval flow: an agent can now **refuse to 
 ```
 [agent] I've been asked to rm -rf ~/.openclaw/. I'm denying this because
         it would destroy the auth profiles. Flagging as task 9a3f-....
-[you]   openclaw flows show 9a3f
+[you]   openclaw tasks show 9a3f
 [you]   # confirm context, re-issue the request with explicit approval
 ```
 
@@ -153,16 +157,16 @@ A weekly habit worth building:
 
 ```bash
 # What's running right now? (stuck cron, forgotten spawn)
-openclaw flows list --status running
+openclaw tasks list --status running
 
 # Dig into anything that looks odd
-openclaw flows show <flow-id>
+openclaw tasks show <task-id>
 
 # Cancel runaway or orphaned flows
-openclaw flows cancel <flow-id>
+openclaw tasks cancel <task-id>
 ```
 
-For longer-horizon auditing (7-day window, category filters, denied/approved breakdowns), subcommand flags have moved between betas — run `openclaw flows --help` against your installed version for the exact set. As of 2026.4.15 the published verbs are `list`, `show`, and `cancel`. Category filtering and denied-flow rollups are primarily visible through the **Control UI** (Canvas → Flows), not via CLI flags.
+For longer-horizon auditing (7-day window, category filters, denied/approved breakdowns), subcommand flags have moved between betas — run `openclaw tasks --help` against your installed version for the exact set. Current docs expose `tasks list/show/cancel/audit/maintenance` and `tasks flow list/show/cancel`. Category filtering and denied-flow rollups are primarily visible through the **Control UI** task/flow panels, not via CLI flags.
 
 You'll find:
 
@@ -187,7 +191,7 @@ This is a real architectural choice. Here's the positioning an OpenClaw operator
 | **Setup cost** | Configure approvals, hooks, memory. This guide. | `pip install` + credit card. |
 | **Trust model** | You enforce approvals + hooks; agent has full local blast radius | They enforce sandbox boundaries; agent blast radius = their VM |
 | **Cost model** | Your infra + your model tokens | Their infra markup + your model tokens |
-| **Audit trail** | `openclaw flows list`, your logs | Their dashboard. You may or may not get the raw log. |
+| **Audit trail** | `openclaw tasks list`, your logs | Their dashboard. You may or may not get the raw log. |
 | **Customizability** | Full — every part of this guide | Fixed to what their UI exposes |
 | **Offline / air-gapped** | Works | Does not |
 
@@ -204,7 +208,7 @@ This is a real architectural choice. Here's the positioning an OpenClaw operator
 - [ ] No `execution.*` policies wider than the agent actually needs
 - [ ] Per-agent scopes configured for worker agents (narrower than the orchestrator)
 - [ ] `control-plane.skills` explicitly `deny` for all agents (install from CLI only)
-- [ ] `openclaw flows list` reviewed weekly — watch for stuck, denied, or orphaned flows (Canvas Flows panel gives the richer view)
+- [ ] `openclaw tasks list` reviewed weekly — watch for stuck, denied, or orphaned flows (Control UI task/flow panels give the richer view)
 - [ ] Approval prompts show redacted secrets (2026.4.15 — see [Part 15](./part15-infrastructure-hardening.md))
 - [ ] Agents are not punished for denying — denies are logged and used as signal
 - [ ] Unused plugins removed (fail-closed defaults apply, but unused surface is still surface)

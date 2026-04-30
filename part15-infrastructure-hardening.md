@@ -33,24 +33,27 @@ Set an explicit compaction model that won't rate-limit you:
   "agents": {
     "defaults": {
       "compaction": {
-        "model": "cerebras/qwen-3-235b-a22b-instruct-2507",
+        "model": "cerebras/gpt-oss-120b",
         "mode": "safeguard",
-        "reserveTokens": 15000
+        "reserveTokens": 8000,
+        "maxActiveTranscriptBytes": 300000
       }
     }
   }
 }
 ```
 
-**Why Cerebras?** 3,000 tokens/second, generous rate limits, and the 235B MoE model produces quality summaries.
+**Why Cerebras?** Fast infrastructure calls, generous rate limits, and cheap non-reasoning models such as `gpt-oss-120b` are a better fit for summarization than premium orchestrator models. If your provider catalog exposes a newer Cerebras Qwen model, test it behind this same config shape before making it the default.
 
 **Never use for compaction:** Gemini Flash (rate limits), expensive models like Opus (waste of money for summarization).
 
-### The Reserve-Token Trap on Small Local Models (fixed in 2026.4.15)
+### Reserve And Transcript Guards
 
 If you pointed `compaction.model` at a small local model (a 14B Qwen with a 16K-32K context window), you could hit a *different* infinite loop. When `reserveTokens` was larger than the model's context window, compaction would compute "I need to free more tokens than this model even accepts" — fail — retry — forever. Same crash-loop symptom, different root cause.
 
 2026.4.15 caps the reserve-token floor at the model's actual context window. If you're running a small local compaction worker, **upgrade to 2026.4.15 or later** and this class of loop is gone. If you can't upgrade yet, keep `reserveTokens` strictly under your compaction model's window (e.g. `reserveTokens: 4000` on a 16K-context model — never higher than ~25% of the window).
+
+Late-April builds also add transcript-byte guards (`maxActiveTranscriptBytes`) so a huge active transcript cannot keep feeding compaction forever. Set it explicitly on busy agents; tune upward only after reviewing real transcript sizes.
 
 ---
 
@@ -80,7 +83,7 @@ Select-String -Path ~/.openclaw/openclaw.json -Pattern "gemini-2.5-flash"
 
 **2. Replace in priority order:**
 - Compaction model → Cerebras or local model
-- Agent fallbacks → Cerebras qwen235b
+- Agent fallbacks → Cerebras `gpt-oss-120b` or provider-catalog DeepSeek/Kimi workers
 - Web search provider → Tavily
 
 ---
@@ -91,7 +94,7 @@ Select-String -Path ~/.openclaw/openclaw.json -Pattern "gemini-2.5-flash"
 
 If you run a local embedding server on the same GPU you game/infer on:
 
-- Embedding server allocates 15GB+ VRAM (Qwen3-VL-8B in FP16)
+- Embedding server allocates ~14GB VRAM (Qwen3-Embedding-8B in FP16)
 - CUDA "already borrowed" errors → embedding server crashes
 - Kill embedding server to game → memory system dies
 
@@ -132,13 +135,17 @@ POST /v1/embeddings    → OpenAI-format embedding generation
 Config:
 ```json
 {
-  "memorySearch": {
-    "provider": "openai",
-    "remote": {
-      "baseUrl": "http://127.0.0.1:8100/v1/",
-      "apiKey": "local"
-    },
-    "model": "Qwen3-Embedding-8B"
+  "agents": {
+    "defaults": {
+      "memorySearch": {
+        "provider": "openai",
+        "remote": {
+          "baseUrl": "http://127.0.0.1:8100/v1/",
+          "apiKey": "local"
+        },
+        "model": "Qwen3-Embedding-8B"
+      }
+    }
   }
 }
 ```

@@ -61,7 +61,7 @@ Install-Template "MEMORY.md" 4
 Install-Template "TOOLS.md" 2
 
 # Step 4: Ollama
-Write-Host "[4/5] Setting up Ollama + nomic-embed-text..." -ForegroundColor Yellow
+Write-Host "[4/5] Setting up Ollama + qwen3-embedding:0.6b..." -ForegroundColor Yellow
 
 $ollamaPath = Get-Command ollama -ErrorAction SilentlyContinue
 if ($ollamaPath) {
@@ -73,12 +73,12 @@ if ($ollamaPath) {
 }
 
 $models = ollama list 2>$null
-if ($models -match "nomic-embed-text") {
-    Write-Host "  OK nomic-embed-text already available" -ForegroundColor Green
+if ($models -match "qwen3-embedding:0.6b") {
+    Write-Host "  OK qwen3-embedding:0.6b already available" -ForegroundColor Green
 } else {
-    Write-Host "  Pulling nomic-embed-text (300MB)..." -ForegroundColor Yellow
-    ollama pull nomic-embed-text
-    Write-Host "  OK nomic-embed-text ready" -ForegroundColor Green
+    Write-Host "  Pulling qwen3-embedding:0.6b (500MB)..." -ForegroundColor Yellow
+    ollama pull qwen3-embedding:0.6b
+    Write-Host "  OK qwen3-embedding:0.6b ready" -ForegroundColor Green
 }
 
 # Step 5: Verify

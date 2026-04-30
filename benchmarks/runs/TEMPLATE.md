@@ -5,7 +5,7 @@
 
 - **Date:** 2026-MM-DD
 - **Author:** @your-handle
-- **OpenClaw version:** 2026.4.15 stable (or whatever you're on — be exact)
+- **OpenClaw version:** 2026.4.27 stable (or whatever you're on — be exact)
 - **Scorecard score:** XX / 100 — link to your scorecard snapshot if public
 - **Outcome:** `improved` / `no-improvement` / `regressed` / `partial`
 
@@ -21,7 +21,7 @@ Anything that makes your numbers non-transferable. Always include at least one. 
 
 ## Setup
 
-- Primary model: `anthropic:opus` (Claude Opus 4.7, 2026.4.15 stable)
+- Primary model: `anthropic:opus` / `bedrock:opus` / your exact provider route
 - Compaction model: `...`
 - Embedding: `...`
 - Vault size: `...` files, `...` chunks
