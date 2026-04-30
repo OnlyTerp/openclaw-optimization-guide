@@ -19,6 +19,5 @@ exclude = [
   "^https://example\\.com",
 ]
 
-# Don't fail on missing fragments — GitHub's slug rules differ from lychee's,
-# and markdownlint's MD051 is too strict for emoji-prefixed headings.
-include_fragments = "none"
+# Fragment checks stay on lychee's default. The config key changed shape between
+# lychee 0.23 and 0.24, so setting it here breaks one of those versions.
