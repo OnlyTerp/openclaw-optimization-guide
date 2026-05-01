@@ -21,6 +21,46 @@ Running multiple agents without observability is flying blind. You don't know:
 
 ### Setup
 
+
+## ClawClip — Session Replay & Cost Analysis
+
+Before setting up full observability infrastructure, start with [ClawClip](https://github.com/Ylsssq926/clawclip) — a local web app that reads your OpenClaw/ZeroClaw session logs and shows you exactly where tokens are going.
+
+### What It Does
+
+ClawClip gives you three views of each run:
+
+1. **Run Insights (Replay)** — Step through what your agent actually did: every tool call, retry, reasoning block, and response, in order. Find where it went sideways without digging through raw JSONL.
+
+2. **Agent Scorecard (Benchmark)** — Six-dimension verdict after each run (writing, code, tool use, retrieval, safety, cost-efficiency). When you make a change, you get before/after proof: score, tokens, cost.
+
+3. **Cost Report** — Breaks spend by model, task, and session. Flags retry loops, context bloat, prompt inefficiency, and model mismatches. Tells you which changes are most likely to cut cost without hurting quality.
+
+### Setup
+
+```bash
+git clone https://github.com/Ylsssq926/clawclip.git
+cd clawclip && npm install
+npm start
+# → http://localhost:8080
+```
+
+ClawClip auto-discovers `~/.openclaw/` sessions. For custom paths:
+
+```bash
+CLAWCLIP_LOBSTER_DIRS=/path/to/your/sessions npm start
+```
+
+### Why Start Here
+
+- **Zero infrastructure** — no Docker, no databases, just reads local logs
+- **Immediate value** — see where money's going in 2 minutes
+- **Answers the key question** — did my agent get better, or just more expensive?
+
+Once you're running multiple agents or need real-time tracing, add LangFuse below. But for single-agent optimization, ClawClip is often enough.
+
+---
+
 ```yaml
 # docker-compose.yml (simplified)
 services:
