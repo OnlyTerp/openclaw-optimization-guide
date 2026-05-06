@@ -1,17 +1,17 @@
 {
   "$schema": "https://openclaw.dev/schema/openclaw.schema.json",
-  "_comment": "Balanced setup: Sonnet/Gemini Pro orchestrator, DeepSeek V4 Flash fallback, Kimi K2.6/DeepInfra/local workers. Low paid spend. Based on OpenClaw 2026.4.27 stable.",
+  "_comment": "Balanced setup: Claude Sonnet orchestrator, DeepSeek V4 Flash fallback, Kimi K2.6/DeepInfra/local workers. Low paid spend. Based on OpenClaw 2026.4.27 stable.",
 
   "agents": {
     "defaults": {
       "model": {
         "primary": "anthropic/sonnet",
         "fallbacks": [
-          "google/gemini-3-pro",
           "deepseek/deepseek-v4-flash",
-          "openrouter/moonshotai/kimi-k2.6"
+          "openrouter/moonshotai/kimi-k2.6",
+          "openrouter/free"
         ],
-        "_comment": "Primary: Sonnet (paid API). First fallback: Gemini Pro (good free-tier or paid). Second fallback: DeepSeek V4 Flash (cheap/fast). Third: Kimi K2.6 for extra resilience."
+        "_comment": "Primary: Sonnet (paid Anthropic API). First fallback: DeepSeek V4 Flash (cheap/fast). Second: Kimi K2.6 via OpenRouter. Third: openrouter/free auto-routes to the best available free model."
       },
       "compaction": {
         "model": "deepseek/deepseek-v4-flash",
@@ -47,11 +47,11 @@
       "model": {
         "primary": "openrouter/moonshotai/kimi-k2.6",
         "fallbacks": [
-          "deepinfra/meta-llama/llama-3.3-70b-instruct",
+          "openrouter/deepinfra/meta-llama/llama-3.3-70b-instruct",
           "deepseek/deepseek-v4-flash",
-          "google/gemini-3-flash"
+          "openrouter/free"
         ],
-        "_comment": "Workers use Kimi K2.6 as the budget workhorse. DeepInfra Llama is the local-equivalent cloud fallback. DeepSeek Flash and Gemini Flash round out the chain."
+        "_comment": "Workers primary: Kimi K2.6 via OpenRouter (budget workhorse). DeepInfra Llama routed through OpenRouter. DeepSeek Flash direct. openrouter/free as catch-all last resort."
       },
       "experimental": {
         "localModelLean": false
