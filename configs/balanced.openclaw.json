@@ -1,0 +1,117 @@
+{
+  "$schema": "https://openclaw.dev/schema/openclaw.schema.json",
+  "_comment": "Balanced setup: Sonnet/Gemini Pro orchestrator, DeepSeek V4 Flash fallback, Kimi K2.6/DeepInfra/local workers. Low paid spend. Based on OpenClaw 2026.4.27 stable.",
+
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "anthropic/sonnet",
+        "fallbacks": [
+          "google/gemini-3-pro",
+          "deepseek/deepseek-v4-flash",
+          "openrouter/moonshotai/kimi-k2.6"
+        ],
+        "_comment": "Primary: Sonnet (paid API). First fallback: Gemini Pro (good free-tier or paid). Second fallback: DeepSeek V4 Flash (cheap/fast). Third: Kimi K2.6 for extra resilience."
+      },
+      "compaction": {
+        "model": "deepseek/deepseek-v4-flash",
+        "reserveTokens": 8000,
+        "maxActiveTranscriptBytes": 300000,
+        "_comment": "Use DeepSeek V4 Flash for compaction — fast and cheap, no need for frontier quality here."
+      },
+      "memorySearch": {
+        "provider": "ollama",
+        "model": "qwen3-embedding:0.6b",
+        "endpoint": "http://localhost:11434",
+        "inputType": "search_query",
+        "documentInputType": "search_document"
+      },
+      "contextPruning": {
+        "mode": "cache-ttl",
+        "ttl": "5m"
+      },
+      "prompts": {
+        "cacheControl": {
+          "soul":   { "type": "ephemeral", "ttl": "1h" },
+          "agents": { "type": "ephemeral", "ttl": "1h" },
+          "memory": { "type": "ephemeral", "ttl": "1h" },
+          "skills": { "type": "ephemeral", "ttl": "5m" }
+        }
+      },
+      "experimental": {
+        "localModelLean": false
+      }
+    },
+
+    "workers": {
+      "model": {
+        "primary": "openrouter/moonshotai/kimi-k2.6",
+        "fallbacks": [
+          "deepinfra/meta-llama/llama-3.3-70b-instruct",
+          "deepseek/deepseek-v4-flash",
+          "google/gemini-3-flash"
+        ],
+        "_comment": "Workers use Kimi K2.6 as the budget workhorse. DeepInfra Llama is the local-equivalent cloud fallback. DeepSeek Flash and Gemini Flash round out the chain."
+      },
+      "experimental": {
+        "localModelLean": false
+      }
+    }
+  },
+
+  "plugins": {
+    "entries": {
+      "memory-core": {
+        "enabled": true,
+        "config": {
+          "dreaming": {
+            "enabled": true,
+            "schedule": "0 3 * * *",
+            "storage": { "mode": "separate" }
+          }
+        }
+      },
+      "memory-lancedb": {
+        "enabled": true,
+        "config": {
+          "storage": { "mode": "local" }
+        }
+      }
+    }
+  },
+
+  "messages": {
+    "visibleReplies": true
+  },
+
+  "skills": {
+    "autoUpdate": false,
+    "updateNotify": true
+  },
+
+  "taskBrain": {
+    "approvals": {
+      "defaults": {
+        "read-only.*":              "allow",
+        "execution.sandbox.*":      "allow",
+        "execution.*":              "ask",
+        "write.fs.workspace":       "allow",
+        "write.fs.outside-workspace": "deny",
+        "write.network":            "ask",
+        "control-plane.*":          "deny"
+      }
+    }
+  },
+
+  "auth": {
+    "profiles": {
+      "default": {
+        "anthropic": "${ANTHROPIC_API_KEY}",
+        "google":    "${GOOGLE_API_KEY}",
+        "deepseek":  "${DEEPSEEK_API_KEY}",
+        "deepinfra": "${DEEPINFRA_API_KEY}",
+        "openrouter": "${OPENROUTER_API_KEY}"
+      }
+    }
+  }
+}
