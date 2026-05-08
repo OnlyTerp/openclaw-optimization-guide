@@ -33,6 +33,5 @@ jobs:
             --offline
             --no-progress
             --verbose
-            --exclude-path 'server-config'
             '**/*.md'
           fail: true
