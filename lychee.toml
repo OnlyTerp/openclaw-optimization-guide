@@ -5,10 +5,13 @@
 # for a prose guide full of third-party references.
 # (The CI workflow passes --offline; this file just documents intent.)
 
-# Paths that contain placeholder / template links that are valid in a user's
-# actual setup but not in this repo. Lychee treats these as broken, so exclude them.
+# Paths that contain placeholder / template links or operational mirror files
+# that aren't real docs. exclude_path values are REGEX (not glob); a trailing
+# slash is a literal character, so we use anchored regex per the official
+# lychee.example.toml pattern (https://github.com/lycheeverse/lychee/blob/master/lychee.example.toml).
 exclude_path = [
-  "templates/",
+  "(^|/)templates($|/)",
+  "(^|/)server-config($|/)",
 ]
 
 # Ignore specific URL patterns we know are placeholders or ephemeral.
