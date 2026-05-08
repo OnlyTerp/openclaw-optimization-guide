@@ -5,6 +5,7 @@ repo_url: https://github.com/OnlyTerp/openclaw-optimization-guide
 repo_name: OnlyTerp/openclaw-optimization-guide
 edit_uri: edit/master/
 copyright: "Copyright © Terp AI Labs. MIT-licensed."
+docs_dir: .
 
 theme:
   name: material
