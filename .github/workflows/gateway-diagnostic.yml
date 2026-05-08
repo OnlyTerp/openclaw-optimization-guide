@@ -1,0 +1,38 @@
+name: Gateway diagnostic
+
+# SSHs into the server and prints the last 200 lines of the gateway log
+# plus node version, openclaw version, and process list.
+# Trigger from Actions tab -> "Gateway diagnostic" -> Run workflow.
+# Read the output in the "Run diagnostics" step log.
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run diagnostics on server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ vars.SERVER_HOST }}
+          username: ${{ vars.SERVER_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          script_stop: false
+          script: |
+            echo "=== node version ==="
+            node --version 2>&1 || echo "node not found"
+            echo "=== openclaw version ==="
+            node ~/.npm-global/bin/openclaw --version 2>&1 || echo "openclaw binary not found"
+            echo "=== running processes ==="
+            ps aux | grep -E "(openclaw|node)" | grep -v grep || echo "no openclaw/node processes"
+            echo "=== port 18789 ==="
+            ss -tlnp 2>/dev/null | grep 18789 || echo "nothing on 18789"
+            echo "=== openclaw.json (first 30 lines, no secrets) ==="
+            head -30 ~/.openclaw/openclaw.json 2>/dev/null || echo "openclaw.json not found"
+            echo "=== gateway.log (last 100 lines) ==="
+            tail -100 ~/.openclaw/logs/gateway.log 2>/dev/null || echo "gateway.log not found"
+            echo "=== workspace dir ==="
+            ls -la ~/.openclaw/workspace/ 2>/dev/null | head -30 || echo "workspace dir missing"
+            echo "=== workspace .openclaw/ ==="
+            ls -la ~/.openclaw/workspace/.openclaw/ 2>/dev/null || echo "no .openclaw/ in workspace"
