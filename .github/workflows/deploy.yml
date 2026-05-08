@@ -19,10 +19,14 @@ jobs:
           host: ${{ vars.SERVER_HOST }}
           username: ${{ vars.SERVER_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
+          # script_stop injects an `exit $?` after EACH line of the script
+          # (drone-ssh plugin.go scriptCommands), so a failure on one line
+          # aborts the session before the next line runs. We need
+          # restart-gateway failure to flow into rollback, so the restart +
+          # healthcheck + rollback chain MUST be a single line.
           script_stop: true
           script: |
             cd ~/openclaw-optimization-guide && git pull origin master
             bash scripts/sync-workspace.sh
             python3 scripts/patches/0001-providers.py
-            bash scripts/restart-gateway.sh
-            bash scripts/healthcheck.sh || bash scripts/rollback.sh
+            bash scripts/restart-gateway.sh && bash scripts/healthcheck.sh || bash scripts/rollback.sh
