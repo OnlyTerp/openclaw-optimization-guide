@@ -63,9 +63,16 @@ jobs:
             print("Config updated.")
             EOF
 
-            # Restart the gateway
+            # Restart the gateway, fully detached from this SSH session
+            mkdir -p ~/.openclaw/logs
             pkill -9 -f "openclaw gateway" || true
             sleep 2
-            nohup node /home/clawadmin/.npm-global/bin/openclaw gateway --port 18789 \
-              > ~/.openclaw/logs/gateway.log 2>&1 < /dev/null &
-            echo "Gateway restarted."
+            setsid bash -c 'nohup node /home/clawadmin/.npm-global/bin/openclaw gateway --port 18789 > ~/.openclaw/logs/gateway.log 2>&1 < /dev/null &'
+            sleep 3
+            if pgrep -f "openclaw gateway" > /dev/null; then
+              echo "Gateway restarted successfully."
+            else
+              echo "Gateway failed to start — check ~/.openclaw/logs/gateway.log"
+              exit 1
+            fi
+            exit 0
