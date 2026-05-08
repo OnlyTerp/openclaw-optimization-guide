@@ -5,6 +5,10 @@ on:
     branches:
       - master
 
+concurrency:
+  group: deploy-server
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -12,67 +16,13 @@ jobs:
       - name: Deploy to OpenClaw server
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: 167.99.237.49
-          username: clawadmin
+          host: ${{ vars.SERVER_HOST }}
+          username: ${{ vars.SERVER_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
+          script_stop: true
           script: |
             cd ~/openclaw-optimization-guide && git pull origin master
-
-            python3 << 'EOF'
-            import json, os
-
-            path = os.path.expanduser("~/.openclaw/openclaw.json")
-
-            with open(path) as f:
-                c = json.load(f)
-
-            # Add Kimi K2.6 to OpenRouter if not already there
-            or_models = c['models']['providers']['openrouter']['models']
-            if not any(m['id'] == 'moonshotai/kimi-k2.6' for m in or_models):
-                or_models.append({
-                    "id": "moonshotai/kimi-k2.6",
-                    "name": "Kimi K2.6 (OpenRouter)",
-                    "contextWindow": 131072,
-                    "maxTokens": 16384
-                })
-
-            # Add DeepSeek provider if not already there
-            if 'deepseek' not in c['models']['providers']:
-                c['models']['providers']['deepseek'] = {
-                    "baseUrl": "https://api.deepseek.com",
-                    "auth": "api-key",
-                    "apiKey": { "source": "env", "provider": "default", "id": "DEEPSEEK_API_KEY" },
-                    "models": [{"id": "deepseek-chat", "name": "DeepSeek V4 Flash", "contextWindow": 65536, "maxTokens": 8192}]
-                }
-
-            # Set fallback chain if not already set
-            current_model = c['agents']['defaults']['model']
-            if isinstance(current_model, str):
-                c['agents']['defaults']['model'] = {
-                    "primary": current_model,
-                    "fallbacks": [
-                        "deepseek/deepseek-chat",
-                        "openrouter/moonshotai/kimi-k2.6",
-                        "openrouter/google/gemma-3-27b-it:free"
-                    ]
-                }
-
-            with open(path, 'w') as f:
-                json.dump(c, f, indent=2)
-
-            print("Config updated.")
-            EOF
-
-            # Restart the gateway, fully detached from this SSH session
-            mkdir -p ~/.openclaw/logs
-            pkill -9 -f "openclaw gateway" || true
-            sleep 2
-            setsid bash -c 'nohup node /home/clawadmin/.npm-global/bin/openclaw gateway --port 18789 > ~/.openclaw/logs/gateway.log 2>&1 < /dev/null &'
-            sleep 3
-            if pgrep -f "openclaw gateway" > /dev/null; then
-              echo "Gateway restarted successfully."
-            else
-              echo "Gateway failed to start — check ~/.openclaw/logs/gateway.log"
-              exit 1
-            fi
-            exit 0
+            bash scripts/sync-workspace.sh
+            python3 scripts/patches/0001-providers.py
+            bash scripts/restart-gateway.sh
+            bash scripts/healthcheck.sh || bash scripts/rollback.sh
