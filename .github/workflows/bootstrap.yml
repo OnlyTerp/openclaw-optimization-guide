@@ -1,0 +1,55 @@
+name: Bootstrap server-config from server
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Install rsync
+        run: sudo apt-get update && sudo apt-get install -y rsync
+
+      - name: Configure SSH
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+          SERVER_HOST: ${{ vars.SERVER_HOST }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "${DEPLOY_KEY}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "${SERVER_HOST}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Pull workspace from server
+        env:
+          SERVER_HOST: ${{ vars.SERVER_HOST }}
+          SERVER_USER: ${{ vars.SERVER_USER }}
+        run: bash scripts/bootstrap-from-server.sh
+
+      - name: Open PR with captured state
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "claude-bootstrap"
+          git config user.email "claude-bootstrap@users.noreply.github.com"
+          BRANCH="claude/bootstrap-server-config-$(date -u +%Y%m%d-%H%M%S)"
+          git checkout -b "${BRANCH}"
+          git add server-config/
+          if git diff --cached --quiet; then
+            echo "No changes to commit; bootstrap captured no files."
+            exit 0
+          fi
+          git commit -m "Bootstrap: capture server-config/workspace/ from live server"
+          git push -u origin "${BRANCH}"
+          gh pr create \
+            --title "Bootstrap server-config from live server" \
+            --body "Auto-captured workspace files from the OpenClaw server. Review and merge to begin syncing." \
+            --base master \
+            --head "${BRANCH}"

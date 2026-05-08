@@ -1,0 +1,45 @@
+# Secrets — never commit
+secrets.env
+secrets.env.*
+**/secrets.env
+**/secrets.env.*
+gateway.token
+**/gateway.token
+
+# Backups — never commit
+**/*.bak
+**/*.bak.*
+**/*.clobbered.*
+**/*.last-good
+**/*-bak
+**/*.pre-balanced-bak
+
+# Server runtime state — never sync to repo
+server-config/logs/
+server-config/memory/
+server-config/delivery-queue/
+server-config/session-delivery-queue/
+server-config/identity/
+server-config/tasks/
+server-config/blockrun/
+server-config/canvas/
+server-config/devices/
+server-config/media/
+server-config/telegram/
+server-config/workspace-backup/
+server-config/exec-approvals.json
+server-config/update-check.json
+server-config/systemd.env
+server-config/systemd.env.bak
+
+# Node modules anywhere
+**/node_modules/
+
+# Local sync artifacts
+.sync-backups/
+/tmp/drift.diff
+
+# Python build artifacts
+__pycache__/
+*.pyc
+*.pyo

@@ -1,0 +1,64 @@
+name: Validate
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/**'
+      - 'server-config/**'
+      - '.github/workflows/**'
+      - 'configs/**'
+      - 'templates/**'
+
+permissions:
+  contents: read
+
+jobs:
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install shellcheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+      - name: Run shellcheck
+        run: |
+          set -e
+          mapfile -t files < <(find scripts -type f -name '*.sh')
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No shell scripts to check."
+            exit 0
+          fi
+          shellcheck "${files[@]}"
+
+  pycompile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile python
+        run: |
+          set -e
+          mapfile -t files < <(find scripts -type f -name '*.py')
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No python scripts to compile."
+            exit 0
+          fi
+          python -m py_compile "${files[@]}"
+
+  jsonvalidate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate committed JSON
+        run: |
+          set -e
+          mapfile -t files < <(find server-config configs templates -type f -name '*.json' 2>/dev/null)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No JSON to validate."
+            exit 0
+          fi
+          python3 scripts/lib/validate-json.py "${files[@]}"
