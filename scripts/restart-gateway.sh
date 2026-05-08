@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+export PATH="$HOME/.npm-global/bin:$PATH"
 # Restart the OpenClaw gateway using the native openclaw CLI.
 # setup.sh (line 127) in this repo documents the correct restart pattern:
 #   openclaw gateway stop && openclaw gateway start
