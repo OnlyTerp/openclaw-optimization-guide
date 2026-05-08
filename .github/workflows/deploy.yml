@@ -1,0 +1,71 @@
+name: Deploy to server
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to OpenClaw server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 167.99.237.49
+          username: clawadmin
+          key: ${{ secrets.DEPLOY_KEY }}
+          script: |
+            cd ~/openclaw-optimization-guide && git pull origin master
+
+            python3 << 'EOF'
+            import json, os
+
+            path = os.path.expanduser("~/.openclaw/openclaw.json")
+
+            with open(path) as f:
+                c = json.load(f)
+
+            # Add Kimi K2.6 to OpenRouter if not already there
+            or_models = c['models']['providers']['openrouter']['models']
+            if not any(m['id'] == 'moonshotai/kimi-k2.6' for m in or_models):
+                or_models.append({
+                    "id": "moonshotai/kimi-k2.6",
+                    "name": "Kimi K2.6 (OpenRouter)",
+                    "contextWindow": 131072,
+                    "maxTokens": 16384
+                })
+
+            # Add DeepSeek provider if not already there
+            if 'deepseek' not in c['models']['providers']:
+                c['models']['providers']['deepseek'] = {
+                    "baseUrl": "https://api.deepseek.com",
+                    "auth": "api-key",
+                    "apiKey": { "source": "env", "provider": "default", "id": "DEEPSEEK_API_KEY" },
+                    "models": [{"id": "deepseek-chat", "name": "DeepSeek V4 Flash", "contextWindow": 65536, "maxTokens": 8192}]
+                }
+
+            # Set fallback chain if not already set
+            current_model = c['agents']['defaults']['model']
+            if isinstance(current_model, str):
+                c['agents']['defaults']['model'] = {
+                    "primary": current_model,
+                    "fallbacks": [
+                        "deepseek/deepseek-chat",
+                        "openrouter/moonshotai/kimi-k2.6",
+                        "openrouter/google/gemma-3-27b-it:free"
+                    ]
+                }
+
+            with open(path, 'w') as f:
+                json.dump(c, f, indent=2)
+
+            print("Config updated.")
+            EOF
+
+            # Restart the gateway
+            pkill -9 -f "openclaw gateway" || true
+            sleep 2
+            nohup node /home/clawadmin/.npm-global/bin/openclaw gateway --port 18789 \
+              > ~/.openclaw/logs/gateway.log 2>&1 < /dev/null &
+            echo "Gateway restarted."
