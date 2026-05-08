@@ -1,26 +1,15 @@
 #!/usr/bin/env bash
-# Restart the OpenClaw gateway, fully detached from this SSH session.
+# Restart the OpenClaw gateway using the native openclaw CLI.
+# setup.sh (line 127) in this repo documents the correct restart pattern:
+#   openclaw gateway stop && openclaw gateway start
+# Previous versions used pkill + nohup + setsid which bypassed OpenClaw's
+# own process manager and caused the gateway to fail to start.
 set -euo pipefail
 
-PORT="${OPENCLAW_PORT:-18789}"
-BIN="${OPENCLAW_BIN:-${HOME}/.npm-global/bin/openclaw}"
-LOG_DIR="${HOME}/.openclaw/logs"
-LOG_FILE="${LOG_DIR}/gateway.log"
+echo "restart-gateway: stopping existing gateway..."
+openclaw gateway stop 2>/dev/null || true
 
-mkdir -p "${LOG_DIR}"
+echo "restart-gateway: starting gateway..."
+openclaw gateway start
 
-echo "restart-gateway: stopping existing gateway processes..."
-pkill -9 -f "openclaw gateway" || true
-sleep 2
-
-echo "restart-gateway: starting new gateway on port ${PORT}..."
-setsid bash -c "nohup node \"${BIN}\" gateway --port ${PORT} > \"${LOG_FILE}\" 2>&1 < /dev/null &"
-sleep 3
-
-if pgrep -f "openclaw gateway" > /dev/null; then
-  echo "restart-gateway: gateway running."
-  exit 0
-else
-  echo "restart-gateway: ERROR - gateway did not start. See ${LOG_FILE}."
-  exit 1
-fi
+echo "restart-gateway: done"
