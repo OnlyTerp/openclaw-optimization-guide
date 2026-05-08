@@ -11,3 +11,6 @@ This is the openclaw-optimization-guide repo. Config files live in `configs/`. T
 2. Commit with a clear message
 3. Push to origin
 4. Open a PR to merge into master — do this every time without being asked
+
+## Formatting
+- When sharing URLs, never wrap them in markdown formatting (no `**bold**`, no `[text](url)`). The user's iPad client breaks links inside markdown formatting. Always use bare URLs like `https://github.com/...`
