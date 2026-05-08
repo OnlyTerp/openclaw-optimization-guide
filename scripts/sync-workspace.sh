@@ -19,17 +19,22 @@ fi
 mkdir -p "${DST}" "${BACKUP_ROOT}"
 
 echo "Drift dry-run (server vs repo) -> ${DRIFT_FILE}"
-rsync -avcni --delete-after "${SRC}" "${DST}" > "${DRIFT_FILE}" || true
+rsync -avcni "${SRC}" "${DST}" > "${DRIFT_FILE}" || true
 if [ -s "${DRIFT_FILE}" ]; then
   echo "Drift detected; full diff saved to ${DRIFT_FILE}"
 else
   echo "No drift."
 fi
 
+# NO --delete-after. The repo is a partial mirror (bootstrap only captures
+# whitelisted files). If we deleted server files that aren't in the repo,
+# we'd wipe runtime state like .openclaw/workspace-state.json and break
+# the gateway -- which is exactly what happened on 2026-05-08.
+# Files added/changed in the repo flow to the server; files only on the
+# server stay there. To remove a server file, do it manually.
 echo "Syncing ${SRC} -> ${DST} (backups in ${BACKUP_DIR})"
 rsync -avc \
   --backup --backup-dir="${BACKUP_DIR}" \
-  --delete-after \
   "${SRC}" "${DST}"
 
 # Retain only the 10 most recent backup directories.

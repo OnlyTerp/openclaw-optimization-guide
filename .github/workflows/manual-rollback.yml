@@ -1,0 +1,29 @@
+name: Manual rollback
+
+# One-click rollback. SSHs to the server and runs scripts/rollback.sh,
+# which restores the most recent ~/.openclaw/.sync-backups/<ts>/ over
+# ~/.openclaw/workspace/ and restarts the gateway.
+#
+# Use this if a deploy left the gateway down and the auto-rollback didn't
+# fire. Trigger from the Actions tab -> "Manual rollback" -> Run workflow.
+
+on:
+  workflow_dispatch: {}
+
+concurrency:
+  group: deploy-server
+  cancel-in-progress: false
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run rollback on server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ vars.SERVER_HOST }}
+          username: ${{ vars.SERVER_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          script_stop: false
+          script: |
+            cd ~/openclaw-optimization-guide && bash scripts/rollback.sh
