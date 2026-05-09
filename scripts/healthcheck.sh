@@ -46,7 +46,7 @@ echo "healthcheck: FAILED after ${RETRIES} tries"
 
 echo
 echo "=== PROCESS CHECK ==="
-ps aux | grep -i '[o]penclaw\|[g]ateway\|18789' || true
+pgrep -afi 'openclaw|gateway|18789' || true
 
 echo
 echo "=== PORT CHECK ==="
