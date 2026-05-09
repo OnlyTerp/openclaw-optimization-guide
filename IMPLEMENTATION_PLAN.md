@@ -3,7 +3,7 @@
 Repo: https://github.com/PeskyE/openclaw-optimization-guide
 Operator: Kevin (PeskyE)
 Plan generated: 2026-05-08
-Loop: scripts/loop.sh (MAX_ITERS=6, MAX_SECONDS=3600, RETRY_LIMIT=1)
+Loop: scripts/ralph-loop.sh (MAX_ITERS=6, MAX_SECONDS=3600, RETRY_LIMIT=1)
 
 Ralph reads this file every iteration. Ralph executes the next unchecked iteration. Ralph commits the checkbox tick on the same branch as the iteration's work. STATUS: COMPLETE is written only after Phase 7 verification passes — never earlier.
 
@@ -13,8 +13,8 @@ Ralph reads this file every iteration. Ralph executes the next unchecked iterati
 
 - [ ] Branch: claude/iter-00-preflight
 - [ ] Run scripts/ralph-loop.sh's preflight() in dry-run mode (set MAX_ITERS=0 and exit before the loop) and capture the preflight section of .ralph/ralph.log into .ralph/preflight-report.md
-- [ ] Confirm in the report: PROMPT.md / AGENTS.md / IMPLEMENTATION_PLAN.md present at repo root, ANTHROPIC_API_KEY set in environment, claude or opencode CLI on PATH, Ollama reachable at localhost:11434 with qwen3-embedding:0.6b pulled, git remote reachable, gh CLI authenticated, .ralph/ writable
-- [ ] If ANY required check fails, write the failure to .ralph/notes.md and STOP — do not advance to iteration 1. Operator fixes the env, re-runs.
+- [ ] Confirm in the report (REQUIRED — block iter-0 if any fail): PROMPT.md / AGENTS.md / IMPLEMENTATION_PLAN.md present at repo root, ANTHROPIC_API_KEY set in environment, claude or opencode CLI on PATH, git remote reachable, gh CLI authenticated, .ralph/ writable. Confirm separately (RECOMMENDED — block iter-1 only): Ollama reachable at localhost:11434 with qwen3-embedding:0.6b pulled. If Ollama is missing, write a clear note to .ralph/notes.md and proceed with iter-0; iter-1 (Memory Bridge) is the first iteration that requires it.
+- [ ] If any REQUIRED check fails (see above), write the failure to .ralph/notes.md and STOP — do not advance to iteration 1. Operator fixes the env, re-runs. RECOMMENDED-only failures (e.g. Ollama) do not stop iter-0 — they are noted and surfaced when their dependent iteration runs.
 - [ ] If all checks pass, commit .ralph/preflight-report.md
 - [ ] Open PR: "iter-00: Environment preflight report"
 - [ ] Append to .ralph/ralph.log
