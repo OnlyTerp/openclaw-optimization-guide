@@ -30,7 +30,8 @@ mkdir -p "$RALPH_DIR" "$ITER_LOG_DIR"
 touch "$LOG"
 
 log() {
-  local msg="[$(date -u +%Y-%m-%dT%H:%M:%SZ)] $*"
+  local msg
+  msg="[$(date -u +%Y-%m-%dT%H:%M:%SZ)] $*"
   echo "$msg" | tee -a "$LOG"
 }
 
@@ -188,7 +189,8 @@ run_iteration() {
   local n="$1"
   local cli
   cli="$(cat "$RALPH_DIR/cli.txt" 2>/dev/null || echo claude)"
-  local iter_log="$ITER_LOG_DIR/iter-$(printf '%03d' "$n").log"
+  local iter_log
+  iter_log="$ITER_LOG_DIR/iter-$(printf '%03d' "$n").log"
 
   log "--- Iteration $n start (cli=$cli) ---"
   write_status "running" "$n" "iteration in progress"
