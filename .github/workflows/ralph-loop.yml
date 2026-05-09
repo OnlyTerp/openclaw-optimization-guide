@@ -31,11 +31,11 @@ jobs:
           host: ${{ vars.SERVER_HOST }}
           username: ${{ vars.SERVER_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
-          # Single line so a failure on any step still surfaces a non-zero
-          # exit. We deliberately do NOT use script_stop here because the
-          # ralph-loop.sh handles its own exit codes and tail-printing.
+          # We deliberately do NOT use script_stop here because ralph-loop.sh
+          # handles its own exit codes and tail-printing.
           command_timeout: 80m
           script: |
+            export PATH="$HOME/.npm-global/bin:$PATH"
             cd ~/openclaw-optimization-guide && \
             git fetch --all --quiet && \
             git checkout master --quiet && \
