@@ -1,0 +1,72 @@
+name: Ralph preflight (read-only)
+
+# SSHs into the server and reports whether everything Ralph needs is in
+# place. Read-only — does not install or modify anything. Trigger from
+# the Actions tab -> "Ralph preflight (read-only)" -> Run workflow.
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe server for Ralph readiness
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ vars.SERVER_HOST }}
+          username: ${{ vars.SERVER_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          script_stop: false
+          script: |
+            export PATH="$HOME/.npm-global/bin:$PATH"
+            echo "=== whoami / pwd ==="
+            whoami
+            pwd
+            echo "=== repo present ==="
+            test -d ~/openclaw-optimization-guide && echo "OK ~/openclaw-optimization-guide exists" || echo "MISSING ~/openclaw-optimization-guide"
+            cd ~/openclaw-optimization-guide 2>/dev/null && git rev-parse --short HEAD || echo "MISSING git repo"
+            echo "=== ralph bootstrap files ==="
+            for f in PROMPT.md AGENTS.md IMPLEMENTATION_PLAN.md scripts/ralph-loop.sh; do
+              test -f ~/openclaw-optimization-guide/$f && echo "OK $f" || echo "MISSING $f"
+            done
+            echo "=== claude CLI ==="
+            command -v claude && claude --version 2>&1 | head -1 || echo "MISSING claude"
+            echo "=== opencode CLI ==="
+            command -v opencode && opencode --version 2>&1 | head -1 || echo "MISSING opencode"
+            echo "=== gh CLI ==="
+            command -v gh && gh --version | head -1 || echo "MISSING gh"
+            gh auth status 2>&1 | head -5 || echo "gh NOT authenticated"
+            echo "=== git author ==="
+            git config --global user.name 2>&1 || echo "MISSING git user.name"
+            git config --global user.email 2>&1 || echo "MISSING git user.email"
+            echo "=== git remote auth (ls-remote) ==="
+            cd ~/openclaw-optimization-guide 2>/dev/null && git ls-remote --heads origin 2>&1 | head -3 || echo "git ls-remote FAILED"
+            echo "=== env files ==="
+            for envfile in \
+              ~/openclaw-optimization-guide/.ralph/.env \
+              ~/.openclaw/.env \
+              ~/.config/openclaw/.env \
+              /etc/openclaw/.env; do
+              if [ -f "$envfile" ]; then
+                echo "OK $envfile exists"
+                # Print which keys are present, NOT their values
+                grep -E "^(ANTHROPIC_API_KEY|OPENROUTER_API_KEY|DEEPSEEK_API_KEY|GH_TOKEN|GITHUB_TOKEN)=" "$envfile" 2>/dev/null | sed 's/=.*$/=<set>/' || echo "  (no keys matched)"
+              else
+                echo "MISSING $envfile"
+              fi
+            done
+            echo "=== ANTHROPIC_API_KEY visible to clawadmin shell? ==="
+            bash -lc 'test -n "$ANTHROPIC_API_KEY" && echo "OK ANTHROPIC_API_KEY set in login shell (length=${#ANTHROPIC_API_KEY})" || echo "MISSING ANTHROPIC_API_KEY in login shell"'
+            echo "=== ollama ==="
+            command -v ollama && ollama --version 2>&1 | head -1 || echo "MISSING ollama"
+            curl -fsS --max-time 3 http://127.0.0.1:11434/api/tags 2>&1 | head -200 || echo "ollama NOT reachable on 11434"
+            echo "=== qwen3-embedding pulled? ==="
+            curl -fsS --max-time 3 http://127.0.0.1:11434/api/tags 2>/dev/null | grep -o 'qwen3-embedding[^"]*' | head -3 || echo "qwen3-embedding NOT found"
+            echo "=== gateway /health ==="
+            curl -fsS --max-time 3 http://127.0.0.1:18789/health 2>&1 | head -3 || echo "gateway /health unreachable"
+            echo "=== .ralph dir writable ==="
+            mkdir -p ~/openclaw-optimization-guide/.ralph 2>&1 && touch ~/openclaw-optimization-guide/.ralph/.preflight-test && rm -f ~/openclaw-optimization-guide/.ralph/.preflight-test && echo "OK .ralph writable" || echo "MISSING .ralph not writable"
+            echo "=== disk free ==="
+            df -h ~ | tail -1
+            echo "=== preflight done ==="
