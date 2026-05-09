@@ -136,3 +136,51 @@ STEP 3 — Evaluate output (optional: Generator-Evaluator loop)
 | First-attempt quality | ~60% | ~85% |
 
 The bridge is the difference between "smart but amnesiac" and "smart with institutional knowledge."
+
+---
+
+## scripts/lib/preflight-context.js — In-Repo Preflight Summarizer
+
+This repo ships a focused first-stage Memory Bridge implementation at `scripts/lib/preflight-context.js`. It emits a structured JSON snapshot of the target repo so downstream tools (vault search, Codex spawn, Ralph loop) can attach repo facts to a coding agent's prompt without re-reading the world. Implemented in iteration 1 of IMPLEMENTATION_PLAN.md.
+
+### Invocation
+
+```bash
+# Positional arg (preferred):
+node scripts/lib/preflight-context.js /path/to/repo
+
+# Env var:
+PREFLIGHT_REPO=/path/to/repo node scripts/lib/preflight-context.js
+
+# No arg → uses cwd
+node scripts/lib/preflight-context.js
+```
+
+Requires Node.js 24+. No external dependencies. No network calls.
+
+### Output schema (`preflight-context/v1`, stdout, JSON)
+
+| Key | Type | Meaning |
+|-----|------|---------|
+| `schema` | string | Always `preflight-context/v1` — version this for breaking changes. |
+| `generatedAt` | ISO string | UTC timestamp at run time. |
+| `repo` | object | `{path, name, branch, head, totalFiles, totalSizeBytes}` — covers tracked files only. |
+| `gitLog` | array (≤20) | Most recent commits as `{sha, shortSha, subject, author, date}`. Empty array on a repo with no commits. |
+| `todoFixme` | object | `{todo, fixme, total}` counts across tracked text files (binary files skipped, files >2MB skipped). |
+| `fileCountByExtension` | object | Map of extension → count over all tracked files. Files with no extension bucket as `<no-ext>`. |
+| `largestFiles` | array (≤10) | `{path, sizeBytes}` of the largest tracked files, descending. |
+| `partFiles` | array | `{name, sizeBytes, lineCount}` for every `part*.md` at repo root, sorted by name. |
+
+### Failure modes
+
+The script never emits partial JSON to stdout. On any failure:
+
+1. Stdout is empty.
+2. Stderr is a single JSON object: `{schema, error: true, message, ...cause/stack/repoPath}`.
+3. Process exits with code 1.
+
+Failure cases handled: missing or non-existent repo path, path that is not a directory, path that is not a git repo (no `.git`), unreadable repo directory. Any unexpected exception is also wrapped in the error JSON so consumers can parse and re-surface it.
+
+### Verification
+
+`scripts/lib/preflight-context.test.sh` asserts the schema (28 checks: required keys, array shapes, max-length bounds, error-mode behavior). Run from repo root: `./scripts/lib/preflight-context.test.sh`. Requires `jq` and `node`.

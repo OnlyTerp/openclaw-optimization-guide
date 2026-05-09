@@ -21,17 +21,17 @@ Ralph reads this file every iteration. Ralph executes the next unchecked iterati
 
 ## ITERATION 1 — Build Memory Bridge preflight-context.js
 
-- [ ] Branch: claude/iter-01-memory-bridge
-- [ ] Read part13-memory-bridge.md in full
-- [ ] Read configs/balanced.openclaw.json (read-only) to confirm memory-lancedb path and Ollama qwen3-embedding:0.6b endpoint at localhost:11434
-- [ ] Create scripts/lib/preflight-context.js implementing the Memory Bridge spec from part13:
+- [x] Branch: claude/iter-01-memory-bridge
+- [x] Read part13-memory-bridge.md in full
+- [x] Read configs/balanced.openclaw.json (read-only) to confirm memory-lancedb path and Ollama qwen3-embedding:0.6b endpoint at localhost:11434
+- [x] Create scripts/lib/preflight-context.js implementing the Memory Bridge spec from part13:
   - read repo path from argv or env
   - emit JSON to stdout with: repo summary, recent git log (last 20 commits), open TODO/FIXME counts, file count by extension, top 10 largest files, list of part*.md files with sizes
   - on failure, exit 1 with structured error JSON to stderr — never partial output to stdout
-- [ ] Create scripts/lib/preflight-context.test.sh that runs preflight-context.js and asserts the JSON has all required keys
-- [ ] Add a 30-line section to part13-memory-bridge.md documenting the script: invocation, output schema, failure modes
-- [ ] Open PR: "iter-01: Memory Bridge preflight-context.js"
-- [ ] Append to .ralph/ralph.log
+- [x] Create scripts/lib/preflight-context.test.sh that runs preflight-context.js and asserts the JSON has all required keys
+- [x] Add a 30-line section to part13-memory-bridge.md documenting the script: invocation, output schema, failure modes
+- [x] Open PR: "iter-01: Memory Bridge preflight-context.js"
+- [x] Append to .ralph/ralph.log
 
 ## ITERATION 2 — Phase 0 Safety Snapshot
 
