@@ -26,7 +26,10 @@ jobs:
           # healthcheck + rollback chain MUST be a single line.
           script_stop: true
           script: |
-            cd ~/openclaw-optimization-guide && git pull origin master
+            cd ~/openclaw-optimization-guide
+            git fetch origin master
+            git reset --hard origin/master
+            git clean -fd -e .ralph -e .clawhub -e .openclaw -e skills/open-ralph -e workspace
             bash scripts/sync-workspace.sh
             python3 scripts/patches/0001-providers.py
             bash scripts/restart-gateway.sh && bash scripts/healthcheck.sh || bash scripts/rollback.sh

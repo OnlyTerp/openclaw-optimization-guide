@@ -28,20 +28,20 @@ If you believe a PRESERVE item should change, write the proposal into the active
 
 PRESERVE protects the operator's working config and runtime. It does NOT mean stop working. You have a wide additive lane and you are expected to keep building in it across many iterations. Never idle, never write a trivial doc edit just to check a box. If the next iteration in IMPLEMENTATION_PLAN.md is done, pull from this lane:
 
-1. New skill packages under skills/<skill-name>/ — SKILL.md, scripts, examples
-2. New hook implementations under hooks/auto-capture/<hook-name>.js with matching docs in part11
-3. New library modules under scripts/lib/<module>.js (Memory Bridge, context loaders, embeddings clients, retrieval helpers)
-4. New patch scripts under scripts/patches/<patch-name>.sh (idempotent, safe to re-run)
-5. New benchmark suites under benchmarks/<bench-name>/ with results.md
-6. New examples under examples/<example-name>/
-7. New documentation under parts/<category>/<topic>.md following REPO ADDITION MAP
+1. New skill packages under skills/`[skill-name]`/ — SKILL.md, scripts, examples
+2. New hook implementations under hooks/auto-capture/`[hook-name]`.js with matching docs in part11
+3. New library modules under scripts/lib/`[module]`.js (Memory Bridge, context loaders, embeddings clients, retrieval helpers)
+4. New patch scripts under scripts/patches/`[patch-name]`.sh (idempotent, safe to re-run)
+5. New benchmark suites under benchmarks/`[bench-name]`/ with results.md
+6. New examples under examples/`[example-name]`/
+7. New documentation under parts/`[category]`/`[topic]`.md following REPO ADDITION MAP
 8. New standalone part files part34+, part35+ when content doesn't fit existing categories
 9. Bug fixes in scripts/ that are explicitly listed in IMPLEMENTATION_PLAN.md
 10. README.md additions that link to new content (append-only, never remove existing sections)
 11. .gitignore additions
-12. .ralph/ work logs, .ralph/notes.md, .ralph/proposals/<topic>.md
+12. .ralph/ work logs, .ralph/notes.md, .ralph/proposals/`[topic]`.md
 13. PR descriptions, commit messages, branch creation
-14. New tests under tests/ or alongside scripts as <name>.test.sh
+14. New tests under tests/ or alongside scripts as `[name]`.test.sh
 
 ## KEEP-GOING RULES (do not idle)
 
@@ -55,7 +55,7 @@ PRESERVE protects the operator's working config and runtime. It does NOT mean st
 
 PRESERVE is propose-only, not silence. When you have a real reason to change a PRESERVE item:
 
-1. Write .ralph/proposals/<topic>.md with: current value, proposed value, measured cost or efficiency delta with numbers, rollback plan, references to part files that support the change
+1. Write .ralph/proposals/`[topic]`.md with: current value, proposed value, measured cost or efficiency delta with numbers, rollback plan, references to part files that support the change
 2. Link it from the active iteration's PR body under heading "PROPOSED CHANGE TO PRESERVE ITEM"
 3. Continue with non-PRESERVE work — do not block on the proposal
 4. Operator reviews proposals out-of-band and either approves a future iteration to apply them or closes them
@@ -65,9 +65,9 @@ PRESERVE is propose-only, not silence. When you have a real reason to change a P
 ## DEPLOY WORKFLOW (FROM CLAUDE.md — NON-NEGOTIABLE)
 
 - Never ask the operator to run terminal commands. Server changes go through GitHub Actions deploy on merge to master.
-- Always use bare URLs like https://github.com/PeskyE/openclaw-optimization-guide. Never use markdown links [text](url). Never use **bold**. The operator's iPad client breaks them.
+- Always use bare URLs like https://github.com/PeskyE/openclaw-optimization-guide. Never use markdown links like `[text](url)`. Never use **bold**. The operator's iPad client breaks them.
 - After pushing a branch, always open a PR to merge into master. Never leave a branch unmerged with no PR.
-- Branch naming for your commits: claude/<iteration-slug> — e.g. claude/iter-01-memory-bridge, claude/iter-02-phase-0-snapshot.
+- Branch naming for your commits: claude/`[iteration-slug]` — e.g. claude/iter-01-memory-bridge, claude/iter-02-phase-0-snapshot.
 - One iteration = one branch = one PR. Do not stack iterations on the same branch.
 - Never force-push. Never rebase master. Never delete branches.
 
@@ -79,19 +79,19 @@ This is the canonical placement guide. README.md is 116KB and contains parts inl
 
 Category 1 — Vault & Memory
 - Existing: part9-vault-memory.md (36KB), README.md Part 9 starting line 1236
-- New content goes in: parts/vault/<topic>.md or part9-vault-memory.md (append)
+- New content goes in: parts/vault/`[topic]`.md or part9-vault-memory.md (append)
 
 Category 2 — Embeddings
 - Existing: part10-state-of-the-art-embeddings.md
-- New content goes in: parts/embeddings/<topic>.md
+- New content goes in: parts/embeddings/`[topic]`.md
 
 Category 3 — Auto-Capture Hooks
 - Existing: part11-auto-capture-hook.md, hooks/auto-capture/ (currently empty)
-- New hook implementations: hooks/auto-capture/<hook-name>.js with matching docs in part11
+- New hook implementations: hooks/auto-capture/`[hook-name]`.js with matching docs in part11
 
 Category 4 — Self-Improving System
 - Existing: part12-self-improving-system.md
-- New content goes in: parts/self-improving/<topic>.md
+- New content goes in: parts/self-improving/`[topic]`.md
 
 Category 5 — Memory Bridge
 - Existing: part13-memory-bridge.md (4575 bytes)
@@ -99,31 +99,31 @@ Category 5 — Memory Bridge
 
 Category 6 — Infrastructure Hardening
 - Existing: part15-infrastructure-hardening.md (20KB)
-- New: scripts/patches/<patch-name>.sh, parts/infra/<topic>.md
+- New: scripts/patches/`[patch-name]`.sh, parts/infra/`[topic]`.md
 
 Category 7 — LightRAG / Graph RAG
 - Existing: part18-lightrag-graph-rag.md
-- New content goes in: parts/lightrag/<topic>.md
+- New content goes in: parts/lightrag/`[topic]`.md
 
 Category 8 — RepoWise Codebase Intelligence
 - Existing: part19-repowise-codebase-intelligence.md
-- New content goes in: parts/repowise/<topic>.md
+- New content goes in: parts/repowise/`[topic]`.md
 
 Category 9 — Observability & Services
 - Existing: part20-observability-and-services.md
-- New content goes in: parts/observability/<topic>.md
+- New content goes in: parts/observability/`[topic]`.md
 
 Category 10 — Realtime Knowledge Sync
 - Existing: part21-realtime-knowledge-sync.md
-- New content goes in: parts/realtime-sync/<topic>.md
+- New content goes in: parts/realtime-sync/`[topic]`.md
 
 Category 11 — ClawHub Skills Marketplace
 - Existing: part23-clawhub-skills-marketplace.md
-- New content goes in: parts/clawhub/<topic>.md
+- New content goes in: parts/clawhub/`[topic]`.md
 
 Category 12 — Task Brain Control Plane
 - Existing: part24-task-brain-control-plane.md, configs/balanced.openclaw.json (PRESERVE)
-- New content goes in: parts/task-brain/<topic>.md (proposals only — never commit config changes)
+- New content goes in: parts/task-brain/`[topic]`.md (proposals only — never commit config changes)
 
 README.md inline part anchors (do NOT renumber, do NOT remove):
 - Part 1: line 396
@@ -152,7 +152,7 @@ Before any iteration that modifies files, you must:
 4. Read templates/AGENTS.md, templates/SOUL.md, templates/MEMORY.md, templates/TOOLS.md
 5. Confirm the iteration you're about to run is the next unchecked one in IMPLEMENTATION_PLAN.md
 6. Confirm your planned changes do not touch any PRESERVE item
-7. Create branch claude/<iteration-slug> from master
+7. Create branch claude/`[iteration-slug]` from master
 8. Make changes, commit with message format "iter-NN: <short description>"
 9. Push branch, open PR with body containing: iteration number, what changed, what was proposed-only, what evidence supports the change
 10. Append iteration log to .ralph/ralph.log
