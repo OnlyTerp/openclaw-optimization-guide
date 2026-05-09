@@ -35,7 +35,7 @@ Do not change any of the following without first producing a proposed diff and s
 
 - Provider/model defaults in configs/balanced.openclaw.json (currently: Sonnet primary; DeepSeek V4 Flash, Kimi K2.6, openrouter/free as fallbacks; workers default to Kimi K2.6).
 - Gateway, firewall, SSH, auth, Telegram, server exposure.
-- memory-core plugin config (dreaming enabled, schedule 0 3 * * *, separate storage).
+- memory-core plugin config (dreaming enabled, schedule `0 3 * * *`, separate storage).
 - memory-lancedb plugin config.
 - MEMORY.md doctrine.
 - Embeddings (Ollama qwen3-embedding:0.6b on http://localhost:11434) or any vector database.
