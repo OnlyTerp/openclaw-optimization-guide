@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 # Sync server-config/workspace/ -> ~/.openclaw/workspace/ with timestamped
 # pre-overwrite backups, drift dry-run, and bounded backup retention.
+#
+# Records the exact backup path for this deploy at:
+#   ~/.openclaw/.last-sync-backup
+# rollback.sh reads that file so it restores the backup tied to THIS deploy
+# rather than guessing the latest folder by mtime.
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)"
@@ -9,6 +14,7 @@ DST="${HOME}/.openclaw/workspace/"
 BACKUP_ROOT="${HOME}/.openclaw/.sync-backups"
 TS="$(date -u +%Y-%m-%dT%H-%M-%SZ)"
 BACKUP_DIR="${BACKUP_ROOT}/${TS}"
+LAST_BACKUP_FILE="${HOME}/.openclaw/.last-sync-backup"
 DRIFT_FILE="/tmp/drift-${TS}.diff"
 
 if [ ! -d "${SRC}" ]; then
@@ -16,7 +22,14 @@ if [ ! -d "${SRC}" ]; then
   exit 0
 fi
 
-mkdir -p "${DST}" "${BACKUP_ROOT}"
+# Ensure parent dirs for backup file + roots exist before we record anything.
+mkdir -p "${DST}" "${BACKUP_ROOT}" "$(dirname "${LAST_BACKUP_FILE}")"
+
+# Record backup path BEFORE rsync so even a partial sync can be rolled back
+# to the snapshot we just took.
+echo "${BACKUP_DIR}" > "${LAST_BACKUP_FILE}"
+echo "sync-workspace: backup path recorded -> ${LAST_BACKUP_FILE}"
+echo "sync-workspace: backup path = ${BACKUP_DIR}"
 
 echo "Drift dry-run (server vs repo) -> ${DRIFT_FILE}"
 rsync -avcni "${SRC}" "${DST}" > "${DRIFT_FILE}" || true
