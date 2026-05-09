@@ -79,7 +79,7 @@ This repo has a GitHub Actions auto-deploy at .github/workflows/deploy.yml. Per 
 
 Workflow for any change that needs to reach the server:
 
-1. Make changes on a feature branch named claude/<short-iteration-slug>.
+1. Make changes on a feature branch named claude/`[short-iteration-slug]`.
 2. Commit with a clear message.
 3. Push to origin.
 4. Open a PR to merge into master.
@@ -90,7 +90,7 @@ If you need server-side info, extend .github/workflows/deploy.yml (or a sibling 
 
 ## URL FORMATTING (FROM CLAUDE.md)
 
-When writing URLs in any report or markdown file, use bare URLs only. Do not use [text](url) markdown links. Do not use **bold**. The user's iPad client breaks links inside markdown formatting. Example: write https://github.com/PeskyE/openclaw-optimization-guide not [repo](https://github.com/...).
+When writing URLs in any report or markdown file, use bare URLs only. Do not use `[text](url)` markdown links. Do not use **bold**. The user's iPad client breaks links inside markdown formatting. Example: write https://github.com/PeskyE/openclaw-optimization-guide not `[repo](https://github.com/...)`.
 
 ## PER-ITERATION RULES
 
@@ -100,7 +100,7 @@ When writing URLs in any report or markdown file, use bare URLs only. Do not use
 4. Make the smallest correct change.
 5. Run any validation steps the iteration defines.
 6. Update IMPLEMENTATION_PLAN.md by checking off completed [ ] items inline as you complete them.
-7. If the iteration produces code or doc changes that should reach the server, commit on a feature branch named claude/<iteration-slug>. Do not push directly to master. Open a PR for human merge.
+7. If the iteration produces code or doc changes that should reach the server, commit on a feature branch named claude/`[iteration-slug]`. Do not push directly to master. Open a PR for human merge.
 8. If a step fails, leave its checkbox unchecked, write the failure reason inline as a "> NOTE:" line directly under the failed item, and exit cleanly.
 
 ## COMPLETION
