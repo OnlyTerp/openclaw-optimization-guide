@@ -45,5 +45,7 @@ jobs:
             bash scripts/ralph-loop.sh; \
             echo "---- Last 200 lines of .ralph/ralph.log ----"; \
             tail -n 200 .ralph/ralph.log || true; \
+            echo "---- .ralph/doctor.json ----"; \
+            cat .ralph/doctor.json 2>/dev/null || echo "(no doctor.json)"; \
             echo "---- Status ----"; \
             cat .ralph/status.json || true
