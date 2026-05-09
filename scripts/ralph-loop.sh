@@ -258,6 +258,15 @@ main() {
     exit 3
   fi
 
+  # ---------- Dependency doctor ----------
+  log "=== Doctor ==="
+  if ! bash "$REPO_ROOT/scripts/ralph-doctor.sh" --quiet; then
+    log "Doctor: REQUIRED checks failed. See $RALPH_DIR/doctor.json"
+    write_status "doctor_failed" 0 "see .ralph/doctor.json"
+    exit 5
+  fi
+  log "Doctor: OK (see $RALPH_DIR/doctor.json)"
+
   if is_complete; then
     log "STATUS: COMPLETE already present. Nothing to do."
     write_status "already_complete" 0 ""
