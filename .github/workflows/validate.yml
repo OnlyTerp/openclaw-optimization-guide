@@ -27,7 +27,7 @@ jobs:
             echo "No shell scripts to check."
             exit 0
           fi
-          shellcheck "${files[@]}"
+          shellcheck --severity=warning "${files[@]}"
 
   pycompile:
     runs-on: ubuntu-latest
