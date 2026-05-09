@@ -10,6 +10,9 @@
 # DO NOT silently fall back to "latest folder in .sync-backups". rsync
 # --backup-dir only contains files that changed on this deploy, so an
 # unrelated older backup is not a safe restore target.
+#
+# The resolved path MUST live under ~/.openclaw/.sync-backups. We refuse to
+# rsync from anywhere else even if ROLLBACK_BACKUP_DIR points at it.
 set -uo pipefail
 
 BACKUP_ROOT="${HOME}/.openclaw/.sync-backups"
@@ -43,6 +46,24 @@ if [ ! -d "${TARGET}" ]; then
   echo "rollback: ABORT — backup directory does not exist: ${TARGET}"
   exit 1
 fi
+
+# Containment check: target MUST resolve to a path inside BACKUP_ROOT.
+# Use realpath when available so symlinks can't escape the root; fall back
+# to a string prefix check otherwise.
+RESOLVED_TARGET="${TARGET}"
+RESOLVED_ROOT="${BACKUP_ROOT}"
+if command -v realpath > /dev/null 2>&1; then
+  RESOLVED_TARGET="$(realpath -m "${TARGET}")"
+  RESOLVED_ROOT="$(realpath -m "${BACKUP_ROOT}")"
+fi
+case "${RESOLVED_TARGET}/" in
+  "${RESOLVED_ROOT}/"*) : ;;
+  *)
+    echo "rollback: ABORT — resolved target ${RESOLVED_TARGET} is not under ${RESOLVED_ROOT}"
+    echo "rollback: refusing to rsync from outside the backup root."
+    exit 1
+    ;;
+esac
 
 # rsync --backup-dir only stores files that were overwritten on this deploy.
 # An empty TARGET means nothing changed -- there is nothing to roll back.
