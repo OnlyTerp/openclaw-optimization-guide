@@ -7,6 +7,10 @@ export PATH="$HOME/.npm-global/bin:$PATH"
 # own process manager and caused the gateway to fail to start.
 set -euo pipefail
 
+# appleboy/ssh-action runs a non-interactive shell — ~/.bashrc is never sourced,
+# so ~/.npm-global/bin (where openclaw lives) is not in PATH. Add it explicitly.
+export PATH="$HOME/.npm-global/bin:$PATH"
+
 echo "restart-gateway: stopping existing gateway..."
 openclaw gateway stop 2>/dev/null || true
 
