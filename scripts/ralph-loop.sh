@@ -228,10 +228,17 @@ PROMPT_END
     attempt=$((attempt+1))
     log "Iteration $n attempt $attempt with $cli"
     if [ "$cli" = "claude" ]; then
-      printf '%s\n' "$prompt" | claude --print --output-format text >>"$iter_log" 2>&1
+      # bypassPermissions lets claude write/commit/push without interactive prompts.
+      # Fall back to --dangerously-skip-permissions on older claude builds (<2.1).
+      if claude --help 2>&1 | grep -q -- '--permission-mode'; then
+        printf '%s\n' "$prompt" | claude --print --output-format text --permission-mode bypassPermissions >>"$iter_log" 2>&1
+      else
+        printf '%s\n' "$prompt" | claude --print --output-format text --dangerously-skip-permissions >>"$iter_log" 2>&1
+      fi
       exit_code=$?
     elif [ "$cli" = "opencode" ]; then
-      printf '%s\n' "$prompt" | opencode run --model anthropic/sonnet >>"$iter_log" 2>&1
+      # opencode equivalent: run with auto-approve so file/git ops do not block.
+      printf '%s\n' "$prompt" | opencode run --model anthropic/sonnet --auto-approve >>"$iter_log" 2>&1
       exit_code=$?
     else
       log "FAIL: no CLI configured"

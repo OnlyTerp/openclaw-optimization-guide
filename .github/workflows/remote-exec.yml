@@ -1,0 +1,119 @@
+name: remote-exec
+
+# Manually-triggered workflow that runs an arbitrary shell command on the
+# OpenClaw droplet via the existing SSH deploy secret.
+#
+# Two inputs:
+#   command   — shell command to run on the droplet (printed in the log)
+#   env_block — optional multi-line NAME=value block. If non-empty, it is
+#               written to ~/.openclaw/.env on the droplet (atomic, with a
+#               timestamped backup) BEFORE `command` runs. The block itself
+#               is masked in logs via ::add-mask:: and never echoed.
+#
+# Use cases:
+#   - Fix ~/.openclaw/.env after a key rotation (env_block)
+#   - Run scripts/install-optional-deps.sh ollama (command)
+#   - Quick health checks: `df -h && systemctl status openclaw`
+#
+# Safety rules baked in:
+#   - PRESERVE list still applies; this workflow does not enforce it,
+#     so be careful what you put in `command`.
+#   - env_block is masked; do NOT paste it into the `command` field.
+#   - A backup of ~/.openclaw/.env is taken before any rewrite.
+
+on:
+  workflow_dispatch:
+    inputs:
+      command:
+        description: "Shell command to run on the droplet (do NOT include secrets)"
+        required: false
+        default: 'echo "remote-exec OK on $(hostname) at $(date -u)"; whoami; pwd'
+        type: string
+      env_block:
+        description: "Optional ~/.openclaw/.env contents (NAME=value per line). Masked in logs."
+        required: false
+        default: ""
+        type: string
+
+jobs:
+  remote-exec:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Mask env_block in logs
+        if: ${{ inputs.env_block != '' }}
+        env:
+          ENV_BLOCK: ${{ inputs.env_block }}
+        run: |
+          # Mask each non-empty line so even partial echoes are redacted.
+          while IFS= read -r line; do
+            if [ -n "$line" ]; then
+              echo "::add-mask::$line"
+            fi
+          done <<< "$ENV_BLOCK"
+          echo "env_block received and masked ($(printf '%s\n' "$ENV_BLOCK" | wc -l) lines)"
+
+      - name: Run on droplet
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ vars.SERVER_HOST }}
+          username: ${{ vars.SERVER_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          port: 22
+          command_timeout: 18m
+          envs: USER_COMMAND,ENV_BLOCK
+          script_stop: false
+          script: |
+            set -u
+            echo "==== remote-exec on $(hostname) at $(date -u) ===="
+            echo "user=$(whoami) pwd=$(pwd)"
+
+            # ---- Optional .env rewrite (env_block) ----
+            if [ -n "${ENV_BLOCK:-}" ]; then
+              echo "---- writing ~/.openclaw/.env (backup first) ----"
+              mkdir -p ~/.openclaw
+              if [ -f ~/.openclaw/.env ]; then
+                BAK=~/.openclaw/.env.bak.$(date -u +%Y%m%dT%H%M%SZ)
+                cp ~/.openclaw/.env "$BAK"
+                chmod 600 "$BAK"
+                echo "backup: $BAK"
+              fi
+              # Atomic write: tempfile + chmod 600 + mv
+              TMPENV="$(mktemp ~/.openclaw/.env.new.XXXXXX)"
+              printf '%s\n' "$ENV_BLOCK" > "$TMPENV"
+              chmod 600 "$TMPENV"
+              # Validate: every non-empty, non-comment line must look like NAME=value
+              BAD="$(grep -nvE '^[[:space:]]*$|^[[:space:]]*#|^[A-Z_][A-Z0-9_]*=' "$TMPENV" || true)"
+              if [ -n "$BAD" ]; then
+                echo "ERROR: env_block has malformed lines:"
+                echo "$BAD" | sed 's/=.*/=***/'   # show line numbers, hide values
+                rm -f "$TMPENV"
+                exit 2
+              fi
+              mv "$TMPENV" ~/.openclaw/.env
+              chmod 600 ~/.openclaw/.env
+              # Sanity check: source the file in a subshell; no errors allowed.
+              if ! ( set +u; set -a; . ~/.openclaw/.env; set +a ) 2>/tmp/envcheck.err; then
+                echo "ERROR: ~/.openclaw/.env failed to source:"
+                cat /tmp/envcheck.err
+                exit 3
+              fi
+              KEY_COUNT="$(grep -cE '^[A-Z_][A-Z0-9_]*=' ~/.openclaw/.env || true)"
+              echo "OK: ~/.openclaw/.env written, $KEY_COUNT keys, mode $(stat -c %a ~/.openclaw/.env)"
+            fi
+
+            # ---- Run the command ----
+            if [ -n "${USER_COMMAND:-}" ]; then
+              echo "---- command ----"
+              echo "$USER_COMMAND"
+              echo "---- output ----"
+              bash -c "$USER_COMMAND"
+              RC=$?
+              echo "---- exit=$RC ----"
+              exit $RC
+            else
+              echo "no command supplied"
+            fi
+        env:
+          USER_COMMAND: ${{ inputs.command }}
+          ENV_BLOCK: ${{ inputs.env_block }}
