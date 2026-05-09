@@ -1,0 +1,49 @@
+name: Ralph audit loop
+
+# One-tap trigger from GitHub mobile / iPad. SSH's into the OpenClaw server
+# and runs scripts/ralph-loop.sh as clawadmin. Streams stdout to the action
+# log so you can read progress from the iPad without opening a terminal.
+
+on:
+  workflow_dispatch:
+    inputs:
+      max_iters:
+        description: "Max iterations this run (default 6)"
+        required: false
+        default: "6"
+      max_seconds:
+        description: "Wall-clock budget seconds (default 3600)"
+        required: false
+        default: "3600"
+
+concurrency:
+  group: ralph-loop
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Run Ralph loop on server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ vars.SERVER_HOST }}
+          username: ${{ vars.SERVER_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          # Single line so a failure on any step still surfaces a non-zero
+          # exit. We deliberately do NOT use script_stop here because the
+          # ralph-loop.sh handles its own exit codes and tail-printing.
+          command_timeout: 80m
+          script: |
+            cd ~/openclaw-optimization-guide && \
+            git fetch --all --quiet && \
+            git checkout master --quiet && \
+            git pull --ff-only origin master --quiet && \
+            MAX_ITERS=${{ github.event.inputs.max_iters }} \
+            MAX_SECONDS=${{ github.event.inputs.max_seconds }} \
+            bash scripts/ralph-loop.sh; \
+            echo "---- Last 200 lines of .ralph/ralph.log ----"; \
+            tail -n 200 .ralph/ralph.log || true; \
+            echo "---- Status ----"; \
+            cat .ralph/status.json || true
