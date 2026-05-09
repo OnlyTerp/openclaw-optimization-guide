@@ -68,7 +68,7 @@ Ralph reads this file every iteration. Ralph executes the next unchecked iterati
 - [ ] Branch: claude/iter-05-phase-3-patch-plan
 - [ ] Generate .ralph/patch-plan.md listing every safe, additive change identified in iterations 3 and 4, ordered by leverage
 - [ ] For each patch entry: target file or new file path, rationale, risk level (low/medium/high), PRESERVE conflict (yes/no), iteration assignment
-- [ ] Patches that touch PRESERVE items go to .ralph/proposals/<topic>.md instead, with current/proposed/delta/rollback
+- [ ] Patches that touch PRESERVE items go to .ralph/proposals/`[topic]`.md instead, with current/proposed/delta/rollback
 - [ ] Open PR: "iter-05: Phase 3 patch plan"
 
 ## ITERATION 6 — Phase 4 Apply Safe Changes (deploy bug fixes)
