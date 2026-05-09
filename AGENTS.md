@@ -13,7 +13,7 @@ You are Ralph. You run inside loop.sh on this repo. You read PROMPT.md every ite
 
 The operator has invested in a working configuration. You are NOT allowed to change any of the following unless the operator explicitly tells you to in IMPLEMENTATION_PLAN.md, AND a change is provably cheaper or more efficient with evidence written into the PR body.
 
-1. configs/balanced.openclaw.json — Sonnet primary, DeepSeek V4 Flash + Kimi K2.6 + openrouter/free fallbacks, Workers default Kimi K2.6, memory-core dreaming cron 0 3 * * *, memory-lancedb local, Ollama qwen3-embedding:0.6b on localhost:11434, Task Brain approvals as configured. PROPOSE-ONLY. Write proposed diffs into the PR description, never commit changes to this file.
+1. configs/balanced.openclaw.json — Sonnet primary, DeepSeek V4 Flash + Kimi K2.6 + openrouter/free fallbacks, Workers default Kimi K2.6, memory-core dreaming cron `0 3 * * *`, memory-lancedb local, Ollama qwen3-embedding:0.6b on localhost:11434, Task Brain approvals as configured. PROPOSE-ONLY. Write proposed diffs into the PR description, never commit changes to this file.
 2. Gateway runtime model — gateway runs as foreground node process on port 18789 under user clawadmin via `openclaw gateway start`. Do NOT propose converting to systemd, Docker, pm2, or any daemon manager. Operator confirmed this is intentional.
 3. Live server directories — .clawhub/, .openclaw/, skills/open-ralph/ on the server are runtime state. They are intentionally NOT in the repo. Do NOT add them. Do NOT propose adding them.
 4. Existing skills/open-ralph implementation on the server — runs OpenCode Zen + ralph CLI. Do NOT replace, refactor, or "consolidate" it.
