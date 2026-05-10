@@ -35,24 +35,24 @@ Ralph reads this file every iteration. Ralph executes the next unchecked iterati
 
 ## ITERATION 2 — Phase 0 Safety Snapshot
 
-- [ ] Branch: claude/iter-02-phase-0-snapshot
-- [ ] Run scripts/lib/preflight-context.js > .ralph/snapshot-phase-0.json
-- [ ] Generate .ralph/snapshot-phase-0.md containing: current commit SHA, branch, list of all top-level dirs, file count, total repo size, .ralph/ contents, summary of PRESERVE items confirmed present
-- [ ] Confirm PRESERVE items are intact: configs/balanced.openclaw.json exists and is unchanged from origin/master, templates/ files intact, scripts/ files intact
-- [ ] Commit snapshot files to .ralph/
-- [ ] Open PR: "iter-02: Phase 0 safety snapshot"
+- [x] Branch: claude/iter-02-phase-0-snapshot
+- [x] Run scripts/lib/preflight-context.js > .ralph/snapshot-phase-0.json
+- [x] Generate .ralph/snapshot-phase-0.md containing: current commit SHA, branch, list of all top-level dirs, file count, total repo size, .ralph/ contents, summary of PRESERVE items confirmed present
+- [x] Confirm PRESERVE items are intact: configs/balanced.openclaw.json exists and is unchanged from origin/master, templates/ files intact, scripts/ files intact
+- [x] Commit snapshot files to .ralph/
+- [x] Open PR: "iter-02: Phase 0 safety snapshot"
 
 ## ITERATION 3 — Phase 1 Repo Inventory
 
-- [ ] Branch: claude/iter-03-phase-1-inventory
-- [ ] Generate .ralph/inventory.md cataloguing:
+- [x] Branch: claude/iter-03-phase-1-inventory
+- [x] Generate .ralph/inventory.md cataloguing:
   - all 21 standalone part*.md files with size, line count, one-paragraph summary each
   - README.md inline part anchors (Part 1 line 396, Part 2 line 488, Part 3 line 610, Part 4 line 661, Part 5 line 757, Part 6 line 946, Part 7 line 1077, Part 8 line 1122, Part 9 inline line 1236, Part 14 line 1399, Part 17 line 1466, Part 22 line 1843)
   - configs/, hooks/, scripts/, templates/, server-config/, examples/, benchmarks/, screenshots/ contents
   - empty or sparse directories (hooks/auto-capture/ is empty — flag as build target)
   - missing implementations referenced in parts but not yet built
-- [ ] Generate .ralph/inventory-gaps.md listing every implementation gap as a future iteration candidate
-- [ ] Open PR: "iter-03: Phase 1 repo inventory"
+- [x] Generate .ralph/inventory-gaps.md listing every implementation gap as a future iteration candidate
+- [x] Open PR: "iter-03: Phase 1 repo inventory"
 
 ## ITERATION 4 — Phase 2 Superpowers Extraction
 

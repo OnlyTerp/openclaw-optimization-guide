@@ -1,0 +1,326 @@
+{
+  "schema": "preflight-context/v1",
+  "generatedAt": "2026-05-10T04:17:05.879Z",
+  "repo": {
+    "path": "/workspace/openclaw-optimization-guide",
+    "name": "openclaw-optimization-guide",
+    "branch": "work",
+    "head": "115a57f581902fbbe325a3cb9904512b9f6608e8",
+    "totalFiles": 392,
+    "totalSizeBytes": 2381913
+  },
+  "gitLog": [
+    {
+      "sha": "115a57f581902fbbe325a3cb9904512b9f6608e8",
+      "shortSha": "115a57f",
+      "subject": "iter-02-03: recover snapshot and inventory",
+      "author": "Codex",
+      "date": "2026-05-10T04:04:36+00:00"
+    },
+    {
+      "sha": "6213c2d134ba4ecb7f981495e8ada9f1f7b0ec57",
+      "shortSha": "6213c2d",
+      "subject": "Add OpenClaw scorecard probe, audit, Codex onboarding addendum, and documentation tweaks",
+      "author": "Codex",
+      "date": "2026-05-10T03:51:50+00:00"
+    },
+    {
+      "sha": "056be385c22be28f264e36c1a3ddb03b41ff59d8",
+      "shortSha": "056be38",
+      "subject": "chore: ignore .ralph/ runtime dir; exclude from markdownlint and lychee (#31)",
+      "author": "PeskyE",
+      "date": "2026-05-09T19:38:21-07:00"
+    },
+    {
+      "sha": "38afc4d722e72cdf5d858417fdffe0aaa669fc5d",
+      "shortSha": "38afc4d",
+      "subject": "ci: add shellcheck policy guard (#34)",
+      "author": "PeskyE",
+      "date": "2026-05-09T19:36:05-07:00"
+    },
+    {
+      "sha": "bb44b8d2b58332f2023f6fec64630736a6b24418",
+      "shortSha": "bb44b8d",
+      "subject": "ci: add shellcheck policy guard (#33)",
+      "author": "PeskyE",
+      "date": "2026-05-09T18:36:45-07:00"
+    },
+    {
+      "sha": "0e78e36f383e03f505ce446c6d58cd44cf1fefd7",
+      "shortSha": "0e78e36",
+      "subject": "Fix shellcheck SC2009 in healthcheck",
+      "author": "PeskyE",
+      "date": "2026-05-09T23:53:37+00:00"
+    },
+    {
+      "sha": "b4a361f3ed6200e3129c315296022fe4a79fa13d",
+      "shortSha": "b4a361f",
+      "subject": "iter-01: Memory Bridge preflight-context.js + test (#27)",
+      "author": "PeskyE",
+      "date": "2026-05-09T16:15:49-07:00"
+    },
+    {
+      "sha": "3e3495e294007bc22ed48065bdb93a9e3667a421",
+      "shortSha": "3e3495e",
+      "subject": "ci(validate): set shellcheck --severity=warning so info-level notes don't fail CI (#30)",
+      "author": "PeskyE",
+      "date": "2026-05-09T16:13:37-07:00"
+    },
+    {
+      "sha": "f02d3791153e96b0117b6bea065a5e79a72cf719",
+      "shortSha": "f02d379",
+      "subject": "iter-remote-exec: remote-exec workflow + claude bypassPermissions in loop (#25)",
+      "author": "PeskyE",
+      "date": "2026-05-09T11:11:13-07:00"
+    },
+    {
+      "sha": "79908a594a2edb60b364cb220365f24b17d5ef98",
+      "shortSha": "79908a5",
+      "subject": "Harden OpenClaw healthcheck diagnostics",
+      "author": "PeskyE",
+      "date": "2026-05-09T18:06:21+00:00"
+    },
+    {
+      "sha": "efdc4154b2da4c0171dd8783f11761955b59662d",
+      "shortSha": "efdc415",
+      "subject": "Merge pull request #23 from PeskyE/feat/ralph-ready",
+      "author": "PeskyE",
+      "date": "2026-05-08T23:11:08-07:00"
+    },
+    {
+      "sha": "7ab095ec831b982d877c799c697d2e09e42bebd5",
+      "shortSha": "7ab095e",
+      "subject": "Merge pull request #21 from PeskyE/fix/deploy-healthcheck-rollback",
+      "author": "PeskyE",
+      "date": "2026-05-08T23:05:05-07:00"
+    },
+    {
+      "sha": "813b9625dbec2b7627207448cc88545f2b4668cb",
+      "shortSha": "813b962",
+      "subject": "Merge pull request #24 from PeskyE/claude/iter-doctor-bootstrap",
+      "author": "PeskyE",
+      "date": "2026-05-08T22:59:38-07:00"
+    },
+    {
+      "sha": "218e0495398fb7fbc075ee267f1f6b524362093e",
+      "shortSha": "218e049",
+      "subject": "ci(doctor): tail .ralph/doctor.json in ralph-loop workflow",
+      "author": "PeskyE",
+      "date": "2026-05-09T05:53:26+00:00"
+    },
+    {
+      "sha": "0110438e6c1bc4ef1dbecda9450be4ebd1fed613",
+      "shortSha": "0110438",
+      "subject": "feat(doctor): wire ralph-doctor into ralph-loop.sh after preflight",
+      "author": "PeskyE",
+      "date": "2026-05-09T05:53:25+00:00"
+    },
+    {
+      "sha": "020b3f3cfd8fa5e3972910d47563b8e0f0ef4eee",
+      "shortSha": "020b3f3",
+      "subject": "docs(doctor): add OPENCLAW_RALPH_FIX_REPORT.md",
+      "author": "PeskyE",
+      "date": "2026-05-09T05:53:24+00:00"
+    },
+    {
+      "sha": "4e2bb9eb9dcd67c1518d61692af5c6b29f621594",
+      "shortSha": "4e2bb9e",
+      "subject": "docs(doctor): add RALPH_DEPENDENCY_DOCTOR.md",
+      "author": "PeskyE",
+      "date": "2026-05-09T05:53:22+00:00"
+    },
+    {
+      "sha": "542650dd43eeb3653bc10d1237b947b8ba32d743",
+      "shortSha": "542650d",
+      "subject": "test(doctor): add test-ralph-doctor.sh harness",
+      "author": "PeskyE",
+      "date": "2026-05-09T05:53:21+00:00"
+    },
+    {
+      "sha": "4b9526804ab74483d23ffbe33b1c14e0071953b5",
+      "shortSha": "4b95268",
+      "subject": "feat(doctor): add install-optional-deps.sh explicit installer",
+      "author": "PeskyE",
+      "date": "2026-05-09T05:53:19+00:00"
+    },
+    {
+      "sha": "3dad43e44feaaa267e137cfc75e82dfad876f1e7",
+      "shortSha": "3dad43e",
+      "subject": "feat(doctor): add ralph-doctor.sh read-only health check",
+      "author": "PeskyE",
+      "date": "2026-05-09T05:53:18+00:00"
+    }
+  ],
+  "todoFixme": {
+    "todo": 3,
+    "fixme": 2,
+    "total": 5
+  },
+  "fileCountByExtension": {
+    ".yml": 11,
+    ".md": 350,
+    ".gitignore": 1,
+    ".jsonc": 1,
+    ".log": 1,
+    ".json": 3,
+    ".shellcheckrc": 1,
+    "<no-ext>": 1,
+    ".ts": 1,
+    ".toml": 1,
+    ".txt": 1,
+    ".png": 4,
+    ".sh": 12,
+    ".js": 1,
+    ".py": 2,
+    ".ps1": 1
+  },
+  "largestFiles": [
+    {
+      "path": "server-config/workspace/openclaw-knowledge/processed/markdown/chatgpt-memory-export.md",
+      "sizeBytes": 182768
+    },
+    {
+      "path": "screenshots/lightrag-retrieval.png",
+      "sizeBytes": 116954
+    },
+    {
+      "path": "screenshots/lightrag-webui.png",
+      "sizeBytes": 116954
+    },
+    {
+      "path": "README.md",
+      "sizeBytes": 116610
+    },
+    {
+      "path": "screenshots/lightrag-knowledge-graph.png",
+      "sizeBytes": 111419
+    },
+    {
+      "path": "server-config/workspace/openclaw-knowledge/processed/markdown/myclaw-skills-setup.md",
+      "sizeBytes": 81827
+    },
+    {
+      "path": "screenshots/neo4j-browser.png",
+      "sizeBytes": 77946
+    },
+    {
+      "path": "server-config/workspace/openclaw-knowledge/processed/markdown/ai-runnable-business-plan.md",
+      "sizeBytes": 70437
+    },
+    {
+      "path": "server-config/workspace/openclaw-knowledge/processed/markdown/vernon-front-desk-build.md",
+      "sizeBytes": 57355
+    },
+    {
+      "path": "server-config/workspace/inbox/vernon-front-desk-build.md",
+      "sizeBytes": 57169
+    }
+  ],
+  "partFiles": [
+    {
+      "name": "part10-state-of-the-art-embeddings.md",
+      "sizeBytes": 11529,
+      "lineCount": 235
+    },
+    {
+      "name": "part11-auto-capture-hook.md",
+      "sizeBytes": 6542,
+      "lineCount": 171
+    },
+    {
+      "name": "part12-self-improving-system.md",
+      "sizeBytes": 5531,
+      "lineCount": 128
+    },
+    {
+      "name": "part13-memory-bridge.md",
+      "sizeBytes": 7034,
+      "lineCount": 187
+    },
+    {
+      "name": "part15-infrastructure-hardening.md",
+      "sizeBytes": 20435,
+      "lineCount": 444
+    },
+    {
+      "name": "part18-lightrag-graph-rag.md",
+      "sizeBytes": 12434,
+      "lineCount": 320
+    },
+    {
+      "name": "part19-repowise-codebase-intelligence.md",
+      "sizeBytes": 5486,
+      "lineCount": 148
+    },
+    {
+      "name": "part20-observability-and-services.md",
+      "sizeBytes": 5492,
+      "lineCount": 181
+    },
+    {
+      "name": "part21-realtime-knowledge-sync.md",
+      "sizeBytes": 7531,
+      "lineCount": 201
+    },
+    {
+      "name": "part23-clawhub-skills-marketplace.md",
+      "sizeBytes": 11086,
+      "lineCount": 171
+    },
+    {
+      "name": "part24-task-brain-control-plane.md",
+      "sizeBytes": 14147,
+      "lineCount": 217
+    },
+    {
+      "name": "part25-architecture-overview.md",
+      "sizeBytes": 11400,
+      "lineCount": 204
+    },
+    {
+      "name": "part26-migration-guide.md",
+      "sizeBytes": 20063,
+      "lineCount": 319
+    },
+    {
+      "name": "part27-gotchas-and-faq.md",
+      "sizeBytes": 13259,
+      "lineCount": 189
+    },
+    {
+      "name": "part28-glossary-and-terminology.md",
+      "sizeBytes": 26672,
+      "lineCount": 343
+    },
+    {
+      "name": "part29-hook-catalog.md",
+      "sizeBytes": 18902,
+      "lineCount": 389
+    },
+    {
+      "name": "part30-ralph-loop-in-openclaw.md",
+      "sizeBytes": 12514,
+      "lineCount": 245
+    },
+    {
+      "name": "part31-the-llm-wiki-pattern-in-openclaw.md",
+      "sizeBytes": 9336,
+      "lineCount": 138
+    },
+    {
+      "name": "part32-self-evolving-skills-with-skillclaw.md",
+      "sizeBytes": 8652,
+      "lineCount": 141
+    },
+    {
+      "name": "part33-late-april-2026-field-guide.md",
+      "sizeBytes": 9380,
+      "lineCount": 173
+    },
+    {
+      "name": "part9-vault-memory.md",
+      "sizeBytes": 36360,
+      "lineCount": 915
+    }
+  ]
+}
