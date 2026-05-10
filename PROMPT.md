@@ -90,7 +90,7 @@ If you need server-side info, extend .github/workflows/deploy.yml (or a sibling 
 
 ## URL FORMATTING (FROM CLAUDE.md)
 
-When writing URLs in any report or markdown file, use bare URLs only. Do not use `[text](url)` markdown links. Do not use **bold**. The user's iPad client breaks links inside markdown formatting. Example: write https://github.com/PeskyE/openclaw-optimization-guide not `[repo](https://github.com/...)`.
+When writing URLs in any report or markdown file, use bare URLs only. Do not use bracket-text-plus-parenthesized-URL markdown links. Do not use **bold**. The user's iPad client breaks links inside markdown formatting. Example: write the bare URL https://github.com/PeskyE/openclaw-optimization-guide, not a formatted repo link.
 
 ## PER-ITERATION RULES
 

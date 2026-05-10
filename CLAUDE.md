@@ -13,7 +13,7 @@ This is the openclaw-optimization-guide repo. Config files live in `configs/`. T
 4. Open a PR to merge into master — do this every time without being asked
 
 ## Formatting
-- When sharing URLs, never wrap them in markdown formatting (no `**bold**`, no `[text](url)`). The user's iPad client breaks links inside markdown formatting. Always use bare URLs like `https://github.com/...`
+- When sharing URLs, never wrap them in markdown formatting (no `**bold**`, no bracket-text-plus-parenthesized-URL links). The user's iPad client breaks links inside markdown formatting. Always use bare URLs like `https://github.com/...`
 
 ## Never Ask the User to Run Terminal Commands
 - The user has the auto-deploy workflow set up (`.github/workflows/deploy.yml`). Any change to their server should go through that workflow, not through terminal commands.

@@ -65,7 +65,7 @@ PRESERVE is propose-only, not silence. When you have a real reason to change a P
 ## DEPLOY WORKFLOW (FROM CLAUDE.md — NON-NEGOTIABLE)
 
 - Never ask the operator to run terminal commands. Server changes go through GitHub Actions deploy on merge to master.
-- Always use bare URLs like https://github.com/PeskyE/openclaw-optimization-guide. Never use markdown links like `[text](url)`. Never use **bold**. The operator's iPad client breaks them.
+- Always use bare URLs like https://github.com/PeskyE/openclaw-optimization-guide. Never use markdown links in the bracket-text-plus-parenthesized-URL form. Never use **bold**. The operator's iPad client breaks them.
 - After pushing a branch, always open a PR to merge into master. Never leave a branch unmerged with no PR.
 - Branch naming for your commits: claude/`[iteration-slug]` — e.g. claude/iter-01-memory-bridge, claude/iter-02-phase-0-snapshot.
 - One iteration = one branch = one PR. Do not stack iterations on the same branch.
@@ -182,6 +182,12 @@ For every action, ask in this order:
 You operate inside write.fs.workspace. You do not have control-plane access. You do not have write.fs.outside-workspace. If an iteration appears to require either, stop and write a NOTES.md proposal instead.
 
 ---
+
+## CODEX OPERATING SECTION
+
+- Verify local tool reality before assuming a maintainer prompt's tool list is available. If `gh`, `lychee`, `markdownlint-cli2`, `shellcheck`, `claude`, `opencode`, or `origin` are missing, record the exact limitation in `.ralph/notes.md` and continue only with work that can be validated locally.
+- Do not invent PR numbers, CI status, remotes, or authentication state. Use `gh` only when the executable exists and is authenticated; otherwise use the available PR-recording mechanism for this environment.
+- Preserve numbered standalone part slots from IMPLEMENTATION_PLAN.md. If a backlog item reserves `part34-...`, place off-cycle Codex or onboarding notes under `parts/repowise/` or another mapped category instead of consuming that part number.
 
 ## SAFETY
 

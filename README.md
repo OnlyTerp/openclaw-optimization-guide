@@ -269,6 +269,7 @@ Not every part applies to every reader. Jump directly to the pillar that matches
 22. [Built-In Dreaming (memory-core)](#part-22-built-in-dreaming) — official 3-phase consolidation, DREAMS.md, memory-you-can-afford (LightMem + vbfs)
 31. [The LLM Wiki Pattern In OpenClaw](./part31-the-llm-wiki-pattern-in-openclaw.md) — Karpathy's three-tier pattern mapped onto SOUL/AGENTS/MEMORY/skills
 33. [Late-April 2026 Field Guide](./part33-late-april-2026-field-guide.md) — Active Memory filters, people wiki, provider catalogs, run steering, browser/Codex updates
+Codex Onboarding Addendum — supplemental Codex instruction-loading, sandbox, caching, and teammate-onboarding checks: ./parts/repowise/codex-onboarding-addendum.md
 
 **🤝 Orchestration & models**
 5. [Orchestration](#part-5-orchestration-stop-doing-everything-yourself) — sub-agents-as-GC, Anthropic's 5 coordination patterns, CEO/COO/Worker, verification
