@@ -43,3 +43,6 @@ server-config/systemd.env.bak
 __pycache__/
 *.pyc
 *.pyo
+
+# Ralph autonomy loop runtime state — never commit
+.ralph/

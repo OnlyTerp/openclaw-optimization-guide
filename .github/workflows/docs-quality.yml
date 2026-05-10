@@ -20,6 +20,8 @@ jobs:
           globs: |
             **/*.md
             #server-config
+            #.ralph
+            #**/node_modules
 
   linkcheck:
     name: link check (internal only)

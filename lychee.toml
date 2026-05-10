@@ -12,6 +12,7 @@
 exclude_path = [
   "(^|/)templates($|/)",
   "(^|/)server-config($|/)",
+  '(^|/)\.ralph($|/)',
 ]
 
 # Ignore specific URL patterns we know are placeholders or ephemeral.
