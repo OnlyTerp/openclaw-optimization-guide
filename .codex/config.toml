@@ -1,0 +1,27 @@
+# Project-scoped Codex CLI config for openclaw-optimization-guide.
+# Loads only when the operator's user-level ~/.codex/config.toml marks this
+# project as trusted, e.g.:
+#
+#   [projects."/Users/<you>/path/to/openclaw-optimization-guide"]
+#   trust_level = "trusted"
+#
+# See AGENTS.md "CODEX OPERATING SECTION" for the full operating contract.
+
+# Tell Codex to read AGENTS.md as the model instructions for this project.
+model_instructions_file = "AGENTS.md"
+
+# Default profile for repo maintenance work in this project.
+# Switch with `codex --profile openclaw_maintainer` or set as default in user config.
+[profiles.openclaw_maintainer]
+approval_policy = "never"
+sandbox_mode = "workspace-write"
+
+# Network access is required so Codex can run git push, gh, curl to api.github.com,
+# and ssh to the droplet. workspace-write + network is the minimum viable set.
+[sandbox_workspace_write]
+network_access = true
+
+# Read-only research profile for "look but don't touch" sessions.
+[profiles.readonly_research]
+approval_policy = "never"
+sandbox_mode = "read-only"
