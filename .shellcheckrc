@@ -1,0 +1,4 @@
+# Repo-wide ShellCheck policy.
+# Keep CI focused on warning/error findings; these info/style checks are noisy
+# for this repo's deployment and diagnostic scripts.
+disable=SC2009,SC1091,SC2034
