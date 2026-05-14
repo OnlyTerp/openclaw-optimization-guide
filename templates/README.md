@@ -2,7 +2,7 @@
 
 A working-by-default starter bundle that matches the patterns documented in the [OpenClaw Optimization Guide](../README.md). Copy these files into a fresh OpenClaw workspace and you're running the guide's baseline setup.
 
-> Updated for **OpenClaw 2026.4.27 stable** and the **2026.4.29-beta.1** memory/provider changes. See [Part 26 — Migration Guide](../part26-migration-guide.md) if you're on an older version.
+> Updated for **OpenClaw 2026.5.12 stable** and the **2026.5.14-beta.1** queue/Codex/provider changes. See [Part 26 — Migration Guide](../part26-migration-guide.md) if you're on an older version.
 
 ## What's in this directory
 
@@ -49,7 +49,8 @@ Full setup in [setup.sh](../setup.sh) / [setup.ps1](../setup.ps1) at the repo ro
 ## When this kit does *not* match what you should run
 
 - **Single-agent personal-dev setup:** you can skip the Task Brain approval block and pin one model.
-- **Local-only setup on a 14B-or-smaller model:** flip `agents.defaults.experimental.localModelLean: true` in `openclaw.json`; 2026.4.29 also relaxes fixed context preflight cutoffs.
+- **Local-only setup on a 14B-or-smaller model:** flip `agents.defaults.experimental.localModelLean: true` in `openclaw.json`; use provider-level `localService` only if OpenClaw should own the model daemon lifecycle.
 - **Latest provider-catalog setup:** use `/models` / `openclaw models list` to inspect manifest-backed provider rows, but do not rely on deprecated `/models add` for durable config.
+- **Shared channels:** set `messages.queue.mode` intentionally and use `tools.toolsBySender` before exposing runtime/filesystem tools to public users.
 - **Team deployment with multi-user approvals:** override `taskBrain.approvals` per-agent — see [Part 24](../part24-task-brain-control-plane.md).
 - **Large vault (500+ files):** add LightRAG ([Part 18](../part18-lightrag-graph-rag.md)) and Repowise ([Part 19](../part19-repowise-codebase-intelligence.md)).

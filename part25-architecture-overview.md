@@ -9,7 +9,7 @@
 
 > **Most agent capability comes from the harness, not the weights.**
 
-The exact 95/5 split was always a mnemonic, not a law. The useful part survived the late-April release wave: changing weights helps, but the big operator wins come from context budgets, memory discipline, provider routing, hooks, approvals, run steering, and verification.
+The exact 95/5 split was always a mnemonic, not a law. The useful part survived the late-April/May release waves: changing weights helps, but the big operator wins come from context budgets, memory discipline, provider routing, hooks, approvals, run steering, and verification.
 
 ```mermaid
 flowchart TB
@@ -142,7 +142,13 @@ Short form, so you know what era a given piece of advice applies to:
 | **v2026.3.31-beta.1 — Task Brain** | 2026-03-31 | Control plane, semantic approval categories, fail-closed plugin installs, gateway auth tightening | Structural response to the Feb–Mar CVE wave. See [Part 24](./part24-task-brain-control-plane.md). |
 | **v2026.4.x** | early 2026-04 | memory-core built-in dreaming; rolling fixes | Part 22 replaces the custom autoDream pattern. |
 | **v2026.4.15-beta.1** | 2026-04-15 | memory-lancedb cloud storage, GitHub Copilot embedding provider, `agents.defaults.experimental.localModelLean`, compaction reserve-token cap, `models.authStatus` gateway method + Canvas Model Auth card, approvals secret redaction, `memory_get` canonical-only | Where the 4.15 line starts. |
-| **v2026.4.15 (stable)** | 2026-04-16 | Claude **Opus 4.7** new Anthropic default; dreaming default `inline` → `separate` (phase blocks to `memory/dreaming/{phase}/YYYY-MM-DD.md`); `memory_get` default excerpt cap + continuation metadata; trimmed startup/skills prompt budgets; gateway tool-name normalize-collision rejection (closes local-media trust inheritance); webchat localRoots containment; Gemini TTS in bundled `google` plugin; Matrix pairing-auth tightening | **This guide's current baseline.** Stable-promotes 4.15-beta.1 plus new features. |
+| **v2026.4.15 (stable)** | 2026-04-16 | Claude **Opus 4.7** new Anthropic default; dreaming default `inline` → `separate` (phase blocks to `memory/dreaming/{phase}/YYYY-MM-DD.md`); `memory_get` default excerpt cap + continuation metadata; trimmed startup/skills prompt budgets; gateway tool-name normalize-collision rejection (closes local-media trust inheritance); webchat localRoots containment; Gemini TTS in bundled `google` plugin; Matrix pairing-auth tightening | Stable-promotes 4.15-beta.1 plus new features. |
+| **v2026.4.20–4.22** | 2026-04-20/22 | Session-store pruning, Kimi K2.6 bundled Moonshot default, tiered token reports, `/models add`, and OpenAI Codex auth import | Important historically, but `/models add` and Codex auth import were quickly superseded. |
+| **v2026.4.24 beta** | 2026-04-24 | Google Meet recovery, realtime voice consults, DeepSeek V4, browser coordinate clicks, 60s browser budgets, per-profile headless overrides, manifest-backed model rows, `/models add` deprecation | The provider-catalog/browser automation line begins here. |
+| **v2026.4.27 stable** | 2026-04-27 | DeepInfra provider, Codex Computer Use setup/status/install, manifest-first plugin catalogs, Docker GPU passthrough, outbound proxy routing, non-image chat attachments | Late-April stable baseline; required before the May migration makes sense. |
+| **v2026.4.29-beta.1** | 2026-04-29 | Active-run steering, visible-reply enforcement, people-aware wiki metadata, Active Memory chat filters, partial recall on timeout, NVIDIA provider, Bedrock Opus 4.7 parity, OpenGrep scanning | Memory + messaging beta that shaped the May defaults. |
+| **v2026.5.12 stable** | 2026-05-14 | Leaner externalized provider/channel installs, Telegram resilience, Codex app-server/runtime fallback fixes, pnpm 11 plugin install support, ACP fallbacks, Control UI/WebChat/TUI delivery polish, broad gateway/browser/Slack/sandbox/transcript hardening | **This guide's current stable baseline.** |
+| **v2026.5.14-beta.1** | 2026-05-14 | `/queue steer` default, `agents.defaults.runRetries`, Telnyx realtime calls, Codex command/migration fixes, bundled `codex-cli` backend removal/repair, WhatsApp status reactions, per-sender tool policies, nested sub-agent sessions | Latest beta; test on a copied profile before exposing to users. |
 
 If you're on something older than v4.0, the first upgrade is not reading this guide — it's moving to v4.0+. See [Part 26 — Migration Guide](./part26-migration-guide.md).
 

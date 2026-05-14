@@ -1,20 +1,24 @@
 # Part 27: Common Gotchas & FAQ
 
-> Updated in the late-April 2026 refresh. Every "I wasted a day on this" distilled into one page. Skim this before you debug; half your questions are answered here.
+> Updated in the May 2026 refresh. Every "I wasted a day on this" distilled into one page. Skim this before you debug; half your questions are answered here.
 
 > **Read this if** something is broken, confusing, or behaving weirdly and you want to check the common-causes list before deep-diving.
 > **Skip if** nothing is broken — come back when it is.
 
 ## Gotchas, Grouped By Symptom
 
-### "The late-April upgrade broke my old workflow"
+### "The May upgrade broke my old workflow"
 
 | Cause | Fix |
 |-------|-----|
 | Claude worked last month and now costs money / fails auth | Anthropic's April 4 cutoff ended the old subscription-backed path for many OpenClaw users. Move to explicit API/Bedrock/provider routing, set budget caps, add non-Anthropic fallbacks. See [Part 33](./part33-late-april-2026-field-guide.md). |
 | `/models add` no longer works | It was deprecated in 2026.4.24 after provider-catalog work. Use `/models` or `openclaw models list` to inspect, then edit config/catalogs deliberately. |
 | Active Memory recalls the wrong group chat | Broad recall enabled without chat filters. Add `allowedChatIds` / `deniedChatIds`; deny public channels by default. |
-| Agent replies invisibly or in the wrong channel during long runs | Shared channel not enforcing the visible reply path. Enable `messages.visibleReplies`; use steering for follow-ups at model boundaries. |
+| Agent replies invisibly or in the wrong channel during long runs | Shared channel not enforcing the visible reply path. Enable `messages.visibleReplies`; set `messages.queue.mode` intentionally (`steer` is the 2026.5.14-beta.1 default). |
+| Follow-up messages now alter the current run instead of waiting | You are on `/queue steer`. Switch to `/queue followup` for old one-at-a-time behavior or `/queue collect` for batched later turns. |
+| Codex model refs stopped resolving | Legacy `codex-cli/*` or durable `openai-codex/*` refs. Use canonical `openai/gpt-*` refs exposed by your Codex app-server provider catalog and run `openclaw doctor --fix` for OAuth repair. |
+| Public channel users can trigger tools they should not see | Missing per-sender policy. Add `tools.toolsBySender` deny rules for `*`, guest IDs, and public channel senders. |
+| Bedrock/Slack/WhatsApp disappeared after a lean install | May builds externalize more provider/channel cones. Install the provider/plugin you actually use and audit its manifest. |
 | Browser automation clicks miss dynamic UI | Selector-only automation on overlays/canvas/shadow DOM. Use coordinate clicks sparingly and document viewport assumptions. |
 
 ### "memory_search returns nothing / takes 5 seconds"

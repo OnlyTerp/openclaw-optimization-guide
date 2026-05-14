@@ -44,7 +44,7 @@ OpenClaw 2026.4.15 added a `copilot` memory-search provider. If your org already
 
 **Gotcha:** Copilot embeddings share rate limits with Copilot chat completions. If you also use Copilot as an agent model, heavy memory-search traffic can starve chat — watch the new Model Auth card in Control UI for rate-limit pressure and keep a local fallback configured.
 
-### Late-April memory-search changes
+### Current memory-search changes
 
 OpenClaw 2026.4.24+ exposes raw `vectorScore` and `textScore` on hybrid memory search results, alongside the combined `score`. Use those fields when a result feels "wrong":
 
@@ -52,7 +52,7 @@ OpenClaw 2026.4.24+ exposes raw `vectorScore` and `textScore` on hybrid memory s
 - low `vectorScore`, high `textScore` → exact words matched, but the passage may be contextually irrelevant
 - both low, combined high → temporal decay or MMR ordering may be doing more work than the text deserves
 
-2026.4.29-beta.1 also adds Active Memory partial recall summaries on timeout. That is a safety net, not a replacement for fast local embeddings. If recall often times out, fix the embedding/index path instead of accepting partial summaries as normal.
+Active Memory can return partial recall summaries on timeout. That is a safety net, not a replacement for fast local embeddings. If recall often times out, fix the embedding/index path instead of accepting partial summaries as normal.
 
 The `qwen3-embedding:0.6b` model is the sweet spot for most users — it's from the same Qwen3 family that holds #1 on MTEB, runs on anything, and blows away nomic on quality. Install via `ollama pull qwen3-embedding:0.6b`.
 

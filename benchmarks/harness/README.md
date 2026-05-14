@@ -29,7 +29,7 @@ Each invocation writes to `benchmarks/runs/_scratch/$(date +%Y%m%dT%H%M%S)/` so 
 
 ## Environment assumptions
 
-- OpenClaw 2026.4.27 stable (or newer) running locally. `openclaw doctor` returns clean.
+- OpenClaw 2026.5.12 stable (or newer) running locally. `openclaw doctor` returns clean.
 - The reference config at [`templates/openclaw.example.json`](../../templates/openclaw.example.json) is in `~/.openclaw/openclaw.json` (or the harness will refuse to run).
 - Local Ollama at `http://localhost:11434` with `qwen3-embedding:0.6b` pulled.
 

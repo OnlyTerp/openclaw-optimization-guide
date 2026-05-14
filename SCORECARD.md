@@ -1,6 +1,6 @@
 # The OpenClaw Production Readiness Scorecard
 
-**Score your OpenClaw setup against the patterns in the [OpenClaw Optimization Guide](./README.md). 50 items across 5 pillars. 2 points each. 100 possible. Updated for OpenClaw 2026.4.27 stable and 2026.4.29 beta.**
+**Score your OpenClaw setup against the patterns in the [OpenClaw Optimization Guide](./README.md). 50 items across 5 pillars. 2 points each. 100 possible. Updated for OpenClaw 2026.5.12 stable and 2026.5.14 beta.**
 
 > Share your score: *"My OpenClaw Production Readiness Scorecard: XX / 100 — [github.com/OnlyTerp/openclaw-optimization-guide](https://github.com/OnlyTerp/openclaw-optimization-guide)"*
 
@@ -23,7 +23,7 @@ Do your agents respond in seconds, not minutes? If every turn feels sluggish, co
 - [ ] `AGENTS.md` is under 2 KB. *→ [Part 2](./README.md#part-2-context-engineering--the-discipline)*
 - [ ] `MEMORY.md` is under 3 KB and is a pure index, not a content store. *→ [Part 4](./README.md#part-4-memory-stop-forgetting-everything)*
 - [ ] `TOOLS.md` uses one-liners per tool, not full JSON schemas. *→ [Part 2](./README.md#part-2-context-engineering--the-discipline)*
-- [ ] Total injected context per message is under 8 KB (verified by logging a turn). *→ [Part 1](./README.md#part-1-speed-stop-being-slow)*
+- [ ] Total injected context per message is under 8 KB, verified by logging a turn or reviewing `/context map`. *→ [Part 1](./README.md#part-1-speed-stop-being-slow)*
 - [ ] `contextPruning.mode: "cache-ttl"` with a 5-minute TTL. *→ [Part 2](./README.md#part-2-context-engineering--the-discipline)*
 - [ ] Reasoning mode is OFF on the default model, ON only for orchestration. *→ [Part 6](./README.md#part-6-models-what-to-actually-use)*
 - [ ] Compaction runs on a cheap non-reasoning model (e.g. Cerebras `gpt-oss-120b`), not on Gemini Flash or an Opus/GPT key. *→ [Part 15](./part15-infrastructure-hardening.md)*
@@ -59,6 +59,7 @@ Does the frontier model plan while cheap workers execute, or is your orchestrato
 - [ ] Ralph-style implement→test→loop pattern is wired somewhere (or you've consciously decided it's overkill). *→ [Part 5](./README.md#part-5-orchestration-stop-doing-everything-yourself)*
 - [ ] If you ship code: Repowise (or an equivalent structural index) feeds workers *instead of* re-reading files every spawn. *→ [Part 19](./part19-repowise-codebase-intelligence.md)*
 - [ ] Memory Bridge (or equivalent) injects your vault into external coding agents (Codex / Claude Code / Cursor) before they start. *→ [Part 13](./part13-memory-bridge.md)*
+- [ ] Codex workers use canonical `openai/gpt-*` app-server routes, not legacy `codex-cli/*` refs. *→ [Part 33](./part33-late-april-2026-field-guide.md)*
 
 ## Pillar 4 — Security & Control Plane (20 points)
 
@@ -67,13 +68,13 @@ If a compromised skill ships tomorrow, how much of your system does it reach?
 - [ ] Task Brain is live (`openclaw tasks list` returns output). *→ [Part 24](./part24-task-brain-control-plane.md)*
 - [ ] Approval policy uses **semantic categories** (`read-only.*`, `execution.*`, `write.*`, `control-plane.*`), not raw tool names. *→ [Part 24](./part24-task-brain-control-plane.md)*
 - [ ] `control-plane.*` is set to `deny` for every non-admin agent. *→ [Part 24](./part24-task-brain-control-plane.md)*
-- [ ] `write.fs.outside-workspace` is `deny` by default. *→ [Part 24](./part24-task-brain-control-plane.md)*
+- [ ] `write.fs.outside-workspace` is `deny` by default, and `tools.toolsBySender` strips mutation/runtime tools from public senders. *→ [Part 24](./part24-task-brain-control-plane.md)*
 - [ ] `skills.autoUpdate` is **OFF**. *→ [Part 23](./part23-clawhub-skills-marketplace.md)*
 - [ ] Every installed ClawHub skill is pinned to a commit or tag, not a branch. *→ [Part 23](./part23-clawhub-skills-marketplace.md)*
 - [ ] You've read the source of every ClawHub skill you have installed. *→ [Part 23](./part23-clawhub-skills-marketplace.md)*
 - [ ] Credentials live in environment variables or OS keychain, not in `openclaw.json`, `AGENTS.md`, or `memory/`. *→ [Part 15](./part15-infrastructure-hardening.md)*
 - [ ] Approval UI shows redacted secrets (`sk-***`) — you upgraded to 2026.4.15+. *→ [Part 15](./part15-infrastructure-hardening.md)*
-- [ ] Canvas **Model Auth status card** shows all providers green; you've tested auth hot-reload. *→ [Part 15](./part15-infrastructure-hardening.md)*
+- [ ] Canvas **Model Auth status card** shows all providers green; you've tested auth hot-reload and Codex OAuth repair if used. *→ [Part 15](./part15-infrastructure-hardening.md)*
 
 ## Pillar 5 — Observability & Reliability (20 points)
 
@@ -88,7 +89,7 @@ When something breaks at 3am, can you answer "what ran, with what permissions, a
 - [ ] Self-improving system is on: `.learnings/corrections.md`, `.learnings/ERRORS.md`, `.learnings/LEARNINGS.md` are being written to. *→ [Part 12](./part12-self-improving-system.md)*
 - [ ] Real-time knowledge sync (file watcher → vector index) is running. *→ [Part 21](./part21-realtime-knowledge-sync.md)*
 - [ ] You have a one-command rollback plan from your current version to the previous one. *→ [Part 26](./part26-migration-guide.md)*
-- [ ] You've tested the rollback at least once on a disposable workspace. *→ [Part 26](./part26-migration-guide.md)*
+- [ ] You've tested rollback at least once, and active-run queue mode (`steer`/`followup`/`collect`/`interrupt`) is documented for shared channels. *→ [Part 26](./part26-migration-guide.md)*
 
 ---
 

@@ -5,7 +5,7 @@
 
 - **Date:** 2026-MM-DD
 - **Author:** @your-handle
-- **OpenClaw version:** 2026.4.27 stable (or whatever you're on — be exact)
+- **OpenClaw version:** 2026.5.12 stable (or whatever you're on — be exact)
 - **Scorecard score:** XX / 100 — link to your scorecard snapshot if public
 - **Outcome:** `improved` / `no-improvement` / `regressed` / `partial`
 

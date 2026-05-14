@@ -2,7 +2,7 @@
 
 **A curated list of resources for getting the most out of OpenClaw.** Skills, guides, talks, templates, tools, research. Contributions welcome — see [CONTRIBUTING.md](./CONTRIBUTING.md).
 
-> This list is opinionated. Inclusion here means we've actually used it on a production OpenClaw deployment or seen it solve a real problem. Broken or abandoned links are removed aggressively. Last curated: **April 30, 2026, tracking OpenClaw 2026.4.27 stable + 2026.4.29-beta.1**.
+> This list is opinionated. Inclusion here means we've actually used it on a production OpenClaw deployment or seen it solve a real problem. Broken or abandoned links are removed aggressively. Last curated: **May 14, 2026, tracking OpenClaw 2026.5.12 stable + 2026.5.14-beta.1**.
 
 ## Contents
 
@@ -34,11 +34,13 @@
 
 ## Guides & tutorials
 
-- **[OpenClaw Optimization Guide](./README.md)** — this repo. 33 parts, refreshed for the late-April 2026 release wave.
-- **[Late-April 2026 Field Guide](./part33-late-april-2026-field-guide.md)** — the fast catch-up map from 2026.4.15 to 2026.4.27/2026.4.29-beta.1.
+- **[OpenClaw Optimization Guide](./README.md)** — this repo. 33 parts, refreshed for the May 2026 release wave.
+- **[May 2026 Field Guide](./part33-late-april-2026-field-guide.md)** — the fast catch-up map from 2026.4.15 to 2026.5.12/2026.5.14-beta.1.
 - **[Official "Getting Started" path](https://clawdocs.org/start)** — the minimum-viable setup. Read this first if you're brand new.
 - **[The OpenClaw CVE flood, Feb–Mar 2026](https://www.tryopenclaw.ai/blog/openclaw-cve-flood-march-2026/)** — the definitive writeup on the **ClawHavoc** supply-chain campaign.
-- **[Migration Guide — v3 → v4 → late April 2026](./part26-migration-guide.md)** — opinionated upgrade paths.
+- **[Migration Guide — v3 → v4 → May 2026](./part26-migration-guide.md)** — opinionated upgrade paths.
+- **[Toolbrain OpenClaw Best Practices 2026](https://toolbrain.net/openclaw-best-practices-optimization-guide/)** — useful external checklist on task-aware routing, compaction, skill bloat, and cost controls. Treat syntax examples as illustrative; verify against current OpenClaw config docs.
+- **[The OpenClaw Playbook](https://www.openclawplaybook.ai/)** — community/operator playbook focused on identity, persistent memory, daily operations, and autonomous coding. Commercial resource; useful signal on where power users are taking always-on agents.
 
 ## Reference configs & starter kits
 
@@ -66,7 +68,7 @@ See [Part 23 — ClawHub Skills Marketplace](./part23-clawhub-skills-marketplace
 
 - **[memory-core](https://github.com/openclaw/memory-core)** — the built-in memory plugin with native dreaming (3 phases). Replaced the custom-autoDream patterns in v4.
 - **[memory-lancedb](https://github.com/openclaw/memory-lancedb)** — LanceDB vector store. 2026.4.15-beta.1 added cloud storage mode.
-- **Active Memory filters** — 2026.4.29-beta.1 adds per-conversation `allowedChatIds` / `deniedChatIds`, partial recall on timeout, and people-aware wiki provenance views.
+- **Active Memory filters** — current builds support per-conversation `allowedChatIds` / `deniedChatIds`, partial recall on timeout, and people-aware wiki provenance views.
 - **[Ollama](https://ollama.com/)** — local embedding runtime. `qwen3-embedding:0.6b` is the right default for most setups.
 - **[LightRAG](https://github.com/HKUDS/LightRAG)** — graph + vector hybrid RAG. The right upgrade once your vault crosses ~500 files. See [Part 18](./part18-lightrag-graph-rag.md).
 - **[Repowise](https://github.com/repowise/repowise)** — structural index for codebases. Feeds workers a map instead of re-reading files. See [Part 19](./part19-repowise-codebase-intelligence.md).

@@ -30,7 +30,7 @@ openclaw tasks flow show <flow-id>
 
 Think of it as the Kubernetes control plane, but for AI agent actions: unified lifecycle, heartbeat monitoring with automatic recovery of lost tasks, parent-record tracking so subtask results trace back to the originating conversation, and blocked-state persistence so tasks retry on the same flow instead of fragmenting.
 
-Late-April update: spawned sub-agent events now carry `spawnedBy` routing metadata, so channel clients can attach child-session progress to the parent run without an extra lookup. Combine that with active-run steering (covered in [Part 33](./part33-late-april-2026-field-guide.md)) and humans can correct a running agent at the next model boundary instead of starting a competing thread.
+May update: spawned sub-agent events now carry `spawnedBy` routing metadata, and current Control UI builds show sub-agent sessions nested under their parent. Combine that with active-run steering (covered in [Part 33](./part33-late-april-2026-field-guide.md)) and humans can correct a running agent at the next model boundary instead of starting a competing thread.
 
 ## The February–March CVE Wave (Why This Matters)
 
@@ -123,6 +123,35 @@ You can set different approval policies per agent. The pattern we use on our 14-
 
 Narrow-scope workers get frictionless autonomy inside their scope and hard walls outside it. The orchestrator keeps humans in the loop on anything destructive. This is the CEO/COO/Worker model from [Part 5](./README.md#part-5-orchestration-stop-doing-everything-yourself) but with enforcement, not honor system.
 
+## Per-Sender Tool Boundaries
+
+May 2026 adds a second axis: requester identity. `tools.toolsBySender` restricts the tool schema for a channel/user even when the agent itself is trusted. Use it for public Discord/Telegram/Slack users, guest DMs, or shared support inboxes where you want the same agent personality but not the same filesystem/runtime permissions.
+
+```json5
+{
+  "tools": {
+    "toolsBySender": {
+      "*": {
+        "deny": ["exec", "process", "write", "edit", "apply_patch"]
+      },
+      "id:guest-user-id": {
+        "deny": ["group:runtime", "group:fs"]
+      },
+      "channel:discord:1234567890123": {
+        "alsoAllow": ["group:fs"]
+      }
+    }
+  }
+}
+```
+
+Rules:
+
+- Sender keys must come from the channel adapter, not from message text.
+- Use explicit prefixes (`channel:<platform>:<id>`, `id:<id>`, `e164:<phone>`, `username:<handle>`, `name:<display-name>`, or `*`).
+- Deny runtime and filesystem mutation for wildcard/public senders.
+- Per-agent `agents.list[].tools.toolsBySender` can override the global sender match when needed.
+
 ## Agent-Initiated Denies (new in v2026.3.31-beta.1)
 
 Task Brain added the inverse of the approval flow: an agent can now **refuse to do something you asked it to do** and have that refusal be a first-class event.
@@ -207,6 +236,7 @@ This is a real architectural choice. Here's the positioning an OpenClaw operator
 - [ ] Approval policy set at the root with `read-only.* \u2192 allow`, `control-plane.* \u2192 ask or deny`
 - [ ] No `execution.*` policies wider than the agent actually needs
 - [ ] Per-agent scopes configured for worker agents (narrower than the orchestrator)
+- [ ] `tools.toolsBySender` denies runtime/filesystem mutation for wildcard/public senders
 - [ ] `control-plane.skills` explicitly `deny` for all agents (install from CLI only)
 - [ ] `openclaw tasks list` reviewed weekly — watch for stuck, denied, or orphaned flows (Control UI task/flow panels give the richer view)
 - [ ] Approval prompts show redacted secrets (2026.4.15 — see [Part 15](./part15-infrastructure-hardening.md))

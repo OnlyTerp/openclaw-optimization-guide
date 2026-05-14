@@ -60,10 +60,13 @@ Use this when you're unsure about architecture decisions or past patterns.
 ```
 Before Codex spawn:
   1. node preflight-context.js --task "..." --workdir <dir>   → writes CONTEXT.md
-  2. codex --yolo exec "Build X. You can search memory with: node memory-query.js 'query'"
+  2. Spawn your configured Codex app-server worker with:
+     "Build X. You can search memory with: node memory-query.js 'query'"
 
 Result: Codex starts with context + can search on demand = institutional knowledge
 ```
+
+Use the current native Codex app-server route exposed by your OpenClaw install. Older external `codex` CLI examples still explain the idea, but current OpenClaw routes Codex through canonical `openai/gpt-*` model refs plus the app-server runtime.
 
 ### What CONTEXT.md Looks Like
 
