@@ -9,11 +9,11 @@
 
 | You're on | Do this first | Then | Finally |
 |-----------|--------------|------|---------|
-| **v3.x** | Full v4.0 upgrade (not a drop-in) | v4.1 ClawHub | 2026.4.27 |
-| **v4.0.x** | v2026.3.31-beta.1 (Task Brain) | 2026.4.x (built-in dreaming) | 2026.4.27 |
-| **v2026.3.x** | Apply Task Brain approval policy | Upgrade to 2026.4.x | 2026.4.27 |
-| **v2026.4.x pre-4.15** | Skip straight to 2026.4.15 | Apply the 4.15 flags | 2026.4.27 |
-| **v2026.4.15** | Remove subscription-era model assumptions | Apply provider-catalog changes | 2026.4.27 |
+| **v3.x** | Full v4.0 upgrade (not a drop-in) | Reach 2026.4.27 through Paths 1–6 | 2026.5.12 |
+| **v4.0.x** | v2026.3.31-beta.1 (Task Brain) | Reach 2026.4.27 through Paths 2–6 | 2026.5.12 |
+| **v2026.3.x** | Apply Task Brain approval policy | Reach 2026.4.27 through Paths 3–6 | 2026.5.12 |
+| **v2026.4.x pre-4.15** | Skip straight to 2026.4.15 | Reach 2026.4.27 through Paths 5–6 | 2026.5.12 |
+| **v2026.4.15** | Remove subscription-era model assumptions | Apply provider-catalog changes | 2026.5.12 |
 | **v2026.4.27** | Apply memory/messaging beta changes | Upgrade to 2026.5.12 | Optional 2026.5.14-beta.1 |
 | **v2026.4.29-beta.1** | Migrate Codex/queue assumptions | Upgrade to 2026.5.12 | Optional 2026.5.14-beta.1 |
 

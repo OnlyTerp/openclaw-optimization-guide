@@ -58,8 +58,7 @@ Does the frontier model plan while cheap workers execute, or is your orchestrato
 - [ ] At least 2 fallback models are configured; you've verified failover works. *→ [Part 6](./README.md#part-6-models-what-to-actually-use)*
 - [ ] Ralph-style implement→test→loop pattern is wired somewhere (or you've consciously decided it's overkill). *→ [Part 5](./README.md#part-5-orchestration-stop-doing-everything-yourself)*
 - [ ] If you ship code: Repowise (or an equivalent structural index) feeds workers *instead of* re-reading files every spawn. *→ [Part 19](./part19-repowise-codebase-intelligence.md)*
-- [ ] Memory Bridge (or equivalent) injects your vault into external coding agents (Codex / Claude Code / Cursor) before they start. *→ [Part 13](./part13-memory-bridge.md)*
-- [ ] Codex workers use canonical `openai/gpt-*` app-server routes, not legacy `codex-cli/*` refs. *→ [Part 33](./part33-late-april-2026-field-guide.md)*
+- [ ] Memory Bridge injects your vault into external coding agents, and Codex workers use canonical `openai/gpt-*` app-server routes. *→ [Part 13](./part13-memory-bridge.md), [Part 33](./part33-late-april-2026-field-guide.md)*
 
 ## Pillar 4 — Security & Control Plane (20 points)
 
