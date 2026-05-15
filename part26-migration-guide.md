@@ -1,20 +1,21 @@
 # Part 26: Migration Guide
 
-> Updated in the late-April 2026 refresh. Opinionated, battle-tested upgrade paths from older OpenClaw versions to current. If something in this guide doesn't apply to your version yet, start here.
+> Updated in the May 2026 refresh. Opinionated, battle-tested upgrade paths from older OpenClaw versions to current. If something in this guide doesn't apply to your version yet, start here.
 
-> **Read this if** you're on anything older than 2026.4.27, or planning an upgrade.
+> **Read this if** you're on anything older than 2026.5.12, or planning an upgrade.
 > **Skip if** you're already on current-beta and don't maintain older instances.
 
 ## TL;DR By Version
 
 | You're on | Do this first | Then | Finally |
 |-----------|--------------|------|---------|
-| **v3.x** | Full v4.0 upgrade (not a drop-in) | v4.1 ClawHub | 2026.4.27 |
-| **v4.0.x** | v2026.3.31-beta.1 (Task Brain) | 2026.4.x (built-in dreaming) | 2026.4.27 |
-| **v2026.3.x** | Apply Task Brain approval policy | Upgrade to 2026.4.x | 2026.4.27 |
-| **v2026.4.x pre-4.15** | Skip straight to 2026.4.15 | Apply the 4.15 flags | 2026.4.27 |
-| **v2026.4.15** | Remove subscription-era model assumptions | Apply provider-catalog changes | 2026.4.27 |
-| **v2026.4.27** | Stable baseline | Optional memory/messaging beta | 2026.4.29-beta.1 |
+| **v3.x** | Full v4.0 upgrade (not a drop-in) | Reach 2026.4.27 through Paths 1–6 | 2026.5.12 |
+| **v4.0.x** | v2026.3.31-beta.1 (Task Brain) | Reach 2026.4.27 through Paths 2–6 | 2026.5.12 |
+| **v2026.3.x** | Apply Task Brain approval policy | Reach 2026.4.27 through Paths 3–6 | 2026.5.12 |
+| **v2026.4.x pre-4.15** | Skip straight to 2026.4.15 | Reach 2026.4.27 through Paths 5–6 | 2026.5.12 |
+| **v2026.4.15** | Remove subscription-era model assumptions | Apply provider-catalog changes | 2026.5.12 |
+| **v2026.4.27** | Apply memory/messaging beta changes | Upgrade to 2026.5.12 | Optional 2026.5.14-beta.1 |
+| **v2026.4.29-beta.1** | Migrate Codex/queue assumptions | Upgrade to 2026.5.12 | Optional 2026.5.14-beta.1 |
 
 Each step is described below. Don't skip steps — the CVE wave fixes and Task Brain model changes are not optional for anyone running more than a personal-dev setup.
 
@@ -155,7 +156,7 @@ Tiny jump. The stable release is a superset of the beta plus a few user-visible 
 
 ## Path 6: v2026.4.15 → v2026.4.27 stable
 
-This is the current stable baseline for this guide. It is worth doing even if you skip 2026.4.29 beta.
+This is the first late-April stability jump. It is worth doing before moving to May because it introduces the provider/catalog/browser changes the later releases assume.
 
 **What changes (the ones you should act on immediately):**
 
@@ -182,7 +183,7 @@ This is the current stable baseline for this guide. It is worth doing even if yo
 
 ## Path 7: v2026.4.27 stable → v2026.4.29-beta.1
 
-Beta jump. Do this in a separate profile unless you specifically need the memory/messaging features.
+Former beta jump. If you're upgrading today, treat this as the conceptual migration step for memory/messaging behavior and then continue to 2026.5.12 stable.
 
 **What changes (the ones you should act on immediately):**
 
@@ -204,6 +205,52 @@ Beta jump. Do this in a separate profile unless you specifically need the memory
 5. Use `doctor.memory.remHarness` to preview REM output before trusting a new memory policy.
 6. Roll back to 2026.4.27 if memory recall or channel routing behaves unexpectedly.
 
+## Path 8: v2026.4.29-beta.1 → v2026.5.12 stable
+
+This is the current stable baseline for this guide. Do this before experimenting with 2026.5.14-beta.1.
+
+**What changes (the ones you should act on immediately):**
+
+- Provider/channel dependency cones are leaner. WhatsApp, Slack, Amazon Bedrock, Anthropic Vertex, OpenShell sandbox, and related runtime dependencies may need explicit plugin/provider installs instead of assuming core bundled them.
+- Telegram is much more resilient: isolated polling, durable local spooling, safer group-media handling, and preserved HTML/Markdown formatting.
+- Codex/OpenAI paths are smoother: auth-profile-backed media tools, MCP server projection, context-engine thread rotation, and app-server/runtime fallback fixes.
+- Plugin installs/updates are harder to wedge: pnpm 11 support, peer-dependency preservation, safer runtime scans, and source/git install fixes.
+- Gateway, browser, Slack, node pairing, sandbox, and transcript paths got security/provenance hardening.
+- ACP can use `acp.fallbacks` to try backup runtime backends.
+
+**Steps:**
+
+1. Upgrade to 2026.5.12. Restart gateway. Run `openclaw doctor`.
+2. List enabled provider/channel plugins and reinstall any externalized dependency you actually use.
+3. If you use Codex, run `openclaw codex computer-use status`, then one small Codex app-server task before a real batch.
+4. Replace any durable `openai-codex/*` or `codex-cli/*` model references with canonical `openai/gpt-*` routes, such as `openai/gpt-5.5`, that your installed Codex provider exposes.
+5. If you use ACP, add `acp.fallbacks` for the runtime backends you trust rather than letting one backend outage kill the workflow.
+6. Re-test Telegram/Slack/WebChat delivery on a disposable session, especially if your workflows depend on media or rich formatting.
+
+## Path 9: v2026.5.12 stable → v2026.5.14-beta.1
+
+Beta jump. Do this in a separate profile unless you specifically need queue steering defaults, Telnyx voice, Codex migration repair, per-sender tool tiers, or embedded Pi retry controls.
+
+**What changes (the ones you should act on immediately):**
+
+- `messages.queue.mode` defaults to `steer`, so active-run follow-ups are injected at the next model boundary.
+- `/queue steer`, `/queue followup`, `/queue collect`, and `/queue interrupt` are the operator-visible queue modes.
+- `agents.defaults.runRetries` and `agents.list[].runRetries` bound embedded Pi runner retry loops.
+- Telnyx realtime media-streaming calls land for conversational voice workflows.
+- Bundled `codex-cli` backend is removed; legacy `codex-cli/*` refs repair toward the native Codex app-server route on `openai/gpt-*`.
+- WhatsApp status reactions can show coarse progress categories.
+- `tools.toolsBySender` restricts tool access by channel/user identity.
+- Sub-agent sessions appear nested under parent sessions in Control UI.
+
+**Steps:**
+
+1. Set `messages.queue.mode` deliberately. Keep `steer` for live correction; choose `followup` or `collect` where order matters more than mid-turn steering.
+2. Add `tools.toolsBySender` deny rules for guest/public-channel senders before exposing write/runtime tools to channel users.
+3. Add `agents.defaults.runRetries` for embedded/remote Pi runners that can fail transiently.
+4. If you had `codex-cli/*` refs, replace them with canonical `openai/gpt-*` model refs and verify with a tiny Codex task.
+5. If you try Telnyx voice, do it on a test number first and keep transcript/media retention explicit.
+6. Roll back to 2026.5.12 if steering semantics or channel progress reactions surprise users.
+
 ## Rollback Plan (Every Path)
 
 If something goes sideways:
@@ -213,7 +260,7 @@ If something goes sideways:
 openclaw gateway stop
 
 # Install previous version (example: pin via your package manager)
-npm install -g openclaw@2026.4.14  # adjust for your install method
+npm install -g openclaw@2026.5.12  # adjust for your install method / previous pin
 
 # Restore config
 cp ~/.openclaw/openclaw.json.pre-upgrade.YYYYMMDD ~/.openclaw/openclaw.json

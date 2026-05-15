@@ -2,8 +2,8 @@
 
 **Make your OpenClaw AI agent faster, smarter, cheaper, and actually safe to run in production.**
 
-[![Current sweep: 2026.4.29 beta](https://img.shields.io/badge/OpenClaw-2026.4.29--beta.1-2ea44f)](./part33-late-april-2026-field-guide.md)
-[![Stable baseline: 2026.4.27](https://img.shields.io/badge/stable-2026.4.27-blue)](./part26-migration-guide.md)
+[![Current sweep: 2026.5.14 beta](https://img.shields.io/badge/OpenClaw-2026.5.14--beta.1-2ea44f)](./part33-late-april-2026-field-guide.md)
+[![Stable baseline: 2026.5.12](https://img.shields.io/badge/stable-2026.5.12-blue)](./part26-migration-guide.md)
 [![33 parts](https://img.shields.io/badge/parts-33-blue)](#full-table-of-contents)
 [![Scorecard](https://img.shields.io/badge/scorecard-50_items-8957e5)](./SCORECARD.md)
 [![Awesome](https://img.shields.io/badge/awesome-list-fc60a8)](./AWESOME.md)
@@ -11,23 +11,23 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey)](./LICENSE)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](./CONTRIBUTING.md)
 
-> **April 30, 2026 sweep.** Stable baseline: **OpenClaw 2026.4.27**. Beta tracked: **2026.4.29-beta.1**. This refresh removes subscription-era Claude assumptions, replaces stale model/setup advice, and adds the late-April operator tricks people actually need now: Active Memory filters, people wiki provenance, visible-reply enforcement, active-run steering, manifest-backed model catalogs, browser coordinate clicks, Codex Computer Use setup, DeepSeek/DeepInfra/NVIDIA provider expansion, safer config handling, and the new security posture.
+> **May 14, 2026 sweep.** Stable baseline: **OpenClaw 2026.5.12**. Beta tracked: **2026.5.14-beta.1**. This refresh updates the late-April guidance for the May release wave: leaner provider/plugin installs, canonical Codex app-server routing, `/queue steer` defaults, `/context map`, provider-owned local services, per-sender tool policies, Telegram/WhatsApp/voice reliability, `agents.defaults.runRetries`, and the current security/provenance posture.
 
 *By Terp — [Terp AI Labs](https://x.com/OnlyTerp)*
 
 ---
 
-## Start With The Late-April Reality Check
+## Start With The May 2026 Reality Check
 
-OpenClaw changed more in the last two weeks of April than most agent projects change in a quarter. If you last read this guide at 2026.4.15, these are the new rules:
+OpenClaw changed more from late April through mid-May than most agent projects change in a quarter. If you last read this guide around 2026.4.15/2026.4.29, these are the new rules:
 
 1. **Claude subscription-era advice is dead.** Anthropic's April 4 policy change broke the old "Claude Pro/Max covers OpenClaw" path. Treat Claude as paid API / Bedrock / provider-routed usage unless your own install proves otherwise.
-2. **Model config is now provider-catalog driven.** 2026.4.24 moved model rows toward manifest-backed catalogs and deprecated `/models add` after it briefly shipped in 2026.4.22. Stop telling agents to edit model config from chat.
-3. **Memory became an operator surface, not just a search tool.** 2026.4.29-beta.1 adds people-aware wiki metadata, provenance reports, per-conversation Active Memory filters, partial recall on timeout, and bounded REM previews.
-4. **Messaging has real run control now.** Active-run queueing defaults toward steering, `messages.visibleReplies` can force visible channel replies through the message tool, and spawned sub-agent events carry routing metadata.
-5. **Browser and Codex automation got practical.** Coordinate clicks, longer action budgets, per-profile headless overrides, Codex Computer Use status/install commands, and fail-closed MCP checks remove a lot of brittle manual setup.
+2. **Codex routing changed again.** Use canonical `openai/gpt-*` model refs such as `openai/gpt-5.5` for the native Codex app-server route; `openai-codex` is an auth/profile surface, not a durable model prefix, and the bundled `codex-cli` backend is gone in 2026.5.14-beta.1.
+3. **Provider catalogs and plugin installs are leaner.** Bedrock, Slack, Anthropic Vertex, OpenShell sandbox, WhatsApp, and related cones moved out of core installs. Audit manifests and install only the providers/channels you use.
+4. **Messaging now steers by default.** `/queue steer` is the default for active runs; use `/queue followup`, `/queue collect`, or `/queue interrupt` only when that behavior is intentional. Keep `messages.visibleReplies` on for shared channels.
+5. **Context and local runtime control improved.** `/context map` shows a treemap of prompt contributors after a real run, `models.providers.<id>.localService` can start local model servers on demand, and `agents.defaults.runRetries` lets embedded Pi runs retry boundedly.
 
-Read **[Part 33 — Late-April 2026 Field Guide](./part33-late-april-2026-field-guide.md)** first if you want the latest tricks before the deep dives.
+Read **[Part 33 — May 2026 Field Guide](./part33-late-april-2026-field-guide.md)** first if you want the latest tricks before the deep dives.
 
 ## The Harness Thesis
 
@@ -155,13 +155,13 @@ Alongside the 33 parts themselves, this repo now includes the tooling that turns
 
 ---
 
-## What Changed In This Release (Late-April 2026 Refresh)
+## What Changed In This Release (May 2026 Refresh)
 
-- **New [Part 33 — Late-April 2026 Field Guide](./part33-late-april-2026-field-guide.md)** — concise upgrade map from 2026.4.15 to 2026.4.27/2026.4.29-beta.1: provider catalogs, Active Memory, people wiki, visible replies, active-run steering, browser clicks, Codex Computer Use, plugin manifests, security changes.
-- **Removed subscription-era Claude guidance** — OpenClaw users should no longer assume Claude Pro/Max subscriptions cover OpenClaw usage after Anthropic's April 4 cutoff. The model section now recommends explicit paid API/provider routing, Bedrock, or cheaper provider fallbacks.
-- **Updated models and providers** — Kimi K2.6 replaces K2.5 as the current Moonshot default in bundled setup; DeepSeek V4 Flash is the new onboarding default in 2026.4.24; DeepInfra and NVIDIA were added as bundled provider paths; OpenAI Codex auth import is no longer recommended.
-- **Updated memory guidance** — Active Memory filters, people-aware wiki metadata, provenance reports, partial recall on timeout, hybrid search score inspection, and `doctor.memory.remHarness` are now called out.
-- **Updated automation guidance** — `/models add` is explicitly marked deprecated; browser coordinate clicks, `browser.actionTimeoutMs`, per-profile headless overrides, `messages.visibleReplies`, queue steering, and Codex Computer Use checks are added.
+- **Updated [Part 33 — May 2026 Field Guide](./part33-late-april-2026-field-guide.md)** — concise upgrade map from 2026.4.15 through 2026.5.12 stable / 2026.5.14-beta.1: Codex app-server routing, queue steering defaults, provider-local services, externalized plugins, Telegram/WhatsApp/voice fixes, `/context map`, and current security hardening.
+- **Codex guidance corrected** — native Codex now means canonical `openai/gpt-*` model refs with the Codex app-server runtime and `openai-codex` auth profiles; legacy `codex-cli` backend assumptions and durable `openai-codex/*` model refs are called out as migration debt.
+- **Configuration patterns refreshed** — the template now shows `messages.queue`, `agents.defaults.runRetries`, `tools.toolsBySender`, and a provider-level `localService` skeleton instead of only late-April model/memory flags.
+- **Security guidance tightened** — per-sender schema stripping, requester-bound gateway approvals, structured SecretRefs for provider keys, Windows home-root sandbox blocks, and manifest-first plugin audits are now called out.
+- **Operator workflow updated** — `/context list`, `/context detail`, and `/context map` are recommended for prompt-budget audits; `/queue steer` is the default; Telnyx realtime voice and WhatsApp status reactions are noted as beta/watch items.
 
 ### Previous 2026.4.15 refresh
 
@@ -227,7 +227,7 @@ Not every part applies to every reader. Jump directly to the pillar that matches
 
 | I want to… | Start with |
 |-------------|-----------|
-| **Catch up on the latest changes** | [33 Late-April Field Guide](./part33-late-april-2026-field-guide.md) · [26 Migration Guide](./part26-migration-guide.md) · [27 Gotchas & FAQ](./part27-gotchas-and-faq.md) |
+| **Catch up on the latest changes** | [33 May Field Guide](./part33-late-april-2026-field-guide.md) · [26 Migration Guide](./part26-migration-guide.md) · [27 Gotchas & FAQ](./part27-gotchas-and-faq.md) |
 | **Make my agent faster** | [1 Speed](#part-1-speed-stop-being-slow) · [2 Context Engineering](#part-2-context-engineering--the-discipline) · [3 Cron Bloat](#part-3-cron-session-bloat-the-hidden-killer) · [6 Models](#part-6-models-what-to-actually-use) |
 | **Stop it forgetting things** | [4 Memory](#part-4-memory-stop-forgetting-everything) · [9 Vault](#part-9-vault-memory-system-stop-losing-knowledge-between-sessions) · [10 Embeddings](./part10-state-of-the-art-embeddings.md) · [22 Built-In Dreaming](#part-22-built-in-dreaming) · [31 LLM Wiki Pattern](./part31-the-llm-wiki-pattern-in-openclaw.md) |
 | **Reduce cost** | [5 Orchestration](#part-5-orchestration-stop-doing-everything-yourself) · [6 Models](#part-6-models-what-to-actually-use) · [8 One-Shotting](#part-8-one-shotting-big-tasks-stop-iterating-start-researching) · [22 Memory you can afford](#part-22-built-in-dreaming) |
@@ -250,9 +250,9 @@ Not every part applies to every reader. Jump directly to the pillar that matches
 - [26. Migration Guide](./part26-migration-guide.md) — upgrade paths + rollback plans
 - [27. Gotchas & FAQ](./part27-gotchas-and-faq.md) — symptom → fix table + frequently asked questions
 - [28. Glossary & Terminology](./part28-glossary-and-terminology.md) — every term this guide assumes, on one page
-- [33. Late-April 2026 Field Guide](./part33-late-april-2026-field-guide.md) — what changed after 2026.4.15 and what to do now
+- [33. May 2026 Field Guide](./part33-late-april-2026-field-guide.md) — what changed after 2026.4.15 and what to do now
 - [14. Quick Checklist](#part-14-quick-checklist) — 30-minute setup
-- [17. The One-Shot Prompt](#part-17-the-one-shot-prompt) — automation prompt, updated for late-April defaults
+- [17. The One-Shot Prompt](#part-17-the-one-shot-prompt) — automation prompt, updated for May defaults
 
 **⚡ Speed & context**
 1. [Speed — Stop Being Slow](#part-1-speed-stop-being-slow) — trim context, add fallbacks, reasoning mode, `localModelLean`
@@ -268,7 +268,7 @@ Not every part applies to every reader. Jump directly to the pillar that matches
 13. [Memory Bridge](./part13-memory-bridge.md) — give Codex / Claude Code access to your vault
 22. [Built-In Dreaming (memory-core)](#part-22-built-in-dreaming) — official 3-phase consolidation, DREAMS.md, memory-you-can-afford (LightMem + vbfs)
 31. [The LLM Wiki Pattern In OpenClaw](./part31-the-llm-wiki-pattern-in-openclaw.md) — Karpathy's three-tier pattern mapped onto SOUL/AGENTS/MEMORY/skills
-33. [Late-April 2026 Field Guide](./part33-late-april-2026-field-guide.md) — Active Memory filters, people wiki, provider catalogs, run steering, browser/Codex updates
+33. [May 2026 Field Guide](./part33-late-april-2026-field-guide.md) — Active Memory filters, people wiki, provider catalogs, run steering, browser/Codex updates
 
 **🤝 Orchestration & models**
 5. [Orchestration](#part-5-orchestration-stop-doing-everything-yourself) — sub-agents-as-GC, Anthropic's 5 coordination patterns, CEO/COO/Worker, verification
@@ -436,9 +436,9 @@ New approach: MEMORY.md is a slim index of pointers. Full details live in vault/
 }
 ```
 
-OpenClaw's late-April releases moved hard toward provider-owned catalogs and fallback policy. Use `provider/model` refs where your install supports them. Explicit user `/model` selections are strict; configured defaults can fall through primary → fallback. The operator rule is stable: every production agent needs a primary, at least two fallbacks, and budget caps per expensive provider.
+OpenClaw's late-April and May releases moved hard toward provider-owned catalogs and fallback policy. Use `provider/model` refs where your install supports them. Explicit user `/model` selections are strict; configured defaults can fall through primary → fallback. The operator rule is stable: every production agent needs a primary, at least two fallbacks, and budget caps per expensive provider.
 
-> **Late-April gotcha:** `/models add` briefly shipped in 2026.4.22, then was deprecated in 2026.4.24. Use `/models` for browsing and copy-friendly examples, but treat durable model registration as config/catalog work, not chat-time mutation.
+> **Current gotcha:** `/models add` briefly shipped in 2026.4.22, then was deprecated in 2026.4.24. Use `/models` for browsing and copy-friendly examples, but treat durable model registration as config/catalog work, not chat-time mutation.
 
 ### Reasoning Mode - Know the Tradeoff
 
@@ -562,6 +562,15 @@ Over 100 msgs/day: $2.25/day vs $22.50/day
 **Auto-Compaction** - Summarizes older conversation when nearing context limits. Trigger manually with `/compact`.
 
 > **2026.4.15 fix:** The compaction reserve-token floor is now capped at the model's actual context window. Before this, compaction on a 16K-token local model could request a larger reserve than the window itself, creating an infinite "try to free N tokens, fail, retry" loop. If you run small local models as compaction workers, upgrade — this is the fix you want. See [Part 15](./part15-infrastructure-hardening.md).
+
+**Context inspection (2026.5+):** use the built-in commands before guessing:
+
+- `/status` — quick context and session settings view.
+- `/context list` — injected files and rough prompt sizes.
+- `/context detail` — top skills, tool schemas, and system-prompt contributors.
+- `/context map` — WinDirStat-style treemap image of tracked context contributors after the session has produced a real run report.
+
+If `/context map` says no cached run report exists yet, send one normal message first; current builds refuse to draw estimates as if they were measured context.
 
 ### Appendix — The 5-Minute Prompt Cache TTL Trap (March 2026)
 
@@ -740,7 +749,7 @@ Session memory files pile up fast — 200+ files in a month. OpenClaw 2026.4+ ha
 
 > **Context budget change (2026.4.15 stable):** `memory_get` now caps excerpt length by default and returns explicit **continuation metadata** instead of dumping entire files into context. If an excerpt was truncated, the tool response includes a follow-up cursor the agent can use to fetch the next chunk deterministically. On top of that, default startup and skills prompt budgets were trimmed — long sessions pull less context by default without losing deterministic follow-up reads. Practical effect: your MEMORY.md and DREAMS.md can grow without silently blowing up every reply. If you had custom skills that assumed `memory_get` returns the whole file, update them to respect the continuation cursor (it's noisy but one-line).
 
-> **Late-April upgrade:** Active Memory now supports per-conversation `allowedChatIds` / `deniedChatIds`, partial recall summaries on timeout, and people-aware wiki provenance reports in 2026.4.29-beta.1. Do not enable broad automatic recall in every group chat. Scope it to the conversations where durable memory is actually appropriate, then audit provenance when the agent makes claims about people.
+> **May 2026 upgrade:** Active Memory supports per-conversation `allowedChatIds` / `deniedChatIds`, partial recall summaries on timeout, and people-aware wiki provenance reports. Do not enable broad automatic recall in every group chat. Scope it to the conversations where durable memory is actually appropriate, then audit provenance when the agent makes claims about people.
 
 ### The Golden Rule
 
@@ -957,7 +966,7 @@ This writes a `CONTEXT.md` that the coding agent reads automatically — giving 
 | **Infrastructure** | Compaction, fallbacks, bulk work | Cerebras gpt-oss-120b | $0.60/M, 3000 tok/s, reliable |
 | **Knowledge Graph RAG** | Entity extraction, graph queries | Cerebras qwen-3-235b | 1400 tok/s, high accuracy for entity extraction |
 | **Coding (hard)** | Architecture, complex bugs | Claude Opus 4.7 | Top SWE-bench — the new Anthropic default as of 2026.4.15 |
-| **Coding (batch)** | Scaffolding, CRUD, refactors | GPT-5.4 Codex | Fast for code when your Codex route is healthy; pair with Memory Bridge |
+| **Coding (batch)** | Scaffolding, CRUD, refactors | `openai/gpt-*` through Codex app-server | Fast for code when your Codex route is healthy; pair with Memory Bridge |
 | **Research** | Web search, analysis | Kimi K2.6 + Tavily | Cheap, fast, good at research synthesis |
 | **Local inference** | $0 forever, private, no rate limits | QwOpus (27B), TerpBot (Nemotron 30B), Nemotron Nano 4B | Ollama on any GPU |
 | **Free tier** | Zero-cost operations | Gemini (all variants), Cerebras free tier, OpenRouter free models | $0 with generous limits |
@@ -995,9 +1004,10 @@ This writes a `CONTEXT.md` that the coding agent reads automatically — giving 
 **Gemini Flash (2.5 / 3)** - Speed Demon
 - Fastest responses of any capable model. Perfect for sub-agents. Free.
 
-**GPT-5.3 / 5.4 Pro** - OpenAI's Best
-- Codex models are purpose-built for code - fast and cheap.
-- **Cost:** GPT-5.3: $1.75/M input, $14/M output | GPT-5.4 Pro: $30/M input, $180/M output
+**OpenAI / Codex app-server** - Code-specialized batch lane
+- Current OpenClaw uses canonical `openai/gpt-*` model refs for native Codex app-server runs; `openai-codex` is the auth-profile/provider surface, not the durable model prefix.
+- Use this lane for scaffolding, CRUD, refactors, and UI-test workers when the Codex plugin is healthy. Keep Memory Bridge or an explicit `CONTEXT.md` in the workdir so Codex does not start blind.
+- **Cost:** varies by OpenAI API vs ChatGPT/Codex subscription auth route. Check `openclaw models auth list`, `openclaw status`, and your provider billing before a large batch.
 
 **Grok 4 / 4.1 Fast** - The Dark Horse
 - Grok 4.20 has a massive 2M context window. Grok 4.1 Fast is insanely cheap.
@@ -1067,7 +1077,7 @@ Codebase Intel: Repowise (Part 19) | Observability: LangFuse (Part 20)
 - **Match model to task.** Don't use Opus for scripts. Don't use Flash for architecture.
 - **Enable prompt caching** on Anthropic: explicit prompt cache-control TTLs + cache-ttl pruning.
 - **Set budget caps.** The post-cutoff provider world makes unbounded fallback chains dangerous.
-- **Use provider catalogs.** Late-April OpenClaw relies on manifest-backed model rows; stale hand-written model aliases break more often.
+- **Use provider catalogs.** Current OpenClaw relies on manifest-backed model rows; stale hand-written model aliases break more often.
 - **Don't use `/models add` for durable config.** It was added in 2026.4.22, then deprecated in 2026.4.24. Use `/models` to inspect, then update config/catalogs deliberately.
 - **Free models are real.** Gemini's free tier is legitimately good for daily driving.
 - **Watch the Model Auth card (new 2026.4.15).** Control UI shows per-provider OAuth token health and rate-limit pressure. Before a big run, eyeball it — catching an expiring provider token or a rate-limited Gemini key there beats debugging mid-task.
@@ -1414,7 +1424,11 @@ Run through this in 30 minutes:
 - [ ] Claude usage moved off subscription assumptions and onto verified API/provider routing
 - [ ] Provider fallbacks and budget caps configured for every expensive primary
 - [ ] `/models add` removed from your runbooks; model registration happens through config/catalogs
+- [ ] Codex routes use canonical `openai/gpt-*` refs through app-server, not legacy `codex-cli` assumptions
+- [ ] `/context map` reviewed once on a real session before trimming prompt/tool bloat
 - [ ] Active Memory scoped with `allowedChatIds` / `deniedChatIds` if you use group or channel surfaces
+- [ ] `messages.queue.mode` intentionally set (`steer` for live correction, `followup`/`collect`/`interrupt` only by design)
+- [ ] `tools.toolsBySender` denies runtime/filesystem tools for guests and public-channel senders
 - [ ] Browser automation uses coordinate clicks / longer action budgets where selector-based actions are flaky
 - [ ] Model strategy chosen (orchestrator + sub-agents + fallbacks)
 - [ ] Faster/cheaper fallback model added
@@ -2054,7 +2068,7 @@ If this guide saved you time, a ⭐ helps other OpenClaw operators find it.
 |---|---|
 | **[SCORECARD.md](./SCORECARD.md)** | 50-item Production Readiness Scorecard (2 pts each, max 100). Shareable. |
 | **[AWESOME.md](./AWESOME.md)** | Curated list of skills, guides, talks, research, adjacent ecosystems. |
-| **[templates/](./templates/)** | Reference config starter kit: `openclaw.example.json`, SOUL / AGENTS / MEMORY / TOOLS templates updated for late-April 2026. |
+| **[templates/](./templates/)** | Reference config starter kit: `openclaw.example.json`, SOUL / AGENTS / MEMORY / TOOLS templates updated for May 2026. |
 | **[benchmarks/](./benchmarks/)** | Reproducible benchmark methodology + harness + run template. Submit your numbers via PR. |
 | **[CONTRIBUTING.md](./CONTRIBUTING.md)** · **[SECURITY.md](./SECURITY.md)** · **[CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)** · **[SUPPORT.md](./SUPPORT.md)** | Contributor + community policy. |
 

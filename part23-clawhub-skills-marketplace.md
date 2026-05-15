@@ -44,7 +44,7 @@ If you take nothing else from this part, take these rules:
 
 ### 0. Read the manifest first
 
-Late-April OpenClaw moved a lot of plugin metadata into manifests: model catalog rows, aliases, suppressions, setup providers, auth methods, env var names, channel configs, and runtime-dependency repair hints. Read that manifest before runtime code. It tells you what the plugin claims it will register and which credentials it wants.
+Current OpenClaw moved a lot of plugin metadata into manifests: model catalog rows, aliases, suppressions, setup providers, auth methods, env var names, channel configs, and runtime-dependency repair hints. Read that manifest before runtime code. It tells you what the plugin claims it will register and which credentials it wants.
 
 Red flags:
 

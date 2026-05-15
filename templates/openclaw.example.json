@@ -1,6 +1,6 @@
 {
   "$schema": "https://openclaw.dev/schema/openclaw.schema.json",
-  "_comment": "Reference config from the OpenClaw Optimization Guide. Updated for the 2026.4.27 stable / 2026.4.29-beta.1 era. Copy to ~/.openclaw/openclaw.json (or your project root) and edit. Never commit real credentials — use env var references like ${ANTHROPIC_API_KEY}. Treat this as a starting point; newer provider catalogs may prefer provider-owned manifests over hand-written model rows.",
+  "_comment": "Reference config from the OpenClaw Optimization Guide. Updated for the 2026.5.12 stable / 2026.5.14-beta.1 era. Copy to ~/.openclaw/openclaw.json (or your project root) and edit. Never commit real credentials — use env var references like ${ANTHROPIC_API_KEY}. Treat this as a starting point; provider catalogs/manifests should own durable model rows where possible.",
 
   "agents": {
     "defaults": {
@@ -9,10 +9,12 @@
         "fallbacks": [
           "deepseek/deepseek-v4-flash",
           "moonshot/kimi-k2.6",
-          "google/gemini-3-flash"
+          "google/gemini-3-flash",
+          "openai/gpt-5.5"
         ],
-        "_comment": "`opus` aliases resolve to Claude Opus 4.7 on current Anthropic/Bedrock routes. Do not assume Claude Pro/Max subscription usage covers OpenClaw after the April 4 cutoff; set budget caps on paid routes."
+        "_comment": "`opus` aliases resolve to Claude Opus 4.7 on current Anthropic/Bedrock routes. Codex app-server routes should use canonical openai/gpt-* refs from your local provider catalog; do not pin durable openai-codex/* or codex-cli/* model refs. Do not assume Claude Pro/Max subscription usage covers OpenClaw after the April 4 cutoff; set budget caps on paid routes."
       },
+      "runRetries": 1,
       "compaction": {
         "model": "cerebras/gpt-oss-120b",
         "reserveTokens": 8000,
@@ -70,7 +72,7 @@
           "deniedChatIds": [],
           "timeoutMs": 3000,
           "queryMode": "balanced",
-          "_comment": "2026.4.29-beta.1+: enable per surface. Deny public/group channels until you have a retention policy."
+          "_comment": "Enable per surface. Deny public/group channels until you have a retention policy."
         }
       }
     }
@@ -78,10 +80,47 @@
 
   "messages": {
     "visibleReplies": true,
+    "queue": {
+      "mode": "steer",
+      "byChannel": {
+        "email": { "mode": "collect" },
+        "slack": { "mode": "steer" },
+        "telegram": { "mode": "steer" }
+      }
+    },
     "groupChat": {
       "visibleReplies": true
     },
-    "_comment": "2026.4.29-beta.1+: force visible output in shared channels through the message tool; keep channel overrides explicit."
+    "_comment": "2026.5.14-beta.1+: steer is the default active-run queue mode. Use collect/followup/interrupt only when that queue behavior is intentional. Keep visible output in shared channels through the message tool."
+  },
+
+  "tools": {
+    "profile": "coding",
+    "toolsBySender": {
+      "*": {
+        "deny": ["exec", "process", "write", "edit", "apply_patch"]
+      },
+      "channel:discord:1234567890123": {
+        "alsoAllow": ["group:fs"]
+      }
+    },
+    "_comment": "Defense-in-depth for channel users. Sender identities must come from the channel adapter, not message text. Replace the discord id with your own admin/channel sender key."
+  },
+
+  "models": {
+    "providers": {
+      "ollama-local": {
+        "type": "ollama",
+        "endpoint": "http://localhost:11434",
+        "localService": {
+          "command": "ollama serve",
+          "healthUrl": "http://localhost:11434/api/tags",
+          "readyTimeoutMs": 20000,
+          "idleStopMs": 900000
+        },
+        "_comment": "2026.5+: provider-level localService can start local model daemons on demand. Remove this block if Ollama is managed elsewhere."
+      }
+    }
   },
 
   "skills": {

@@ -53,7 +53,7 @@ If you pointed `compaction.model` at a small local model (a 14B Qwen with a 16K-
 
 2026.4.15 caps the reserve-token floor at the model's actual context window. If you're running a small local compaction worker, **upgrade to 2026.4.15 or later** and this class of loop is gone. If you can't upgrade yet, keep `reserveTokens` strictly under your compaction model's window (e.g. `reserveTokens: 4000` on a 16K-context model — never higher than ~25% of the window).
 
-Late-April builds also add transcript-byte guards (`maxActiveTranscriptBytes`) so a huge active transcript cannot keep feeding compaction forever. Set it explicitly on busy agents; tune upward only after reviewing real transcript sizes.
+Current builds also add transcript-byte guards (`maxActiveTranscriptBytes`) so a huge active transcript cannot keep feeding compaction forever. Set it explicitly on busy agents; tune upward only after reviewing real transcript sizes.
 
 ---
 
