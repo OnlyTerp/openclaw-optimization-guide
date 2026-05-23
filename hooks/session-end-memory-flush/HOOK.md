@@ -1,3 +1,4 @@
+---
 name: session-end-memory-flush
 description: "On session end / before compaction, appends a session-summary block to today's dreaming inbox. Feeds the Deep-phase scoring with session signal automatically."
 metadata: { "openclaw": { "emoji": "📝", "events": ["session:compact:before"] } }

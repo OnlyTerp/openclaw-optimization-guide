@@ -1,3 +1,4 @@
+---
 name: secret-redact
 description: "Rewrites known secret patterns (AWS keys, GitHub PATs, OpenAI/Anthropic keys, GCP keys, private keys, JWTs) to [REDACTED:<kind>] before the model sees them. Runs on both user input and tool output."
 metadata: { "openclaw": { "emoji": "🔒", "events": ["message:received", "command"] } }

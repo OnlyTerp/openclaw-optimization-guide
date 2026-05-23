@@ -1,3 +1,4 @@
+---
 name: cost-tripwire
 description: "Tracks cumulative token spend per session. Warns at 75% of cap, hard-blocks at 100%. Set OPENCLAW_SESSION_CAP_USD env var to override the default $5 cap."
 metadata: { "openclaw": { "emoji": "💰", "events": ["agent:bootstrap", "command"] } }

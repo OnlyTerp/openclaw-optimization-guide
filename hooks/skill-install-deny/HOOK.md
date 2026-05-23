@@ -1,3 +1,4 @@
+---
 name: skill-install-deny
 description: "Blocks skill installation for any slug not in the hardcoded allowlist. The agent physically cannot install skills from un-vetted namespaces."
 metadata: { "openclaw": { "emoji": "🚫", "events": ["command:new"] } }

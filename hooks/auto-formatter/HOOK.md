@@ -1,3 +1,4 @@
+---
 name: auto-formatter
 description: "Runs the appropriate formatter (ruff for Python, prettier for JS/TS, gofmt for Go, rustfmt for Rust, markdownlint for Markdown) on any file the agent writes. Never blocks."
 metadata: { "openclaw": { "emoji": "✨", "events": ["command"] } }

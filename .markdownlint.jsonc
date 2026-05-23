@@ -52,5 +52,10 @@
 
   // Anchor fragment validation disagrees with GitHub's slug behaviour for
   // headings with emojis and colons. We link-check with lychee instead.
-  "MD051": false
+  "MD051": false,
+
+  // Heading style: project uses atx everywhere. Default "consistent" mode
+  // misreads YAML frontmatter's closing `---` as a setext underline and then
+  // flags every real atx heading in the file (hit hooks/*/HOOK.md after #47).
+  "MD003": { "style": "atx" }
 }

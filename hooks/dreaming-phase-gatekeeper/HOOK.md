@@ -1,3 +1,4 @@
+---
 name: dreaming-phase-gatekeeper
 description: "Before accepting agent 'done' signal, verifies that no dreaming memory sweep is mid-phase. Prevents MEMORY.md corruption from mid-consolidation shutdown."
 metadata: { "openclaw": { "emoji": "💤", "events": ["command:stop"] } }

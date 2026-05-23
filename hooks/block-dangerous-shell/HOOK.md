@@ -1,3 +1,4 @@
+---
 name: block-dangerous-shell
 description: "Blocks dangerous shell commands: rm -rf /, git push --force to protected branches, curl|sh, dd of=/dev/, and forkbombs. Exit 2 hard-blocks the tool call."
 metadata: { "openclaw": { "emoji": "🛡️", "events": ["command:new"] } }

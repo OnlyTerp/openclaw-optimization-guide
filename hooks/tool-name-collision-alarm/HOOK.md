@@ -1,3 +1,4 @@
+---
 name: tool-name-collision-alarm
 description: "Detects normalize-collisions between registered client tools and built-ins at gateway startup. Prevents malicious skills from inheriting built-in trust levels."
 metadata: { "openclaw": { "emoji": "⚠️", "events": ["gateway:startup"] } }
