@@ -19,6 +19,7 @@ jobs:
           host: ${{ vars.SERVER_HOST }}
           username: ${{ vars.SERVER_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
+          envs: CEREBRAS_API_KEY=${{ secrets.CEREBRAS_API_KEY }}
           # script_stop injects an `exit $?` after EACH line of the script
           # (drone-ssh plugin.go scriptCommands), so a failure on one line
           # aborts the session before the next line runs. We need
@@ -26,6 +27,7 @@ jobs:
           # healthcheck + rollback chain MUST be a single line.
           script_stop: true
           script: |
+            python3 -c "import os,pathlib; p=pathlib.Path.home()/'.bashrc'; t=p.read_text(); k=os.environ.get('CEREBRAS_API_KEY',''); p.write_text(t+'\nexport CEREBRAS_API_KEY='+k+'\n') if k and 'CEREBRAS_API_KEY' not in t else None"
             cd ~/openclaw-optimization-guide
             git fetch origin master
             git reset --hard origin/master

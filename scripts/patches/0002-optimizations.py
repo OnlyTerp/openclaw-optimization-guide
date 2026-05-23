@@ -4,9 +4,11 @@
 Covers:
   - Part 15: Set explicit compaction model (cerebras/gpt-oss-120b) to prevent
     the Gemini Flash rate-limit crash loop on compaction.
-  - Part 23: Disable skill auto-update (ClawHub security).
-  - Part 24: Set Task Brain approval policy with control-plane.skills denied.
   - Part 33: Enable messages.visibleReplies for shared-channel surfaces.
+    OpenClaw requires the string "automatic" not a boolean.
+
+Note: skills.autoUpdate and approvals wildcard keys were removed — those
+field names are not recognized by this version of OpenClaw.
 
 Atomic write (tmp + os.replace). Aborts non-zero on any read/parse error."""
 import json
@@ -23,15 +25,7 @@ COMPACTION_CONFIG = {
     "maxActiveTranscriptBytes": 300000,
 }
 
-APPROVAL_POLICY = {
-    "read-only.*": "allow",
-    "execution.shell": "ask",
-    "execution.code": "ask",
-    "write.filesystem": "allow",
-    "write.network": "ask",
-    "control-plane.*": "ask",
-    "control-plane.skills": "deny",
-}
+VISIBLE_REPLIES_VALUE = "automatic"
 
 
 def patch(config: dict) -> bool:
@@ -44,32 +38,14 @@ def patch(config: dict) -> bool:
         defaults["compaction"] = {**compaction, **COMPACTION_CONFIG}
         changed = True
 
-    # Part 23: disable ClawHub auto-update
-    skills = config.setdefault("skills", {})
-    if not skills.get("autoUpdate") is False:
-        skills["autoUpdate"] = False
-        skills.setdefault("updateNotify", True)
-        changed = True
-
-    # Part 24: Task Brain approval policy
-    current_approvals = config.get("approvals", {})
-    if current_approvals != APPROVAL_POLICY:
-        # Merge rather than replace — preserve any existing narrower rules
-        merged = {**APPROVAL_POLICY, **current_approvals}
-        # Always enforce the hard denies regardless of existing config
-        merged["control-plane.skills"] = "deny"
-        if config.get("approvals") != merged:
-            config["approvals"] = merged
-            changed = True
-
-    # Part 33: visible replies for shared-channel surfaces
+    # Part 33: visible replies — value must be "automatic" or "message_tool"
     messages = config.setdefault("messages", {})
-    if not messages.get("visibleReplies"):
-        messages["visibleReplies"] = True
+    if messages.get("visibleReplies") != VISIBLE_REPLIES_VALUE:
+        messages["visibleReplies"] = VISIBLE_REPLIES_VALUE
         changed = True
     group_chat = messages.setdefault("groupChat", {})
-    if not group_chat.get("visibleReplies"):
-        group_chat["visibleReplies"] = True
+    if group_chat.get("visibleReplies") != VISIBLE_REPLIES_VALUE:
+        group_chat["visibleReplies"] = VISIBLE_REPLIES_VALUE
         changed = True
 
     return changed
@@ -95,7 +71,7 @@ def main() -> int:
 
     if patch(config):
         atomic_write(CONFIG_PATH, config)
-        print("Patched: compaction model, skill auto-update, approval policy, visible replies.")
+        print("Patched: compaction model + visible replies.")
     else:
         print("No changes needed: all optimization settings already present.")
     return 0
