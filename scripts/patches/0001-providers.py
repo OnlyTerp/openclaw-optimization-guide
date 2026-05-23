@@ -17,6 +17,21 @@ KIMI_MODEL = {
     "maxTokens": 16384,
 }
 
+# Free tier — no API cost, high capability
+QWEN3_235B_MODEL = {
+    "id": "qwen/qwen3-235b-a22b:free",
+    "name": "Qwen3 235B A22B (free)",
+    "contextWindow": 131072,
+    "maxTokens": 16384,
+}
+
+DEEPSEEK_R1_FREE_MODEL = {
+    "id": "deepseek/deepseek-r1:free",
+    "name": "DeepSeek R1 (free)",
+    "contextWindow": 163840,
+    "maxTokens": 16000,
+}
+
 DEEPSEEK_PROVIDER = {
     "baseUrl": "https://api.deepseek.com",
     "auth": "api-key",
@@ -31,21 +46,31 @@ DEEPSEEK_PROVIDER = {
     ],
 }
 
+# Qwen3-235B first (fast MoE, huge context), DeepSeek R1 second (strong reasoning),
+# then paid fallbacks. All :free models require no extra key — covered by OpenRouter.
 FALLBACK_CHAIN = [
+    "openrouter/qwen/qwen3-235b-a22b:free",
+    "openrouter/deepseek/deepseek-r1:free",
     "deepseek/deepseek-chat",
     "openrouter/moonshotai/kimi-k2.6",
     "openrouter/google/gemma-3-27b-it:free",
 ]
+
+FREE_MODELS = [QWEN3_235B_MODEL, DEEPSEEK_R1_FREE_MODEL]
 
 
 def patch(config: dict) -> bool:
     """Apply patches in place. Returns True if anything changed."""
     changed = False
 
-    or_models = config.get("models", {}).get("providers", {}).get("openrouter", {}).get("models", [])
-    if not any(m.get("id") == KIMI_MODEL["id"] for m in or_models):
-        or_models.append(KIMI_MODEL)
-        changed = True
+    or_provider = config.setdefault("models", {}).setdefault("providers", {}).setdefault("openrouter", {})
+    or_models = or_provider.setdefault("models", [])
+    existing_ids = {m.get("id") for m in or_models}
+
+    for model in [KIMI_MODEL] + FREE_MODELS:
+        if model["id"] not in existing_ids:
+            or_models.append(model)
+            changed = True
 
     providers = config.setdefault("models", {}).setdefault("providers", {})
     if "deepseek" not in providers:
@@ -57,6 +82,14 @@ def patch(config: dict) -> bool:
     if isinstance(current, str):
         defaults["model"] = {"primary": current, "fallbacks": list(FALLBACK_CHAIN)}
         changed = True
+    elif isinstance(current, dict):
+        existing_fallbacks = current.get("fallbacks", [])
+        missing = [f for f in FALLBACK_CHAIN if f not in existing_fallbacks]
+        if missing:
+            current["fallbacks"] = list(FALLBACK_CHAIN) + [
+                f for f in existing_fallbacks if f not in FALLBACK_CHAIN
+            ]
+            changed = True
 
     return changed
 
@@ -81,7 +114,7 @@ def main() -> int:
 
     if patch(config):
         atomic_write(CONFIG_PATH, config)
-        print("Patched: providers + fallback chain updated.")
+        print("Patched: providers, free models (Qwen3-235B, DeepSeek R1), and fallback chain updated.")
     else:
         print("No changes needed: providers and fallbacks already present.")
     return 0
