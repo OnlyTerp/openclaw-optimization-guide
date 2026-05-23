@@ -43,7 +43,9 @@ if [ -z "${TARGET}" ]; then
 fi
 
 if [ ! -d "${TARGET}" ]; then
-  echo "rollback: ABORT — backup directory does not exist: ${TARGET}"
+  echo "rollback: backup directory ${TARGET} does not exist — rsync made no backup (no files changed this deploy)."
+  echo "rollback: nothing to restore. Failing deploy without modifying workspace."
+  bash "${SCRIPT_DIR}/restart-gateway.sh" || true
   exit 1
 fi
 

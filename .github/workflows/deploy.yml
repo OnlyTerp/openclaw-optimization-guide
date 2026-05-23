@@ -38,4 +38,6 @@ jobs:
             bash scripts/sync-hooks.sh
             bash scripts/setup-lightrag.sh || true
             bash scripts/start-lightrag.sh || true
+            bash scripts/start-lightrag-watcher.sh || true
+            bash scripts/setup-repowise.sh || true
             bash scripts/restart-gateway.sh && HEALTHCHECK_RETRIES=60 HEALTHCHECK_SLEEP=2 bash scripts/healthcheck.sh || bash scripts/rollback.sh
