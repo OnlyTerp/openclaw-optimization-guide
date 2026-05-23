@@ -14,10 +14,16 @@ name: "CodeQL Advanced"
 on:
   push:
     branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
   schedule:
     - cron: '17 12 * * 6'
+  # NOTE: pull_request trigger intentionally omitted.
+  # GitHub Code Scanning Default Setup is enabled in the repo settings for PR checks.
+  # Running this Advanced workflow on PRs as well caused upload conflicts:
+  # "CodeQL analyses from advanced configurations cannot be processed when the
+  # default setup is enabled". Advanced runs on push-to-master + weekly schedule;
+  # Default Setup handles PR checks. To switch fully to Advanced, disable Default
+  # Setup in Settings → Code security → CodeQL analysis, then add pull_request
+  # back here.
 
 jobs:
   analyze:

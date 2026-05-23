@@ -95,4 +95,13 @@ run_shell learnings_dirs 'find "$HOME" . -maxdepth 5 \( -type d -iname ".learnin
 run_shell rollback_files 'find "$HOME" . -maxdepth 5 -type f \( -iname "*rollback*" -o -iname "*restore*" -o -iname "*backup*" -o -iname "*sync*" \) 2>/dev/null | sort | head -300'
 run_shell observability_grep 'if command -v rg >/dev/null 2>&1; then rg -n "langfuse|otel|opentelemetry|trace|rollback|restore|stale|cleanup|reserveTokens|sync|learnings" "$HOME/.openclaw" . 2>/dev/null || true; else find "$HOME/.openclaw" . -type f 2>/dev/null | xargs grep -InE "langfuse|otel|opentelemetry|trace|rollback|restore|stale|cleanup|reserveTokens|sync|learnings" 2>/dev/null || true; fi'
 
+section "H. Speed pillar verification (post-trim)"
+# Reports actual hot-path file sizes on the deployed workspace so PR #49
+# scorecard items 1, 2, 5 can be verified from CI logs without terminal access.
+run_shell speed_hotpath_sizes 'WS="$HOME/.openclaw/workspace"; for f in SOUL.md IDENTITY.md USER.md AGENTS.md SECURITY.md COST_AWARE_OPERATOR.md MEMORY.md TOOLS.md HEARTBEAT.md; do p="$WS/$f"; [ -f "$p" ] && wc -c "$p"; done; echo "---scorecard-named-files-total---"; for f in SOUL.md AGENTS.md MEMORY.md TOOLS.md; do p="$WS/$f"; [ -f "$p" ] && wc -c "$p"; done | awk "{s+=\$1} END {print s\" bytes total (target <8192)\"}"'
+run_shell speed_reasoning_status 'openclaw status 2>&1 || true; echo "---"; if command -v rg >/dev/null 2>&1; then rg -n "reasoning" "$HOME/.openclaw"/*.json "$HOME/.openclaw/config"/*.json 2>/dev/null || true; fi'
+run_shell speed_cron_audit 'crontab -l 2>/dev/null | grep -i openclaw || echo "no openclaw cron entries"; echo "---openclaw cron config---"; if command -v rg >/dev/null 2>&1; then rg -n "sessionTarget|delivery.*mode|transcriptDir|cron" "$HOME/.openclaw"/*.json 2>/dev/null || true; fi'
+run_shell speed_skills_installed 'WS="$HOME/.openclaw/workspace/skills"; for s in coordinator-protocol vault-orientation multi-session-discipline decision-tree clawrouter; do [ -d "$WS/$s" ] && echo "OK $s" || echo "MISSING $s"; done'
+run_shell speed_hooks_installed 'for h in auto-capture learnings-capture pre-completion-check loop-detector session-start-protocol; do [ -d "hooks/$h" ] && echo "OK hooks/$h" || echo "MISSING hooks/$h"; done'
+
 printf 'Evidence written to %s\n' "$EVIDENCE_DIR"

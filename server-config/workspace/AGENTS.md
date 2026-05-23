@@ -12,7 +12,7 @@
 
 ## Pointers (load on demand)
 
-- Decision tree → `skills/clawrouter/` + `vault/06_system/decision-tree.md`
+- Decision tree → `skills/decision-tree/` (+ `vault/06_system/decision-tree.md`)
 - Modes (6) → `vault/06_system/modes-overview.md`; full in `modes/`
 - Coordinator + parallel-spawn → `skills/coordinator-protocol/`
 - Vault structure + MOC updates → `skills/vault-orientation/`
@@ -20,7 +20,8 @@
 - Full cost rules → `vault/06_system/cost-aware-operator.md`
 - Full safety floor → `SECURITY.md`
 - Loading order → `vault/06_system/loading-order.md`
-- Micro-learning + inbox routing → `hooks/auto-capture/` family
+- Micro-learning loop (`.learnings/`) → `hooks/learnings-capture/`
+- Inbox routing + knowledge extraction → `hooks/auto-capture/`
 - PreCompletion verify → `hooks/pre-completion-check/`
 - Loop detection → `hooks/loop-detector/`
 - Session start (HOT.md) → `hooks/session-start-protocol/`
