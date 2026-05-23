@@ -58,6 +58,21 @@ FALLBACK_CHAIN = [
 
 FREE_MODELS = [QWEN3_235B_MODEL, DEEPSEEK_R1_FREE_MODEL]
 
+# Cerebras — hardware-accelerated inference, used as the compaction model
+CEREBRAS_PROVIDER = {
+    "baseUrl": "https://api.cerebras.ai/v1",
+    "auth": "api-key",
+    "apiKey": {"source": "env", "provider": "default", "id": "CEREBRAS_API_KEY"},
+    "models": [
+        {
+            "id": "gpt-oss-120b",
+            "name": "Cerebras GPT-OSS 120B",
+            "contextWindow": 128000,
+            "maxTokens": 16384,
+        }
+    ],
+}
+
 
 def patch(config: dict) -> bool:
     """Apply patches in place. Returns True if anything changed."""
@@ -75,6 +90,9 @@ def patch(config: dict) -> bool:
     providers = config.setdefault("models", {}).setdefault("providers", {})
     if "deepseek" not in providers:
         providers["deepseek"] = DEEPSEEK_PROVIDER
+        changed = True
+    if "cerebras" not in providers:
+        providers["cerebras"] = CEREBRAS_PROVIDER
         changed = True
 
     defaults = config.setdefault("agents", {}).setdefault("defaults", {})
@@ -114,7 +132,7 @@ def main() -> int:
 
     if patch(config):
         atomic_write(CONFIG_PATH, config)
-        print("Patched: providers, free models (Qwen3-235B, DeepSeek R1), and fallback chain updated.")
+        print("Patched: providers (Cerebras, DeepSeek), free models (Qwen3-235B, DeepSeek R1), and fallback chain updated.")
     else:
         print("No changes needed: providers and fallbacks already present.")
     return 0
