@@ -18,25 +18,19 @@ if [ -f "${ENV_FILE}" ] && [ "${FORCE}" != "--force" ]; then
   exit 0
 fi
 
-# Substitute env vars into the template.
-# Required on this server: GROQ_API_KEY, OPENAI_API_KEY
-if [ -z "${GROQ_API_KEY:-}" ]; then
-  echo "ERROR: GROQ_API_KEY is not set. Add it to ~/.bashrc and run: source ~/.bashrc" >&2
-  exit 1
-fi
-if [ -z "${OPENAI_API_KEY:-}" ]; then
-  echo "ERROR: OPENAI_API_KEY is not set. Add it to ~/.bashrc and run: source ~/.bashrc" >&2
+# Only GEMINI_API_KEY is required — it covers both LLM and embedding (both free).
+if [ -z "${GEMINI_API_KEY:-}" ]; then
+  echo "ERROR: GEMINI_API_KEY is not set. Add it to ~/.bashrc and run: source ~/.bashrc" >&2
   exit 1
 fi
 
 # shellcheck disable=SC2016
 sed \
-  -e "s|\${GROQ_API_KEY}|${GROQ_API_KEY}|g" \
-  -e "s|\${OPENAI_API_KEY}|${OPENAI_API_KEY}|g" \
+  -e "s|\${GEMINI_API_KEY}|${GEMINI_API_KEY}|g" \
   -e "s|\${HOME}|${HOME}|g" \
   "${TEMPLATE}" > "${ENV_FILE}"
 
 chmod 600 "${ENV_FILE}"
 echo "setup-lightrag: wrote ${ENV_FILE}"
-echo "setup-lightrag: data directory: ${DATA_DIR}"
-echo "setup-lightrag: done. Run: bash scripts/start-lightrag.sh"
+echo "setup-lightrag: data dir: ${DATA_DIR}"
+echo "setup-lightrag: run next: bash scripts/start-lightrag.sh"

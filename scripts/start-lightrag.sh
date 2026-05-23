@@ -25,6 +25,9 @@ fi
 # shellcheck disable=SC1090
 source "${VENV}/bin/activate"
 
+# LightRAG reads .env from CWD — must start from the directory that contains it.
+cd "$(dirname "${ENV_FILE}")"
+
 nohup env "$(grep -v '^#' "${ENV_FILE}" | xargs)" \
   lightrag-server \
   > "${LOG_FILE}" 2>&1 &
