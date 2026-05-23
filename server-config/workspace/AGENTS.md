@@ -119,3 +119,27 @@ If a correction is about co-parenting, school advocacy, or any locked lane, log 
 - Inbox items get a lane assignment on review, not on capture.
 - If you cannot tell which lane a note belongs to, leave it in inbox/. Do not guess.
 - On review, move to the correct lane folder under openclaw-knowledge/<lane>/ with a claim-style filename (e.g., "leadpiston-cold-open-needs-trade-specific-hook.md" not "notes-2026-05-05.md").
+
+## Session Start (ONCE per session)
+1. Read `.learnings/HOT.md` — these are active rules, follow them immediately.
+2. Check for 3+ repeated patterns in `.learnings/corrections.md` → promote to HOT.md.
+3. Check for HOT entries not referenced in 30+ days → move to `.learnings/archive/`.
+4. Scan `vault/01_thinking/` filenames — read any MOC that's relevant to the first user message.
+
+## Vault Orientation Protocol
+When working with vault content:
+1. New knowledge → write to `vault/00_inbox/` with a claim-named file (`why-X-happens.md`, not `notes-today.md`).
+2. Use `[[wiki-links]]` woven into sentences, not as footnotes.
+3. After touching a topic: update the relevant MOC's `## Agent Notes` section.
+   Format: `- [YYYY-MM-DD] what I did, what I found, what to do next`
+4. Vault structure:
+   - `00_inbox/` — raw captures, always land here first
+   - `01_thinking/` — MOCs + synthesized notes
+   - `02_reference/` — external docs, specs, tool references
+   - `03_creating/` — drafts in progress
+   - `04_published/` — finished work
+   - `05_archive/` — inactive, not deleted
+   - `06_system/` — vault-philosophy.md, templates, graph index
+
+## Security: Credentials
+Never write API keys, tokens, passwords, or secrets into memory files, vault notes, or session summaries. Reference as "see auth config" or "stored in secrets.env". This applies even in private lanes.

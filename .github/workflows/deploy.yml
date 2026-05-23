@@ -32,4 +32,5 @@ jobs:
             git clean -fd -e .ralph -e .clawhub -e .openclaw -e skills/open-ralph -e workspace
             bash scripts/sync-workspace.sh
             python3 scripts/patches/0001-providers.py
+            python3 scripts/patches/0002-optimizations.py
             bash scripts/restart-gateway.sh && HEALTHCHECK_RETRIES=60 HEALTHCHECK_SLEEP=2 bash scripts/healthcheck.sh || bash scripts/rollback.sh
