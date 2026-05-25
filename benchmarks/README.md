@@ -63,10 +63,19 @@ All benchmarks from a production system running on Windows with RTX 5090 (embedd
 | scout | 2 files, 24 chunks, 768-dim | 947 files, 24,738 chunks, 4096-dim |
 | godmode | 16 files, 180 chunks, 768-dim | 962 files, 24,860 chunks, 4096-dim |
 
-## SWE-bench Coding Model Rankings (March 2026)
+## Gateway Startup / Model Listing
+
+| Metric | May-14-era build | 2026.5.22+ target |
+|--------|------------------|-------------------|
+| `/models` listing with large provider catalog | Can take seconds on cold path | Hot path should be effectively immediate after startup metadata caching |
+| Gateway startup idle work | Plugin/channel/provider metadata loaded eagerly | Startup-idle plugin work, ACPX runtime, metadata snapshots, and auth-state maps are cached/lazy-loaded |
+| Operator action | N/A | Benchmark `openclaw models list` and startup after every plugin/provider expansion |
+
+
+## SWE-bench Coding Model Rankings (May 2026)
 | Rank | Model | Score |
 |------|-------|-------|
-| #1 | Claude Opus 4.6 | 1549 |
-| #2 | Claude Opus 4.6 (thinking) | 1545 |
+| #1 | Claude Opus 4.7 | 1549 |
+| #2 | Claude Opus 4.7 (thinking) | 1545 |
 | #3 | Claude Sonnet 4.6 | 1524 |
 | #6 | GPT-5.4 | 1457 |

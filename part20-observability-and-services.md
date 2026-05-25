@@ -15,6 +15,20 @@ Running multiple agents without observability is flying blind. You don't know:
 - Where latency bottlenecks are
 - Whether your search is returning relevant results
 
+
+## OpenClaw Native Diagnostics (Late May 2026)
+
+Recent OpenClaw builds added useful operator telemetry before you reach for an external dashboard:
+
+- Sanitized `secrets.prepare` timeline spans show Gateway secret-startup latency without exposing provider names, secret ids, or values.
+- Bounded skill usage metrics/spans include tool source and owner labels across core, plugin, MCP, and channel tools without leaking raw paths or session ids.
+- QA-Lab smoke aliases now prove trace, metric, and log export, including Prometheus.
+- `openclaw tasks maintenance --json` reports why stale-running tasks were retained or marked for reconciliation.
+
+Use native diagnostics first for "why is startup slow / which tool surface is noisy / why is this task wedged?" Then export to LangFuse/OTel for long-window trend analysis.
+
+---
+
 ## LangFuse — Agent Tracing
 
 [LangFuse](https://langfuse.com) is open-source LLM observability. Self-host it in Docker for free.

@@ -152,6 +152,22 @@ Rules:
 - Deny runtime and filesystem mutation for wildcard/public senders.
 - Per-agent `agents.list[].tools.toolsBySender` can override the global sender match when needed.
 
+### Late-May sender/tool caveat
+
+2026.5.22 removed the old sender-owner tool gating path. Do not assume a legacy owner flag protects channel users. Test the real sender identity from each adapter and verify the restricted schema actually strips runtime, filesystem, Codex, MCP, dynamic, and app-default tools for wildcard/public senders.
+
+
+## Policy Plugin Checks
+
+Task Brain decides whether an action is allowed. The 2026.5.20 Policy plugin checks whether shared channel policy is configured sanely before actions are requested. Run it before opening Discord/Telegram/Slack/iMessage surfaces to more users:
+
+```bash
+openclaw policy check
+openclaw doctor
+```
+
+Look for channel conformance findings, accepted-attestation drift, and repair suggestions. Treat opt-in repair like a config migration: review the diff, back up config, then apply deliberately.
+
 ## Agent-Initiated Denies (new in v2026.3.31-beta.1)
 
 Task Brain added the inverse of the approval flow: an agent can now **refuse to do something you asked it to do** and have that refusal be a first-class event.
@@ -180,6 +196,17 @@ Another 2026.3.31-beta.1 hardening: plugins now default to **fail-closed**. Pre-
 
 This trades a bit of friction for "we don't have unintended silent bypasses." It's the right trade for a production setup.
 
+Late-May hardening removed the old `cat SKILL.md && printf ... && <exec>` allowlist compatibility path. Load skill files with the read tool and approve the actual executable, not a shell prelude that happens to mention the skill file.
+
+
+## Sub-Agent Bootstrap Narrowing
+
+2026.5.22 narrows default delegated worker context to `AGENTS.md` and `TOOLS.md`. Persona, identity, user, memory, heartbeat, and setup files are no longer injected into sub-agent sessions by default.
+
+That is good for cost and privacy, but it changes orchestration prompts. If a worker needs customer context, project memory, or a persona constraint, pass a bounded summary in the spawn task instead of assuming inherited bootstrap. Treat sub-agent prompts as self-contained work orders.
+
+`openclaw tasks maintenance --json` also now explains stale-running maintenance decisions, including backing-session, cron, CLI, and wedged-subagent state. Put it in weekly ops review.
+
 ## Reading Your Task Ledger
 
 A weekly habit worth building:
@@ -195,7 +222,7 @@ openclaw tasks show <task-id>
 openclaw tasks cancel <task-id>
 ```
 
-For longer-horizon auditing (7-day window, category filters, denied/approved breakdowns), subcommand flags have moved between betas — run `openclaw tasks --help` against your installed version for the exact set. Current docs expose `tasks list/show/cancel/audit/maintenance` and `tasks flow list/show/cancel`. Category filtering and denied-flow rollups are primarily visible through the **Control UI** task/flow panels, not via CLI flags.
+For longer-horizon auditing (7-day window, category filters, denied/approved breakdowns), subcommand flags have moved between betas — run `openclaw tasks --help` against your installed version for the exact set. Current docs expose `tasks list/show/cancel/audit/maintenance` and `tasks flow list/show/cancel`. Run `openclaw tasks maintenance --json` when a task looks stale; recent builds include retained/reconcile reasons for backing sessions, cron, CLI, and wedged sub-agents. Category filtering and denied-flow rollups are primarily visible through the **Control UI** task/flow panels, not via CLI flags.
 
 You'll find:
 
