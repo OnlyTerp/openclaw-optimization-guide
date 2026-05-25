@@ -44,6 +44,13 @@ OpenClaw 2026.4.15 added a `copilot` memory-search provider. If your org already
 
 **Gotcha:** Copilot embeddings share rate limits with Copilot chat completions. If you also use Copilot as an agent model, heavy memory-search traffic can starve chat — watch the new Model Auth card in Control UI for rate-limit pressure and keep a local fallback configured.
 
+
+### Plugin embedding providers (OpenClaw 2026.5.22+)
+
+2026.5.22 adds a generic embedding-provider plugin contract (`contracts.embeddingProviders` + `api.registerEmbeddingProvider(...)`). That means embeddings are no longer only a memory-core internal or one-off provider key.
+
+Use it when you are packaging a real provider plugin or routing embeddings through an OpenAI-compatible service. For most users, the operational answer is unchanged: keep the hot memory-search path local on Ollama/Qwen and use cloud/plugin embeddings only when corporate policy or shared infrastructure requires it.
+
 ### Current memory-search changes
 
 OpenClaw 2026.4.24+ exposes raw `vectorScore` and `textScore` on hybrid memory search results, alongside the combined `score`. Use those fields when a result feels "wrong":

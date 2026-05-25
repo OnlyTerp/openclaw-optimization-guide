@@ -1,6 +1,6 @@
 {
   "$schema": "https://openclaw.dev/schema/openclaw.schema.json",
-  "_comment": "Reference config from the OpenClaw Optimization Guide. Updated for the 2026.5.12 stable / 2026.5.14-beta.1 era. Copy to ~/.openclaw/openclaw.json (or your project root) and edit. Never commit real credentials — use env var references like ${ANTHROPIC_API_KEY}. Treat this as a starting point; provider catalogs/manifests should own durable model rows where possible.",
+  "_comment": "Reference config from the OpenClaw Optimization Guide. Updated for the 2026.5.22 stable / 2026.5.24-beta.1 era. Copy to ~/.openclaw/openclaw.json (or your project root) and edit. Never commit real credentials — use env var references like ${ANTHROPIC_API_KEY}. Treat this as a starting point; provider catalogs/manifests should own durable model rows where possible.",
 
   "agents": {
     "defaults": {
@@ -15,6 +15,8 @@
         "_comment": "`opus` aliases resolve to Claude Opus 4.7 on current Anthropic/Bedrock routes. Codex app-server routes should use canonical openai/gpt-* refs from your local provider catalog; do not pin durable openai-codex/* or codex-cli/* model refs. Do not assume Claude Pro/Max subscription usage covers OpenClaw after the April 4 cutoff; set budget caps on paid routes."
       },
       "runRetries": 1,
+      "imageQuality": "balanced",
+      "_imageQuality_comment": "2026.5.24-beta.1: token-efficient | balanced | high-detail. Keep balanced unless a worker truly needs high-detail OCR/vision.",
       "compaction": {
         "model": "cerebras/gpt-oss-120b",
         "reserveTokens": 8000,
@@ -37,7 +39,16 @@
       "experimental": {
         "localModelLean": false
       }
-    }
+    },
+    "list": [
+      {
+        "id": "local-worker",
+        "experimental": {
+          "localModelLean": true
+        },
+        "_comment": "2026.5.20+: prefer per-agent lean mode for small local workers instead of forcing the orchestrator lean globally."
+      }
+    ]
   },
 
   "plugins": {
@@ -74,6 +85,17 @@
           "queryMode": "balanced",
           "_comment": "Enable per surface. Deny public/group channels until you have a retention policy."
         }
+      },
+      "policy": {
+        "enabled": true,
+        "_comment": "2026.5.20+: run openclaw policy check before inviting shared-channel users."
+      },
+      "meeting-notes": {
+        "enabled": false,
+        "config": {
+          "autoStart": false
+        },
+        "_comment": "2026.5.22+: source-only external plugin. Define retention/redaction before enabling Discord voice capture."
       }
     }
   },
@@ -89,9 +111,10 @@
       }
     },
     "groupChat": {
-      "visibleReplies": true
+      "visibleReplies": true,
+      "ambientTurns": "room_event"
     },
-    "_comment": "2026.5.14-beta.1+: steer is the default active-run queue mode. Use collect/followup/interrupt only when that queue behavior is intentional. Keep visible output in shared channels through the message tool."
+    "_comment": "Current May line: steer is the default active-run queue mode. Use collect/followup/interrupt only when intentional. ambientTurns=room_event should collect context quietly; visible replies still go through message tools."
   },
 
   "tools": {
@@ -109,6 +132,16 @@
 
   "models": {
     "providers": {
+      "openrouter": {
+        "type": "openrouter",
+        "params": {
+          "provider": {
+            "order": ["Fireworks", "Together"],
+            "allow_fallbacks": true
+          }
+        },
+        "_comment": "2026.5.20+: provider-level OpenRouter routing policy; model/agent params can override."
+      },
       "ollama-local": {
         "type": "ollama",
         "endpoint": "http://localhost:11434",
@@ -120,6 +153,30 @@
         },
         "_comment": "2026.5+: provider-level localService can start local model daemons on demand. Remove this block if Ollama is managed elsewhere."
       }
+    }
+  },
+
+  "mcp": {
+    "servers": {
+      "repo-tools": {
+        "command": "repo-mcp",
+        "codex": {
+          "agents": ["coding-agent"]
+        },
+        "_comment": "2026.5.16+: scope user MCP projection into native Codex to named OpenClaw agents. Do not expose every MCP server to every Codex run."
+      }
+    }
+  },
+
+  "codex": {
+    "defaultToolsApprovalMode": "prompt",
+    "_comment": "2026.5.16+: make native Codex tool approvals explicit (auto | prompt | approve)."
+  },
+
+  "security": {
+    "audit": {
+      "suppressions": [],
+      "_comment": "2026.5.18+: only suppress reviewed audit findings with owner/reason/expiry in your real config."
     }
   },
 

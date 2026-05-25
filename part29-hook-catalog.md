@@ -21,7 +21,7 @@ The practical rule from Amit Kothari's April 2026 post on hook debugging: *"If a
 
 ## Lifecycle Events & Exit Codes
 
-Modern agent harnesses (OpenClaw, Claude Code, Cursor) converged on similar lifecycle grammars, but the names are not identical. The Claude-style event names below are useful mental models; OpenClaw-native hook registration uses lower-case event names such as `command:new`, `command`, `command:stop`, `session:compact:before`, `session:compact:after`, `agent:bootstrap`, `message:received`, `message:preprocessed`, `message:sent`, and `gateway:startup`.
+Modern agent harnesses (OpenClaw, Claude Code, Cursor) converged on similar lifecycle grammars, but the names are not identical. The Claude-style event names below are useful mental models; OpenClaw-native hook registration uses lower-case event names such as `command:new`, `command`, `command:stop`, `session:compact:before`, `session:compact:after`, `agent:bootstrap`, `message:received`, `message:preprocessed`, `message:sent`, and `gateway:startup`. 2026.5.20+ gives `before_compaction`/`after_compaction`-style plugin handlers a default 30s timeout, so handlers must finish quickly and tolerate cancellation.
 
 | Claude-style event | OpenClaw-native event(s) | Typical use |
 |--------------------|--------------------------|-------------|

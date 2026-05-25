@@ -2,7 +2,7 @@
 
 **A curated list of resources for getting the most out of OpenClaw.** Skills, guides, talks, templates, tools, research. Contributions welcome — see [CONTRIBUTING.md](./CONTRIBUTING.md).
 
-> This list is opinionated. Inclusion here means we've actually used it on a production OpenClaw deployment or seen it solve a real problem. Broken or abandoned links are removed aggressively. Last curated: **May 14, 2026, tracking OpenClaw 2026.5.12 stable + 2026.5.14-beta.1**.
+> This list is opinionated. Inclusion here means we've actually used it on a production OpenClaw deployment or seen it solve a real problem. Broken or abandoned links are removed aggressively. Last curated: **May 24, 2026, tracking OpenClaw 2026.5.22 stable + 2026.5.24-beta.1**.
 
 ## Contents
 
@@ -34,8 +34,8 @@
 
 ## Guides & tutorials
 
-- **[OpenClaw Optimization Guide](./README.md)** — this repo. 33 parts, refreshed for the May 2026 release wave.
-- **[May 2026 Field Guide](./part33-late-april-2026-field-guide.md)** — the fast catch-up map from 2026.4.15 to 2026.5.12/2026.5.14-beta.1.
+- **[OpenClaw Optimization Guide](./README.md)** — this repo. 33 parts, refreshed for the late-May 2026 release wave.
+- **[Late-May 2026 Field Guide](./part33-late-april-2026-field-guide.md)** — the fast catch-up map from 2026.4.15 to 2026.5.22/2026.5.24-beta.1.
 - **[Official "Getting Started" path](https://clawdocs.org/start)** — the minimum-viable setup. Read this first if you're brand new.
 - **[The OpenClaw CVE flood, Feb–Mar 2026](https://www.tryopenclaw.ai/blog/openclaw-cve-flood-march-2026/)** — the definitive writeup on the **ClawHavoc** supply-chain campaign.
 - **[Migration Guide — v3 → v4 → May 2026](./part26-migration-guide.md)** — opinionated upgrade paths.
@@ -69,6 +69,8 @@ See [Part 23 — ClawHub Skills Marketplace](./part23-clawhub-skills-marketplace
 - **[memory-core](https://github.com/openclaw/memory-core)** — the built-in memory plugin with native dreaming (3 phases). Replaced the custom-autoDream patterns in v4.
 - **[memory-lancedb](https://github.com/openclaw/memory-lancedb)** — LanceDB vector store. 2026.4.15-beta.1 added cloud storage mode.
 - **Active Memory filters** — current builds support per-conversation `allowedChatIds` / `deniedChatIds`, partial recall on timeout, and people-aware wiki provenance views.
+- **Meeting Notes plugin** — 2026.5.22 source-only external plugin for date-sharded meeting transcripts, manual imports, CLI reads, and Discord voice as the first live source. Define retention before enabling.
+- **Generic embedding provider contract** — 2026.5.22 plugin SDK surface (`contracts.embeddingProviders`, `api.registerEmbeddingProvider`) that should make explicit OpenAI-compatible embedding providers cleaner.
 - **[Ollama](https://ollama.com/)** — local embedding runtime. `qwen3-embedding:0.6b` is the right default for most setups.
 - **[LightRAG](https://github.com/HKUDS/LightRAG)** — graph + vector hybrid RAG. The right upgrade once your vault crosses ~500 files. See [Part 18](./part18-lightrag-graph-rag.md).
 - **[Repowise](https://github.com/repowise/repowise)** — structural index for codebases. Feeds workers a map instead of re-reading files. See [Part 19](./part19-repowise-codebase-intelligence.md).
@@ -90,6 +92,7 @@ See [Part 23 — ClawHub Skills Marketplace](./part23-clawhub-skills-marketplace
 
 ## Observability & evaluation
 
+- **OpenClaw native diagnostics** — late-May builds add sanitized `secrets.prepare` spans, bounded skill usage metrics, tool source/owner labels, Prometheus smoke aliases, and richer `tasks maintenance --json`.
 - **[LangFuse](https://langfuse.com/)** — the lightest-weight LLM tracing that actually works end-to-end with OpenClaw surfaces.
 - **[OpenTelemetry LLM instrumentation](https://opentelemetry.io/docs/specs/semconv/gen-ai/)** — the standards track. Pair with LangFuse or Grafana Tempo.
 - **Canvas Model Auth status card** — built into 2026.4.15-beta.1+. The one dashboard you actually read every day.
@@ -102,17 +105,22 @@ See [Part 23 — ClawHub Skills Marketplace](./part23-clawhub-skills-marketplace
 - **Trend Micro — Atomic Stealer via OpenClaw skills** (Mar 2026) — 39 skills distributing macOS infostealer.
 - **Kaspersky OpenClaw audit** — 512 vulns, 8 critical including `CVE-2026-25253` (1-click RCE) and WebSocket shared-auth scope escalation at CVSS 9.9.
 - **This repo, [Part 15 — Infrastructure Hardening](./part15-infrastructure-hardening.md)** — operational hardening checklist.
+- **`security.audit.suppressions`** — 2026.5.18 config escape hatch for reviewed audit findings. Use owner/reason/expiry; do not suppress unknown warnings.
 
 ## Control plane & governance
 
 - **[Task Brain](./part24-task-brain-control-plane.md)** — OpenClaw's control plane. Semantic approval categories, agent-initiated denies, unified task flow registry.
 - **Approval policy reference** — [templates/openclaw.example.json](./templates/openclaw.example.json) ships with a starting-point policy block.
+- **Policy plugin** — bundled in 2026.5.20. Run `openclaw policy check` for channel conformance checks, attestations, doctor findings, and opt-in repair.
+- **Task maintenance JSON** — `openclaw tasks maintenance --json` now explains stale-running retention/reconcile decisions for cron, CLI, backing sessions, and wedged sub-agents.
 
 ## UI surfaces & clients
 
 - **[Canvas](https://clawdocs.org/canvas)** — the first-party control UI. Model Auth card, approvals, memory browser.
-- **Webchat** — the browser surface. 2026.4.15 stable tightened localRoots containment on audio.
+- **Webchat** — the browser surface. 2026.4.15 stable tightened localRoots containment on audio; 2026.5.24-beta.1 voice callers can status/cancel/steer/follow-up active runs.
 - **Matrix bridge** — chat-in-Matrix surface. Pairing-auth tightened in 2026.4.15 stable; DM pairing-store entries can no longer authorize room control.
+- **iMessage / WhatsApp approvals** — thumbs-up/thumbs-down reactions are convenient `allow-once`/deny controls, but still require trusted approver policy.
+- **Discord voice follow / wake-name gating** — 2026.5.20+ voice sessions can follow configured users; 2026.5.24-beta.1 adds wake-name gating and mid-consult run controls.
 
 ## Research papers
 

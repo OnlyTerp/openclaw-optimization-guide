@@ -2,8 +2,8 @@
 
 **Make your OpenClaw AI agent faster, smarter, cheaper, and actually safe to run in production.**
 
-[![Current sweep: 2026.5.14 beta](https://img.shields.io/badge/OpenClaw-2026.5.14--beta.1-2ea44f)](./part33-late-april-2026-field-guide.md)
-[![Stable baseline: 2026.5.12](https://img.shields.io/badge/stable-2026.5.12-blue)](./part26-migration-guide.md)
+[![Current sweep: 2026.5.24 beta](https://img.shields.io/badge/OpenClaw-2026.5.24--beta.1-2ea44f)](./part33-late-april-2026-field-guide.md)
+[![Stable baseline: 2026.5.22](https://img.shields.io/badge/stable-2026.5.22-blue)](./part26-migration-guide.md)
 [![33 parts](https://img.shields.io/badge/parts-33-blue)](#full-table-of-contents)
 [![Scorecard](https://img.shields.io/badge/scorecard-50_items-8957e5)](./SCORECARD.md)
 [![Awesome](https://img.shields.io/badge/awesome-list-fc60a8)](./AWESOME.md)
@@ -11,23 +11,24 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey)](./LICENSE)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](./CONTRIBUTING.md)
 
-> **May 14, 2026 sweep.** Stable baseline: **OpenClaw 2026.5.12**. Beta tracked: **2026.5.14-beta.1**. This refresh updates the late-April guidance for the May release wave: leaner provider/plugin installs, canonical Codex app-server routing, `/queue steer` defaults, `/context map`, provider-owned local services, per-sender tool policies, Telegram/WhatsApp/voice reliability, `agents.defaults.runRetries`, and the current security/provenance posture.
+> **Late-May 2026 sweep.** Stable baseline: **OpenClaw 2026.5.22**. Beta tracked: **2026.5.24-beta.1**. This refresh updates the mid-May guidance for the latest release wave: Gateway startup/perf caching, the source-only Meeting Notes plugin, the bundled Policy plugin, Codex/MCP scoping, voice-run control, adaptive image compression, iMessage/WhatsApp approval reactions, xAI/OpenRouter routing upgrades, and stricter secret/tool-policy checks.
 
 *By Terp — [Terp AI Labs](https://x.com/OnlyTerp)*
 
 ---
 
-## Start With The May 2026 Reality Check
+## Start With The Late-May 2026 Reality Check
 
-OpenClaw changed more from late April through mid-May than most agent projects change in a quarter. If you last read this guide around 2026.4.15/2026.4.29, these are the new rules:
+OpenClaw changed more from mid-May through 2026.5.24-beta.1 than most agent projects change in a quarter. If you last read this guide around 2026.5.12/2026.5.14, these are the new rules:
 
 1. **Claude subscription-era advice is dead.** Anthropic's April 4 policy change broke the old "Claude Pro/Max covers OpenClaw" path. Treat Claude as paid API / Bedrock / provider-routed usage unless your own install proves otherwise.
-2. **Codex routing changed again.** Use canonical `openai/gpt-*` model refs such as `openai/gpt-5.5` for the native Codex app-server route; `openai-codex` is an auth/profile surface, not a durable model prefix, and the bundled `codex-cli` backend is gone in 2026.5.14-beta.1.
-3. **Provider catalogs and plugin installs are leaner.** Bedrock, Slack, Anthropic Vertex, OpenShell sandbox, WhatsApp, and related cones moved out of core installs. Audit manifests and install only the providers/channels you use.
-4. **Messaging now steers by default.** `/queue steer` is the default for active runs; use `/queue followup`, `/queue collect`, or `/queue interrupt` only when that behavior is intentional. Keep `messages.visibleReplies` on for shared channels.
-5. **Context and local runtime control improved.** `/context map` shows a treemap of prompt contributors after a real run, `models.providers.<id>.localService` can start local model servers on demand, and `agents.defaults.runRetries` lets embedded Pi runs retry boundedly.
+2. **Codex is now a policy/MCP surface, not just a model route.** Keep canonical `openai/gpt-*` model refs, but also scope user MCP servers with `mcp.servers.<id>.codex.agents`, set Codex tool approval defaults deliberately, and test deny-all sender policies against native Codex tools.
+3. **Policy checks moved into the product.** The bundled Policy plugin adds channel-conformance checks, `openclaw policy check`, doctor findings, attestations, drift checks, and opt-in repair. Use it before exposing shared channels.
+4. **Voice and meetings are now operating surfaces.** Discord voice can follow configured users, realtime callers can ask status/cancel/steer/follow-up mid-consult, and Meeting Notes moved into a source-only external plugin with Discord voice as the first live source.
+5. **Fast Gateway startup is now real, but session hygiene is still your job.** 2026.5.18-5.24 cache plugin/channel/provider metadata aggressively, but long-running agents still need transcript guards, cron/session isolation, and deliberate `/new` or rotation policy.
+6. **Provider routing got more specific.** xAI supports remote-friendly device-code OAuth, OpenRouter honors provider-level `params.provider` routing policy, and `agents.list[].experimental.localModelLean` can now be set per agent.
 
-Read **[Part 33 — May 2026 Field Guide](./part33-late-april-2026-field-guide.md)** first if you want the latest tricks before the deep dives.
+Read **[Part 33 — Late-May 2026 Field Guide](./part33-late-april-2026-field-guide.md)** first if you want the latest tricks before the deep dives.
 
 ## The Harness Thesis
 
@@ -155,13 +156,13 @@ Alongside the 33 parts themselves, this repo now includes the tooling that turns
 
 ---
 
-## What Changed In This Release (May 2026 Refresh)
+## What Changed In This Release (Late-May 2026 Refresh)
 
-- **Updated [Part 33 — May 2026 Field Guide](./part33-late-april-2026-field-guide.md)** — concise upgrade map from 2026.4.15 through 2026.5.12 stable / 2026.5.14-beta.1: Codex app-server routing, queue steering defaults, provider-local services, externalized plugins, Telegram/WhatsApp/voice fixes, `/context map`, and current security hardening.
-- **Codex guidance corrected** — native Codex now means canonical `openai/gpt-*` model refs with the Codex app-server runtime and `openai-codex` auth profiles; legacy `codex-cli` backend assumptions and durable `openai-codex/*` model refs are called out as migration debt.
-- **Configuration patterns refreshed** — the template now shows `messages.queue`, `agents.defaults.runRetries`, `tools.toolsBySender`, and a provider-level `localService` skeleton instead of only late-April model/memory flags.
-- **Security guidance tightened** — per-sender schema stripping, requester-bound gateway approvals, structured SecretRefs for provider keys, Windows home-root sandbox blocks, and manifest-first plugin audits are now called out.
-- **Operator workflow updated** — `/context list`, `/context detail`, and `/context map` are recommended for prompt-budget audits; `/queue steer` is the default; Telnyx realtime voice and WhatsApp status reactions are noted as beta/watch items.
+- **Updated [Part 33 — Late-May 2026 Field Guide](./part33-late-april-2026-field-guide.md)** — concise upgrade map from 2026.4.15 through 2026.5.22 stable / 2026.5.24-beta.1: Gateway performance caching, Meeting Notes, Policy plugin checks, Codex/MCP scoping, Discord voice, image-quality controls, iMessage approvals, and current security hardening.
+- **Codex guidance corrected again** — native Codex still means canonical `openai/gpt-*` model refs, but the real late-May work is MCP projection scoping, `codex.defaultToolsApprovalMode`, named OAuth profiles, and deny-all tool policy verification.
+- **Configuration patterns refreshed** — the template now shows `agents.defaults.imageQuality`, per-agent `localModelLean`, channel room-event settings, `mcp.servers.<id>.codex.agents`, OpenRouter provider routing, and meeting-notes/policy plugin stubs.
+- **Security guidance tightened** — skill-file read/executable allowlist compatibility is gone, symlinked credential files fail closed, doctor warns on plaintext secret-bearing config, and channel conformance belongs in the Policy plugin.
+- **Operator workflow updated** — use `openclaw policy check`, `openclaw tasks maintenance --json`, named Codex auth profiles, realtime voice status/cancel/steer controls, and explicit session/transcript hygiene for long-running agents.
 
 ### Previous 2026.4.15 refresh
 
@@ -250,7 +251,7 @@ Not every part applies to every reader. Jump directly to the pillar that matches
 - [26. Migration Guide](./part26-migration-guide.md) — upgrade paths + rollback plans
 - [27. Gotchas & FAQ](./part27-gotchas-and-faq.md) — symptom → fix table + frequently asked questions
 - [28. Glossary & Terminology](./part28-glossary-and-terminology.md) — every term this guide assumes, on one page
-- [33. May 2026 Field Guide](./part33-late-april-2026-field-guide.md) — what changed after 2026.4.15 and what to do now
+- [33. Late-May 2026 Field Guide](./part33-late-april-2026-field-guide.md) — what changed after 2026.4.15 and what to do now
 - [14. Quick Checklist](#part-14-quick-checklist) — 30-minute setup
 - [17. The One-Shot Prompt](#part-17-the-one-shot-prompt) — automation prompt, updated for May defaults
 
@@ -268,7 +269,7 @@ Not every part applies to every reader. Jump directly to the pillar that matches
 13. [Memory Bridge](./part13-memory-bridge.md) — give Codex / Claude Code access to your vault
 22. [Built-In Dreaming (memory-core)](#part-22-built-in-dreaming) — official 3-phase consolidation, DREAMS.md, memory-you-can-afford (LightMem + vbfs)
 31. [The LLM Wiki Pattern In OpenClaw](./part31-the-llm-wiki-pattern-in-openclaw.md) — Karpathy's three-tier pattern mapped onto SOUL/AGENTS/MEMORY/skills
-33. [May 2026 Field Guide](./part33-late-april-2026-field-guide.md) — Active Memory filters, people wiki, provider catalogs, run steering, browser/Codex updates
+33. [Late-May 2026 Field Guide](./part33-late-april-2026-field-guide.md) — Gateway perf, Policy plugin, Meeting Notes, provider routing, voice steering, browser/Codex updates
 
 **🤝 Orchestration & models**
 5. [Orchestration](#part-5-orchestration-stop-doing-everything-yourself) — sub-agents-as-GC, Anthropic's 5 coordination patterns, CEO/COO/Worker, verification
@@ -456,19 +457,22 @@ Every enabled plugin adds overhead. If you're not using `memory-lancedb`, `memor
 
 ### Lean Mode for Weak Local Models
 
-New in 2026.4.15: if you're running a small local model (≤14B params, 16K-32K context) and the default tool set is eating your whole prompt, flip the lean flag:
+New in 2026.4.15 and refined in 2026.5.20: if you're running a small local model (≤14B params, 16K-32K context) and the default tool set is eating the prompt, prefer per-agent lean mode for the small worker. Use the global default only when every agent on that profile is local/small:
 
 ```json
 {
   "agents": {
-    "defaults": {
-      "experimental": { "localModelLean": true }
-    }
+    "list": [
+      {
+        "id": "local-worker",
+        "experimental": { "localModelLean": true }
+      }
+    ]
   }
 }
 ```
 
-This drops the heavyweight default tools (browser, cron, message) from the system prompt. You keep `memory_search`, `exec`, `sessions_spawn`, and the essentials — which is everything most local setups actually use. 2026.4.29 also relaxed fixed preflight cutoffs so small local models use guard thresholds derived from their effective context window instead of hard-coded 16K/32K floors.
+This drops heavyweight default tools (browser, cron, message) from that worker's system prompt. You keep `memory_search`, `exec`, `sessions_spawn`, and the essentials — which is everything most local setups actually use. 2026.4.29 also relaxed fixed preflight cutoffs so small local models use guard thresholds derived from their effective context window instead of hard-coded 16K/32K floors.
 
 ### Ollama Housekeeping
 
@@ -1037,7 +1041,7 @@ If you have a GPU, local models via Ollama = unlimited inference at zero cost.
 - **TerpBot (Nemotron 30B fine-tuned)** - Custom fine-tune on clean 9.4K examples. 235 tok/s on 5090, 91.93% MMLU-Pro Math. Not public — but Nemotron 30B base is: `ollama pull nemotron-30b`
 - **NVIDIA Nemotron Nano 4B** - Punches above its weight, 128K context, fits on any GPU. `ollama pull nemotron-nano`
 
-> **2026.4.15 — if you drive a small local model, turn on `localModelLean`.** Set `agents.defaults.experimental.localModelLean: true` and the gateway stops injecting the heavyweight default tools (browser, cron, message) into the system prompt. You keep `memory_search`, `exec`, `sessions_spawn` — i.e. the tools a local model can actually *use*. Frees ~3KB of prompt, which on a 16K-context 14B model is the difference between "fits one retrieval result" and "crashes out of context." Leave this off for frontier models — you want them to have everything.
+> **2026.5.20 — if one worker is small/local, use per-agent `localModelLean`.** Set `agents.list[].experimental.localModelLean: true` on the small worker and the gateway stops injecting heavyweight default tools (browser, cron, message) into that worker prompt. You keep `memory_search`, `exec`, `sessions_spawn` — i.e. the tools a local model can actually use. Frees ~3KB of prompt without starving frontier orchestrators.
 
 ### Claude Subscription Path Retired
 
@@ -1471,7 +1475,7 @@ Run through this in 30 minutes:
 - [ ] **ClawHub hygiene** — every installed skill reviewed, source repo pinned, auto-update disabled (Part 23)
 - [ ] **Task Brain** — semantic approval categories configured; `control-plane.*` kept approval-required (Part 24)
 - [ ] `openclaw tasks list` runs clean — no orphaned or denied tasks lingering (Part 24)
-- [ ] 2026.4.15 upgrade: `agents.defaults.experimental.localModelLean` set correctly for your model tier (Part 6)
+- [ ] 2026.5.20 upgrade: per-agent `agents.list[].experimental.localModelLean` set correctly for small local workers (Part 6)
 - [ ] 2026.4.15 upgrade: `memory_get` not called with arbitrary paths anywhere in your skills/hooks (Part 4/22)
 - [ ] Control UI Model Auth card checked — OAuth tokens healthy, no rate-limit red flags
 

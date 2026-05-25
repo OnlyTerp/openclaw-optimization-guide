@@ -26,6 +26,8 @@ Three things changed when ClawHub launched:
 3. **Scale.** 13,000+ skills published in the first ~30 days. That's community velocity. It's also impossible to curate.
 
 > **2026.3.31-beta.1 hardening:** Plugin installs now **fail-closed** by default if the built-in security scan flags dangerous code. Forcing an install requires the deliberately awkward `--dangerously-force-unsafe-install` flag. Combine this with an approval policy that denies `control-plane.skills` (see [Part 24](./part24-task-brain-control-plane.md)) and you cover the structural half of the ClawHavoc problem.
+>
+> **2026.5.20 hardening:** the old `cat SKILL.md && printf ... && <exec>` approval compatibility path is gone. Skill files must be read with the read tool, and only the real skill executable is auto-allowed.
 
 ## The Catch: ClawHavoc (1,184 Malicious Skills in Month One)
 
@@ -53,6 +55,19 @@ Red flags:
 - broad env-var discovery when only one provider key is needed
 - runtime dependency repair that pulls packages from unexpected registries
 - channel configs for surfaces the skill never mentioned
+
+
+### Tool plugins are not "just skills"
+
+2026.5.18 added typed simple tool-plugin authoring via `defineToolPlugin` plus:
+
+```bash
+openclaw plugins init
+openclaw plugins validate
+openclaw plugins build
+```
+
+Treat these like code packages, not prompt snippets. Validate manifests in CI, review generated metadata, and pin the source/ref before installing in production. If all you need is instructions, ship a skill; if you expose new tools, use the plugin CLI and Task Brain policy review.
 
 ### 1. Auto-update: OFF by default
 

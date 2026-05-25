@@ -55,6 +55,26 @@ If you pointed `compaction.model` at a small local model (a 14B Qwen with a 16K-
 
 Current builds also add transcript-byte guards (`maxActiveTranscriptBytes`) so a huge active transcript cannot keep feeding compaction forever. Set it explicitly on busy agents; tune upward only after reviewing real transcript sizes.
 
+### Late-May Session Survival Pattern
+
+Community operators running large multi-agent fleets found that compaction config is only one layer. The current production pattern is:
+
+1. Set `maxActiveTranscriptBytes` before huge JSONL transcripts become normal.
+2. Enable memory flush / capture so useful state survives `/new` and session rotation.
+3. Separate heartbeat and cron output from human chat memory.
+4. Prune old session files on a schedule instead of letting `agents/*/sessions` grow forever.
+5. Audit `*.trajectory.jsonl` or equivalent usage traces to find real token spenders, not guessed ones.
+
+2026.5.20 also adds a default 30-second timeout to `before_compaction` and `after_compaction` hooks, so a hung hook no longer blocks compaction completion. Still keep hook handlers idempotent and fast.
+
+---
+
+## Audit Suppressions Are Not A Trash Can
+
+2026.5.18 includes `security.audit.suppressions` for findings you intentionally accept. Use it for reviewed false positives or temporary exceptions with owners and expiry dates; do not use it to silence unknown warnings.
+
+Minimum rule: every suppression needs a reason, owner, and review date in the same PR that adds it. If `openclaw doctor` warns about plaintext provider keys or sensitive headers, fix the config instead of suppressing it.
+
 ---
 
 ## The Gemini Flash Trap
@@ -422,6 +442,9 @@ For sandbox isolation stronger than worktrees can provide (agent should not see 
 - [ ] Embedding server on dedicated GPU (not shared with gaming/inference)
 - [ ] Embedding model quantized to INT8 if VRAM-constrained
 - [ ] No Gemini Flash in any infrastructure role
+- [ ] `before_compaction` / `after_compaction` hooks complete quickly and tolerate the 30s timeout
+- [ ] `security.audit.suppressions` entries have owners, reasons, and review dates
+- [ ] Session pruning / rotation is configured for long-running channel agents
 - [ ] `.gitignore` in `.openclaw/` blocking secrets, sqlite, sessions
 - [ ] No credentials written in memory/session files (rule in AGENTS.md)
 - [ ] Existing git history scanned for leaked secrets

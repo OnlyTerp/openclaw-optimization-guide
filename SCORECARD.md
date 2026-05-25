@@ -1,6 +1,6 @@
 # The OpenClaw Production Readiness Scorecard
 
-**Score your OpenClaw setup against the patterns in the [OpenClaw Optimization Guide](./README.md). 50 items across 5 pillars. 2 points each. 100 possible. Updated for OpenClaw 2026.5.12 stable and 2026.5.14 beta.**
+**Score your OpenClaw setup against the patterns in the [OpenClaw Optimization Guide](./README.md). 50 items across 5 pillars. 2 points each. 100 possible. Updated for OpenClaw 2026.5.22 stable and 2026.5.24 beta.**
 
 > Share your score: *"My OpenClaw Production Readiness Scorecard: XX / 100 — [github.com/OnlyTerp/openclaw-optimization-guide](https://github.com/OnlyTerp/openclaw-optimization-guide)"*
 
@@ -28,7 +28,7 @@ Do your agents respond in seconds, not minutes? If every turn feels sluggish, co
 - [ ] Reasoning mode is OFF on the default model, ON only for orchestration. *→ [Part 6](./README.md#part-6-models-what-to-actually-use)*
 - [ ] Compaction runs on a cheap non-reasoning model (e.g. Cerebras `gpt-oss-120b`), not on Gemini Flash or an Opus/GPT key. *→ [Part 15](./part15-infrastructure-hardening.md)*
 - [ ] Cron output is isolated (`memory/cron/` or suppressed) so bulk scheduled runs don't flood session memory. *→ [Part 3](./README.md#part-3-cron-session-bloat-the-hidden-killer)*
-- [ ] For small local models (≤14B), `agents.defaults.experimental.localModelLean: true` is set. *→ [Part 6](./README.md#part-6-models-what-to-actually-use)*
+- [ ] For small local worker agents (≤14B), `agents.list[].experimental.localModelLean: true` is set only on those workers. *→ [Part 6](./README.md#part-6-models-what-to-actually-use)*
 
 ## Pillar 2 — Memory (20 points)
 
@@ -64,13 +64,13 @@ Does the frontier model plan while cheap workers execute, or is your orchestrato
 
 If a compromised skill ships tomorrow, how much of your system does it reach?
 
-- [ ] Task Brain is live (`openclaw tasks list` returns output). *→ [Part 24](./part24-task-brain-control-plane.md)*
-- [ ] Approval policy uses **semantic categories** (`read-only.*`, `execution.*`, `write.*`, `control-plane.*`), not raw tool names. *→ [Part 24](./part24-task-brain-control-plane.md)*
+- [ ] Task Brain is live (`openclaw tasks list` and `openclaw tasks maintenance --json` return useful output). *→ [Part 24](./part24-task-brain-control-plane.md)*
+- [ ] Approval policy uses **semantic categories** (`read-only.*`, `execution.*`, `write.*`, `control-plane.*`), not raw tool names or skill-shell preludes. *→ [Part 24](./part24-task-brain-control-plane.md)*
 - [ ] `control-plane.*` is set to `deny` for every non-admin agent. *→ [Part 24](./part24-task-brain-control-plane.md)*
-- [ ] `write.fs.outside-workspace` is `deny` by default, and `tools.toolsBySender` strips mutation/runtime tools from public senders. *→ [Part 24](./part24-task-brain-control-plane.md)*
+- [ ] `write.fs.outside-workspace` is `deny` by default, and `tools.toolsBySender` strips mutation/runtime/Codex/MCP tools from public senders. *→ [Part 24](./part24-task-brain-control-plane.md)*
 - [ ] `skills.autoUpdate` is **OFF**. *→ [Part 23](./part23-clawhub-skills-marketplace.md)*
-- [ ] Every installed ClawHub skill is pinned to a commit or tag, not a branch. *→ [Part 23](./part23-clawhub-skills-marketplace.md)*
-- [ ] You've read the source of every ClawHub skill you have installed. *→ [Part 23](./part23-clawhub-skills-marketplace.md)*
+- [ ] Every installed ClawHub skill/plugin is pinned to a commit or tag, not a branch, and typed tool plugins pass `openclaw plugins validate`. *→ [Part 23](./part23-clawhub-skills-marketplace.md)*
+- [ ] You've read the source/manifest of every ClawHub skill or plugin you have installed, including embedding/source-provider contracts. *→ [Part 23](./part23-clawhub-skills-marketplace.md)*
 - [ ] Credentials live in environment variables or OS keychain, not in `openclaw.json`, `AGENTS.md`, or `memory/`. *→ [Part 15](./part15-infrastructure-hardening.md)*
 - [ ] Approval UI shows redacted secrets (`sk-***`) — you upgraded to 2026.4.15+. *→ [Part 15](./part15-infrastructure-hardening.md)*
 - [ ] Canvas **Model Auth status card** shows all providers green; you've tested auth hot-reload and Codex OAuth repair if used. *→ [Part 15](./part15-infrastructure-hardening.md)*
@@ -82,13 +82,13 @@ When something breaks at 3am, can you answer "what ran, with what permissions, a
 - [ ] Every ACP call, cron job, and sub-agent spawn shows up in `openclaw tasks list` / `openclaw tasks flow list` (i.e. nothing runs outside Task Brain). *→ [Part 24](./part24-task-brain-control-plane.md)*
 - [ ] Gateway startup script has stale-process cleanup so a zombie doesn't block port 18789. *→ [Part 15](./part15-infrastructure-hardening.md)*
 - [ ] Compaction `reserveTokens` is capped to the model's context window (auto in 2026.4.15+; verify anyway). *→ [Part 15](./part15-infrastructure-hardening.md)*
-- [ ] You run `openclaw doctor` after every upgrade and commit the output. *→ [Part 26](./part26-migration-guide.md)*
-- [ ] LangFuse / OpenTelemetry / equivalent LLM tracing is enabled for at least one agent. *→ [Part 20](./part20-observability-and-services.md)*
+- [ ] You run `openclaw doctor` and `openclaw policy check` after every upgrade/shared-channel change and archive the output. *→ [Part 26](./part26-migration-guide.md)*
+- [ ] Native diagnostics plus LangFuse / OpenTelemetry / equivalent LLM tracing are enabled for at least one agent. *→ [Part 20](./part20-observability-and-services.md)*
 - [ ] Auto-capture hook is running; you've confirmed it produces inbox notes. *→ [Part 11](./part11-auto-capture-hook.md)*
 - [ ] Self-improving system is on: `.learnings/corrections.md`, `.learnings/ERRORS.md`, `.learnings/LEARNINGS.md` are being written to. *→ [Part 12](./part12-self-improving-system.md)*
 - [ ] Real-time knowledge sync (file watcher → vector index) is running. *→ [Part 21](./part21-realtime-knowledge-sync.md)*
-- [ ] You have a one-command rollback plan from your current version to the previous one. *→ [Part 26](./part26-migration-guide.md)*
-- [ ] You've tested rollback at least once, and active-run queue mode (`steer`/`followup`/`collect`/`interrupt`) is documented for shared channels. *→ [Part 26](./part26-migration-guide.md)*
+- [ ] You have a one-command rollback plan from your current version to the previous one, including plugin/Meeting Notes/voice rollout. *→ [Part 26](./part26-migration-guide.md)*
+- [ ] You've tested rollback at least once, active-run queue mode is documented for shared channels, and Meeting Notes retention is documented if enabled. *→ [Part 26](./part26-migration-guide.md)*
 
 ---
 

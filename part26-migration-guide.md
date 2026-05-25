@@ -1,21 +1,21 @@
 # Part 26: Migration Guide
 
-> Updated in the May 2026 refresh. Opinionated, battle-tested upgrade paths from older OpenClaw versions to current. If something in this guide doesn't apply to your version yet, start here.
+> Updated in the late-May 2026 refresh. Opinionated, battle-tested upgrade paths from older OpenClaw versions to current. If something in this guide does not apply to your version yet, start here.
 
-> **Read this if** you're on anything older than 2026.5.12, or planning an upgrade.
+> **Read this if** you're on anything older than 2026.5.22, or planning an upgrade.
 > **Skip if** you're already on current-beta and don't maintain older instances.
 
 ## TL;DR By Version
 
 | You're on | Do this first | Then | Finally |
 |-----------|--------------|------|---------|
-| **v3.x** | Full v4.0 upgrade (not a drop-in) | Reach 2026.4.27 through Paths 1–6 | 2026.5.12 |
-| **v4.0.x** | v2026.3.31-beta.1 (Task Brain) | Reach 2026.4.27 through Paths 2–6 | 2026.5.12 |
-| **v2026.3.x** | Apply Task Brain approval policy | Reach 2026.4.27 through Paths 3–6 | 2026.5.12 |
-| **v2026.4.x pre-4.15** | Skip straight to 2026.4.15 | Reach 2026.4.27 through Paths 5–6 | 2026.5.12 |
-| **v2026.4.15** | Remove subscription-era model assumptions | Apply provider-catalog changes | 2026.5.12 |
-| **v2026.4.27** | Apply memory/messaging beta changes | Upgrade to 2026.5.12 | Optional 2026.5.14-beta.1 |
-| **v2026.4.29-beta.1** | Migrate Codex/queue assumptions | Upgrade to 2026.5.12 | Optional 2026.5.14-beta.1 |
+| **v3.x** | Full v4.0 upgrade (not a drop-in) | Reach 2026.4.27 through Paths 1–6 | 2026.5.22 |
+| **v4.0.x** | v2026.3.31-beta.1 (Task Brain) | Reach 2026.4.27 through Paths 2–6 | 2026.5.22 |
+| **v2026.3.x** | Apply Task Brain approval policy | Reach 2026.4.27 through Paths 3–6 | 2026.5.22 |
+| **v2026.4.x pre-4.15** | Skip straight to 2026.4.15 | Reach 2026.4.27 through Paths 5–6 | 2026.5.22 |
+| **v2026.4.15** | Remove subscription-era model assumptions | Apply provider-catalog changes | 2026.5.22 |
+| **v2026.4.27** | Apply memory/messaging beta changes | Upgrade to 2026.5.22 | Optional 2026.5.24-beta.1 |
+| **v2026.4.29-beta.1** | Migrate Codex/queue assumptions | Upgrade to 2026.5.22 | Optional 2026.5.24-beta.1 |
 
 Each step is described below. Don't skip steps — the CVE wave fixes and Task Brain model changes are not optional for anyone running more than a personal-dev setup.
 
@@ -117,7 +117,7 @@ Small jump. This is the version the guide is currently tested on.
 - `memory_get` restricted to MEMORY.md + DREAMS.md only (path-traversal hardening against the qmd backend).
 - Memory-lancedb can persist to S3-compatible cloud storage.
 - GitHub Copilot embedding provider.
-- `agents.defaults.experimental.localModelLean: true` drops heavyweight default tools for weak local models.
+- `agents.defaults.experimental.localModelLean: true` drops heavyweight default tools for weak local models; 2026.5.20 also supports per-agent `agents.list[].experimental.localModelLean`.
 - New Model Auth card in Canvas UI shows OAuth token health + rate-limit pressure.
 
 **Steps:**
@@ -183,7 +183,7 @@ This is the first late-April stability jump. It is worth doing before moving to 
 
 ## Path 7: v2026.4.27 stable → v2026.4.29-beta.1
 
-Former beta jump. If you're upgrading today, treat this as the conceptual migration step for memory/messaging behavior and then continue to 2026.5.12 stable.
+Former beta jump. If you're upgrading today, treat this as the conceptual migration step for memory/messaging behavior and then continue to 2026.5.22 stable.
 
 **What changes (the ones you should act on immediately):**
 
@@ -207,7 +207,7 @@ Former beta jump. If you're upgrading today, treat this as the conceptual migrat
 
 ## Path 8: v2026.4.29-beta.1 → v2026.5.12 stable
 
-This is the current stable baseline for this guide. Do this before experimenting with 2026.5.14-beta.1.
+This is the former May stable baseline. Do this as the compatibility checkpoint, then continue to Path 10 before experimenting with 2026.5.24-beta.1.
 
 **What changes (the ones you should act on immediately):**
 
@@ -229,7 +229,7 @@ This is the current stable baseline for this guide. Do this before experimenting
 
 ## Path 9: v2026.5.12 stable → v2026.5.14-beta.1
 
-Beta jump. Do this in a separate profile unless you specifically need queue steering defaults, Telnyx voice, Codex migration repair, per-sender tool tiers, or embedded Pi retry controls.
+Former beta jump. Today, treat this as the queue/Codex/per-sender migration checkpoint, then continue to Path 10 for the current stable baseline.
 
 **What changes (the ones you should act on immediately):**
 
@@ -249,7 +249,56 @@ Beta jump. Do this in a separate profile unless you specifically need queue stee
 3. Add `agents.defaults.runRetries` for embedded/remote Pi runners that can fail transiently.
 4. If you had `codex-cli/*` refs, replace them with canonical `openai/gpt-*` model refs and verify with a tiny Codex task.
 5. If you try Telnyx voice, do it on a test number first and keep transcript/media retention explicit.
-6. Roll back to 2026.5.12 if steering semantics or channel progress reactions surprise users.
+6. Roll back to 2026.5.12 if steering semantics or channel progress reactions surprise users, then continue through Path 10 when ready.
+
+
+## Path 10: v2026.5.14-beta.1 / v2026.5.12 → v2026.5.22 stable
+
+This is the current stable baseline for this guide. It rolls up the 2026.5.16, 2026.5.18, 2026.5.20, and 2026.5.22 trains.
+
+**What changes (the ones you should act on immediately):**
+
+- Minimum Node.js 22 line is now **22.19**. Upgrade Node before blaming OpenClaw startup.
+- The old skill exec allowlist compatibility path is gone. Skill files must be loaded with the read tool; only the real executable is auto-allowed.
+- Sub-agent default bootstrap narrows to `AGENTS.md` and `TOOLS.md`; persona, identity, user, memory, heartbeat, and setup files are not delegated by default.
+- The bundled Policy plugin adds `openclaw policy check`, channel conformance attestations, doctor lint findings, and opt-in repair.
+- `agents.list[].experimental.localModelLean` lets one small/local worker run lean without forcing every agent into lean mode.
+- `OPENCLAW_IMAGE_APT_PACKAGES` replaces `OPENCLAW_DOCKER_APT_PACKAGES` as the runtime-neutral Docker/Podman image build arg.
+- Meeting Notes is a source-only external plugin with Discord voice as the first live source and `openclaw meeting-notes` CLI access.
+- xAI device-code OAuth works on remote/headless hosts; OpenRouter honors provider-level `params.provider` routing.
+- Gateway/plugin/model/channel metadata hot paths are cached aggressively. Startup is faster, but unused plugins are still attack surface.
+- Generic `contracts.embeddingProviders` and `api.registerEmbeddingProvider(...)` make embeddings a plugin capability.
+
+**Steps:**
+
+1. Upgrade Node to 22.19+ and then install OpenClaw 2026.5.22.
+2. Run `openclaw doctor`, `openclaw policy check`, and `openclaw tasks maintenance --json` before inviting channel users back.
+3. Audit every skill that relied on shelling through `cat SKILL.md && printf ...`; convert it to read the skill file explicitly.
+4. Review sub-agent prompts. If a worker needed SOUL/USER/MEMORY context, pass the needed summary explicitly instead of assuming inherited bootstrap.
+5. Move Docker/Podman custom package builds to `OPENCLAW_IMAGE_APT_PACKAGES`; keep the old var only for pinned legacy images.
+6. Add per-agent `experimental.localModelLean` only to small local workers; leave frontier orchestrators full-context.
+7. If you enable Meeting Notes, define meeting retention/redaction first and start with a single Discord voice source.
+8. If you use OpenRouter/xAI, re-check auth/routing with a tiny run before production traffic.
+
+## Path 11: v2026.5.22 stable → v2026.5.24-beta.1
+
+Beta jump. Use a copied profile unless you specifically need iMessage approval reactions, realtime voice run steering, adaptive image compression, or named Codex OAuth profiles.
+
+**What changes:**
+
+- `agents.defaults.imageQuality` controls adaptive image compression: `token-efficient`, `balanced`, or `high-detail`.
+- WebUI and Discord voice callers can ask status, cancel, steer, or queue follow-up work during active consults.
+- Discord voice adds wake-name gating with agent-name defaults.
+- iMessage thumbs mirror WhatsApp-style approvals: thumbs-up for `allow-once`, thumbs-down for deny.
+- Named Codex OAuth profile storage makes multi-auth OpenAI/Codex hosts less brittle.
+
+**Steps:**
+
+1. Set `agents.defaults.imageQuality` deliberately; use `balanced` until you know a worker needs high-detail images.
+2. Test a voice consult's status/cancel/steer path before exposing it to normal users.
+3. Confirm iMessage/WhatsApp approval reactions are limited to trusted approvers, not every group participant.
+4. If you use multiple OpenAI/Codex auth lanes, migrate to named profiles and run one tiny Codex task per profile.
+5. Roll back to 2026.5.22 if voice steering or approval reactions surprise users.
 
 ## Rollback Plan (Every Path)
 
@@ -260,7 +309,7 @@ If something goes sideways:
 openclaw gateway stop
 
 # Install previous version (example: pin via your package manager)
-npm install -g openclaw@2026.5.12  # adjust for your install method / previous pin
+npm install -g openclaw@2026.5.22  # adjust for your install method / previous pin
 
 # Restore config
 cp ~/.openclaw/openclaw.json.pre-upgrade.YYYYMMDD ~/.openclaw/openclaw.json

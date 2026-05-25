@@ -173,7 +173,7 @@ Graph-RAG layer that turns your vault into a **knowledge graph of entities + rel
 
 ## localModelLean
 
-Flag at `agents.defaults.experimental.localModelLean: true` (added in **2026.4.15**) that drops heavyweight default tools (browser, cron, message) from weaker local models. Lets small quantized models actually function instead of burning tokens parsing tool definitions they'll never use.
+Flag at `agents.defaults.experimental.localModelLean: true` (added in **2026.4.15**) or `agents.list[].experimental.localModelLean: true` (per-agent in **2026.5.20**) that drops heavyweight default tools (browser, cron, message) from weaker local models. Lets small quantized workers function instead of burning tokens parsing tool definitions they will never use.
 
 - **Covered in:** [Part 1 — Speed](./README.md#part-1-speed-stop-being-slow), [Part 6 — Models](./README.md#part-6-models-what-to-actually-use).
 
