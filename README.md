@@ -900,7 +900,7 @@ The patterns above are abstract until you see the whole thing wired together. He
 {
   "taskBrain": {
     "approvals": {
-      "defaults": { "read-only.*": "allow", "execution.*": "ask", "write.network": "ask", "control-plane.*": "deny" }
+      "defaults": { "read-only.*": "allow", "execution.sandbox.*": "allow", "execution.*": "ask", "write.fs.workspace": "allow", "write.fs.outside-workspace": "deny", "write.network": "ask", "control-plane.*": "deny" }
     }
   }
 }
