@@ -44,6 +44,17 @@ Task Brain replaces name-based allowlisting with **semantic approval categories*
 
 ## Semantic Approval Categories
 
+> **Version accuracy (verify against your binary).** The semantic-category model below describes how Task Brain reasons about approvals at the control-plane choke point. Depending on your installed version, you may **not** find a literal `agents.*.approvals` block of `read-only.*` / `execution.*` / `control-plane.*` string tokens, and you may not find an `openclaw flows` command — both surfaced in the v2026.3.31-beta.1 [control-plane release post](https://openclawai.io/blog/openclaw-task-brain-v2026-3-31-control-plane-security) but renamed/reshaped across the 4.x line. As of 2026.4.15 stable / 2026.4.19-beta.2, inspect and set policy with the shipping knobs instead, then confirm with `openclaw tasks --help` and `openclaw exec-policy show`:
+>
+> | Guide concept (semantic model) | Verified shipping knob (2026.4.15+) |
+> |--------------------------------|--------------------------------------|
+> | `execution.shell` / `execution.code` allow vs ask | `tools.exec.security` (`full` / `allowlist` / `none`) and `tools.exec.ask` (`always` / `on-miss` / `off`) |
+> | `write.fs.outside-workspace` deny | `tools.fs.workspaceOnly` (bool) |
+> | Per-channel tool profile | `tools.profile` (e.g. `messaging`) and `tools.toolsBySender` (see below) |
+> | Read the live policy / audit it | `openclaw exec-policy show`, `openclaw exec-policy preset <yolo\|cautious\|deny-all>`, `ocplatform security audit [--deep]` |
+>
+> Treat the per-category `approvals` JSON in this part as the **intended control-plane model** (and the shape the Control UI exposes), not as a guaranteed config-file key in every build. Thanks to [#8](https://github.com/OnlyTerp/openclaw-optimization-guide/issues/8) for the field report.
+
 Every tool invocation is now classified into one of a small fixed set of categories. The canonical ones:
 
 | Category | Meaning | Examples |

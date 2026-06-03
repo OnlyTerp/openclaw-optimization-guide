@@ -168,3 +168,29 @@ ByteRover captures more (every turn vs session end), but at the cost of trusting
 **Want to use a different model?** Replace the `extractNotes()` function with any API that returns the same JSON structure.
 
 **Want it to fire more often?** Add `"message:received"` to the events list in `HOOK.md` — but be careful, this fires on every single message.
+
+---
+
+## Troubleshooting
+
+**`Extraction failed: sessionKey is not defined` (or `[auto-capture] Hook triggered: …`).**
+
+Those two log lines do **not** come from the handler in this repo. The current [`handler.ts`](./hooks/auto-capture/handler.ts) logs `[auto-capture] Triggered: <action> on <sessionKey>` and `[auto-capture] Error: <message>`, and it always defines the binding before logging:
+
+```ts
+const session = getSessionForAction(event);
+const sessionKey = session?.sessionKey ?? 'unknown';
+```
+
+So `sessionKey is not defined` is a `ReferenceError` from a *different* handler — almost always one of:
+
+1. **A stale or hand-edited copy** of the handler where the `const sessionKey = …` line was dropped or the event-shape destructuring was changed. Re-copy [`hooks/auto-capture/handler.ts`](./hooks/auto-capture/handler.ts) verbatim, then `openclaw gateway restart`.
+2. **OpenClaw's built-in `session-memory` hook (or some other community auto-capture)**, not this one — see the warning at the top of this part. The wording `Hook triggered:` / `Extraction failed:` is the giveaway; this hook never prints those strings. Disable the built-in/other hook and enable only this one.
+
+Confirm which hook is actually live:
+
+```bash
+openclaw hooks list      # should show: 🧠 auto-capture ✓ (and nothing else doing extraction)
+```
+
+If you copied the file correctly and still see the error, you're running a cached build — restart the gateway so the new handler is loaded.
