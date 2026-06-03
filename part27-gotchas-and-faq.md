@@ -160,6 +160,18 @@ Skills are genuinely useful, but the marketplace has a malware problem. Our reco
 
 Both. For the **orchestrator** you want a frontier model (Claude, GPT, Gemini Pro) — the quality difference is huge on planning. For **workers**, local models on a decent GPU are absolutely viable and save real money. See [Part 6](./README.md#part-6-models-what-to-actually-use) for tier-by-tier guidance.
 
+### Anthropic ended the Claude subscription path — has that changed your model strategy? Do you still run Opus as the orchestrator?
+
+Yes, the economics changed; the architecture didn't. Anthropic's April 4, 2026 policy change ended the old "Claude Pro/Max covers OpenClaw" route, so Claude is now explicit **paid API / Bedrock / provider-routed** usage with budget caps — not a flat-rate subscription (see the [README hero note](./README.md) and the ["May upgrade broke my old workflow" table](#the-may-upgrade-broke-my-old-workflow) at the top of this part, plus the [Version Map in Part 33](./part33-late-april-2026-field-guide.md#version-map)).
+
+What that means in practice:
+
+- **A frontier orchestrator is still worth it** — the planning-quality gap is large. Opus 4.7 remains a strong default *if you have a paid route and caps set*. But it's no longer the only sensible default: a frontier GPT or Gemini Pro orchestrator is fine, and the right pick is now "best planner you have metered access to," not "whatever the subscription covered."
+- **Push more work down to cheaper/local models.** Because every orchestrator token is now metered, the [orchestrator/worker split](./README.md#part-6-models-what-to-actually-use) matters more: frontier model plans, Gemini/DeepSeek/Kimi/local workers execute. This is the single biggest lever on the new bill.
+- **Always configure non-Anthropic fallbacks** so an auth/rate-limit blip doesn't halt every agent, and set per-agent budget caps. See ["My expensive model keeps getting rate-limited"](#my-expensive-model-keeps-getting-rate-limited) above.
+
+So: still a frontier orchestrator, still the same CEO/COO/worker shape — just metered, capped, and with the worker tier doing more of the volume.
+
 ### How do I know if I should use reasoning mode?
 
 Turn it on for the orchestrator when tasks are ambiguous or multi-step. Turn it off for workers doing well-defined execution. Reasoning adds latency and cost; it shines on "what should we do" questions, not "go do this" tasks.

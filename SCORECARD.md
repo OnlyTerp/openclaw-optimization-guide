@@ -65,7 +65,7 @@ Does the frontier model plan while cheap workers execute, or is your orchestrato
 If a compromised skill ships tomorrow, how much of your system does it reach?
 
 - [ ] Task Brain is live (`openclaw tasks list` and `openclaw tasks maintenance --json` return useful output). *→ [Part 24](./part24-task-brain-control-plane.md)*
-- [ ] Approval policy uses **semantic categories** (`read-only.*`, `execution.*`, `write.*`, `control-plane.*`), not raw tool names or skill-shell preludes. *→ [Part 24](./part24-task-brain-control-plane.md)*
+- [ ] Approval policy is set at the control-plane choke point — by semantic intent, not raw tool names or skill-shell preludes. On 2026.4.15+ verify the shipping knobs (`tools.exec.security`, `tools.exec.ask`, `tools.fs.workspaceOnly`) with `openclaw exec-policy show`. *→ [Part 24](./part24-task-brain-control-plane.md#semantic-approval-categories)*
 - [ ] `control-plane.*` is set to `deny` for every non-admin agent. *→ [Part 24](./part24-task-brain-control-plane.md)*
 - [ ] `write.fs.outside-workspace` is `deny` by default, and `tools.toolsBySender` strips mutation/runtime/Codex/MCP tools from public senders. *→ [Part 24](./part24-task-brain-control-plane.md)*
 - [ ] `skills.autoUpdate` is **OFF**. *→ [Part 23](./part23-clawhub-skills-marketplace.md)*
