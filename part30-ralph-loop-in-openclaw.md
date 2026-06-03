@@ -137,7 +137,7 @@ The prompt is deliberately boring. Ralph iterations should feel like a factory l
 
 ## The Wrapper
 
-A minimal bash wrapper that runs on macOS/Linux. PowerShell port is mechanical.
+A minimal bash wrapper that runs on macOS/Linux. PowerShell port is mechanical. The full script is committed to this repo at [`scripts/ralph.sh`](./scripts/ralph.sh).
 
 ```bash
 #!/usr/bin/env bash

@@ -1341,7 +1341,7 @@ Save to `vault/06_system/vault-philosophy.md` - this teaches your agent HOW to u
 
 ### The Graph Tools
 
-MOCs and wiki-links create a graph, but the agent needs tooling to traverse it. See `scripts/vault-graph/` for the complete tools:
+MOCs and wiki-links create a graph, but the agent needs tooling to traverse it. See [`scripts/vault-graph/`](./scripts/vault-graph/) for the complete tools (committed to this repo — see [`scripts/`](./scripts/)):
 
 | Script | Purpose |
 |--------|---------|
