@@ -842,6 +842,129 @@ You are the ORCHESTRATOR. You coordinate; sub-agents execute.
 
 Your expensive model decides WHAT to build. The cheap model builds it. Right model, right job.
 
+### A Complete Multi-Agent Example: Chief of Staff + Workers
+
+The patterns above are abstract until you see the whole thing wired together. Here is a minimal-but-complete three-agent setup — a **chief-of-staff orchestrator** plus two scoped workers — using the config shapes from [`templates/openclaw.example.json`](./templates/openclaw.example.json). It's the Orchestrator-Subagent pattern with real files and real config.
+
+> **Verify key names against your installed build.** Config keys move between betas. Treat this as the *shape* of a multi-agent setup; confirm the exact keys with `openclaw doctor` and `openclaw exec-policy show`, and see the [Part 24 version-accuracy note](./part24-task-brain-control-plane.md#semantic-approval-categories) on approvals.
+
+**File layout.** Each agent gets its own identity (`SOUL.md`), operating rules (`AGENTS.md`), and tool docs (`TOOLS.md`) — the three files that survive the 2026.5.22 worker-bootstrap narrowing (see [Part 24](./part24-task-brain-control-plane.md)). The orchestrator's files are the only ones loaded into your interactive session; worker files load only when that worker is spawned.
+
+```text
+~/.openclaw/
+  openclaw.json            # the agents.list config below
+  agents/
+    chief-of-staff/        # orchestrator: plans, delegates, never executes
+      SOUL.md  AGENTS.md  TOOLS.md
+    coding-worker/         # executes code in a sandboxed repo
+      SOUL.md  AGENTS.md  TOOLS.md
+    research-worker/       # read-only research, returns summaries
+      SOUL.md  AGENTS.md  TOOLS.md
+```
+
+**The config (`openclaw.json`).** `agents.defaults` sets shared model/memory/compaction (see the template for the full block); `agents.list[]` adds per-agent overrides. The orchestrator runs a frontier model; workers run cheaper/local models, and the local one opts into lean mode:
+
+```json5
+{
+  "agents": {
+    "defaults": {
+      "model": { "primary": "anthropic/opus", "fallbacks": ["google/gemini-3-flash", "deepseek/deepseek-v4-flash"] },
+      "contextPruning": { "mode": "cache-ttl", "ttl": "5m" },
+      "compaction": { "model": "cerebras/gpt-oss-120b", "reserveTokens": 8000 }
+    },
+    "list": [
+      {
+        "id": "chief-of-staff",
+        "model": { "primary": "anthropic/opus" },
+        "_comment": "Orchestrator. Best model — planning and judgment only. Never does heavy tool work itself."
+      },
+      {
+        "id": "coding-worker",
+        "model": { "primary": "deepseek/deepseek-v4-flash" },
+        "_comment": "Spawned for code tasks. Runs tests; commits; reports the hash + a short summary."
+      },
+      {
+        "id": "research-worker",
+        "model": { "primary": "google/gemini-3-flash" },
+        "experimental": { "localModelLean": true },
+        "_comment": "Read-only research. Lean mode drops heavyweight default tools from its prompt."
+      }
+    ]
+  }
+}
+```
+
+**Tool + approval scoping (defense in depth).** Don't rely on the prompt to keep a worker in its lane — enforce it. Use Task Brain semantic approvals for *what each agent may do* and `tools.toolsBySender` for *who may reach the agent at all* (both detailed in [Part 24](./part24-task-brain-control-plane.md)):
+
+```json5
+{
+  "taskBrain": {
+    "approvals": {
+      "defaults": { "read-only.*": "allow", "execution.sandbox.*": "allow", "execution.*": "ask", "write.fs.workspace": "allow", "write.fs.outside-workspace": "deny", "write.network": "ask", "control-plane.*": "deny" }
+    }
+  }
+}
+```
+
+- **chief-of-staff** keeps `execution.*` and `write.network` on `ask` — it should be pausing for you, not running shells.
+- **coding-worker** can be granted `execution.shell`/`execution.code`/`write.fs.workspace` = `allow` (it needs to run tests) but `write.network` = `deny` — a worker should never post.
+- **research-worker** gets `read-only.*` = `allow` and everything else `deny`.
+
+(Per-agent overrides live next to each `agents.list[]` entry; confirm the exact nesting against your version per the note above.)
+
+**The two files that do the orchestration.** The orchestrator's `SOUL.md` is its identity; its `AGENTS.md` is the delegation rulebook:
+
+```markdown
+# chief-of-staff/SOUL.md
+You are the Chief of Staff. You hold strategy and context; you do not execute.
+Your value is judgment, not throughput. Delegate execution; verify results.
+```
+
+```markdown
+# chief-of-staff/AGENTS.md
+## Core Rule
+You coordinate; workers execute. Never write 50+ lines of code or do wide searches yourself.
+- Code task (3+ files / 10+ edits)?  → spawn `coding-worker`
+- Research / wide search?            → spawn `research-worker`
+- 2+ independent tasks?              → spawn workers in PARALLEL
+
+## Delegation Protocol
+- Each spawn is a self-contained work order: goal, constraints, and the bounded
+  context the worker needs (it no longer inherits your persona/memory by default).
+- Workers return a short summary, not their transcript. Their context is thrown away.
+
+## Verification
+- For code: require the worker to run tests and report the result, not "looks good".
+- Spawn a FRESH worker to verify anything correctness-critical (Generator-Verifier).
+```
+
+**The flow at runtime.** You ask the chief of staff for something; it plans and delegates:
+
+```text
+You → chief-of-staff: "Add rate limiting to the API and document it."
+chief-of-staff:
+  ├─ spawn coding-worker:   "Add a token-bucket limiter to src/api/*. Run tests. Report hash."
+  └─ spawn research-worker: "Summarize our past rate-limit decisions from the vault."
+        (both run as Task Brain tasks — visible in `openclaw tasks list`)
+coding-worker   → "Done. 3 files, tests green, commit a1b2c3d. Summary: …"
+research-worker → "We previously chose token-bucket over leaky-bucket because …"
+chief-of-staff  → synthesizes both, verifies against your request, replies.
+```
+
+Every spawn is a Task Brain task, so the whole tree is auditable: `openclaw tasks list` shows what ran, `openclaw tasks flow show <id>` traces sub-tasks back to the originating request.
+
+**Optimizing the setup (tokens + latency).** A multi-agent system multiplies token spend if you're careless. The levers, all in the config above:
+
+| Lever | Config | Why it helps |
+|-------|--------|--------------|
+| Keep the orchestrator's context lean | spawn workers for search/edits (their context is discarded) | The orchestrator's window stays small, so every turn is cheaper and sharper. |
+| Stop re-injecting SOUL+AGENTS+MEMORY every turn | `contextPruning.mode: cache-ttl` | Single biggest latency win on frontier models. |
+| Cheap workers, expensive orchestrator | per-agent `model.primary` | Frontier judgment where it matters; volume execution where it doesn't. |
+| Lean mode for small/local workers | `experimental.localModelLean: true` | Drops heavyweight default tools (browser, cron, message) from a small model's prompt. |
+| Cheap, fast compaction | `compaction.model` on a non-reasoning model | Compaction is frequent and shouldn't burn frontier tokens. |
+
+The result is the CEO/COO/Worker model with enforcement instead of an honor system: scoped tools, audited spawns, and a token bill that scales with the *worker* tier, not the orchestrator.
+
 ### PreCompletion Verification (from LangChain's +13.7 point harness improvement)
 
 LangChain's coding agent went from outside the Top 30 to **Top 5 on Terminal Bench 2.0** by only changing the harness — not the model. Their #1 improvement: **force verification before exit.**
