@@ -162,7 +162,7 @@ Both. For the **orchestrator** you want a frontier model (Claude, GPT, Gemini Pr
 
 ### Anthropic ended the Claude subscription path — has that changed your model strategy? Do you still run Opus as the orchestrator?
 
-Yes, the economics changed; the architecture didn't. Anthropic's April 4, 2026 policy change ended the old "Claude Pro/Max covers OpenClaw" route, so Claude is now explicit **paid API / Bedrock / provider-routed** usage with budget caps — not a flat-rate subscription (see the [README hero note](./README.md) and the upgrade table at the top of this part, plus [Part 33](./part33-late-april-2026-field-guide.md)).
+Yes, the economics changed; the architecture didn't. Anthropic's April 4, 2026 policy change ended the old "Claude Pro/Max covers OpenClaw" route, so Claude is now explicit **paid API / Bedrock / provider-routed** usage with budget caps — not a flat-rate subscription (see the [README hero note](./README.md) and the ["May upgrade broke my old workflow" table](#the-may-upgrade-broke-my-old-workflow) at the top of this part, plus the [Version Map in Part 33](./part33-late-april-2026-field-guide.md#version-map)).
 
 What that means in practice:
 
