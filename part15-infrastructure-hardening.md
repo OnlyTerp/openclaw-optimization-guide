@@ -375,7 +375,7 @@ git branch -D agent/auth-refactor   # if you don't want to keep it
 
 ### The 20-Line Spawner
 
-Copy-paste harness for spawning N agents across N worktrees. Pairs with the [Ralph Loop (Part 30)](./part30-ralph-loop-in-openclaw.md) when you want each agent to run autonomously:
+Copy-paste harness for spawning N agents across N worktrees. Pairs with the [Ralph Loop (Part 30)](./part30-ralph-loop-in-openclaw.md) when you want each agent to run autonomously. The full script is committed to this repo at [`scripts/fan-out.sh`](./scripts/fan-out.sh):
 
 ```bash
 #!/usr/bin/env bash

@@ -150,6 +150,8 @@ This document is not for you — it's for the agent. You're programming behavior
 
 MOCs and wiki-links create a graph, but the agent can't traverse it without tooling. You need two scripts: one that builds the graph, one that searches it.
 
+> The full source for every script in this part is committed to this repo under [`scripts/vault-graph/`](./scripts/vault-graph/) — clone it and run, or copy the blocks below.
+
 #### graph-indexer.mjs
 
 This script scans every `.md` file across your vault, memory, and workspace root. It parses `[[wiki-links]]`, resolves them to actual files, and builds a JSON adjacency graph.
