@@ -1,21 +1,22 @@
 # Part 26: Migration Guide
 
-> Updated in the late-May 2026 refresh. Opinionated, battle-tested upgrade paths from older OpenClaw versions to current. If something in this guide does not apply to your version yet, start here.
+> Updated in the June 2026 refresh. Opinionated, battle-tested upgrade paths from older OpenClaw versions to current. If something in this guide does not apply to your version yet, start here.
 
-> **Read this if** you're on anything older than 2026.5.22, or planning an upgrade.
+> **Read this if** you're on anything older than 2026.6.4, or planning an upgrade.
 > **Skip if** you're already on current-beta and don't maintain older instances.
 
 ## TL;DR By Version
 
 | You're on | Do this first | Then | Finally |
 |-----------|--------------|------|---------|
-| **v3.x** | Full v4.0 upgrade (not a drop-in) | Reach 2026.4.27 through Paths 1–6 | 2026.5.22 |
-| **v4.0.x** | v2026.3.31-beta.1 (Task Brain) | Reach 2026.4.27 through Paths 2–6 | 2026.5.22 |
-| **v2026.3.x** | Apply Task Brain approval policy | Reach 2026.4.27 through Paths 3–6 | 2026.5.22 |
-| **v2026.4.x pre-4.15** | Skip straight to 2026.4.15 | Reach 2026.4.27 through Paths 5–6 | 2026.5.22 |
-| **v2026.4.15** | Remove subscription-era model assumptions | Apply provider-catalog changes | 2026.5.22 |
-| **v2026.4.27** | Apply memory/messaging beta changes | Upgrade to 2026.5.22 | Optional 2026.5.24-beta.1 |
-| **v2026.4.29-beta.1** | Migrate Codex/queue assumptions | Upgrade to 2026.5.22 | Optional 2026.5.24-beta.1 |
+| **v3.x** | Full v4.0 upgrade (not a drop-in) | Reach 2026.4.27 through Paths 1–6 | 2026.6.4 |
+| **v4.0.x** | v2026.3.31-beta.1 (Task Brain) | Reach 2026.4.27 through Paths 2–6 | 2026.6.4 |
+| **v2026.3.x** | Apply Task Brain approval policy | Reach 2026.4.27 through Paths 3–6 | 2026.6.4 |
+| **v2026.4.x pre-4.15** | Skip straight to 2026.4.15 | Reach 2026.4.27 through Paths 5–6 | 2026.6.4 |
+| **v2026.4.15** | Remove subscription-era model assumptions | Apply provider-catalog changes | 2026.6.4 |
+| **v2026.4.27** | Apply memory/messaging beta changes | Upgrade to 2026.6.4 | Optional 2026.6.11-beta.1 |
+| **v2026.4.29-beta.1** | Migrate Codex/queue assumptions | Upgrade to 2026.6.4 | Optional 2026.6.11-beta.1 |
+| **v2026.5.22 / 2026.5.24-beta.1** | Apply June budget/policy/health changes | Upgrade to 2026.6.4 via Path 12 | Optional 2026.6.11-beta.1 |
 
 Each step is described below. Don't skip steps — the CVE wave fixes and Task Brain model changes are not optional for anyone running more than a personal-dev setup.
 
@@ -229,7 +230,7 @@ This is the former May stable baseline. Do this as the compatibility checkpoint,
 
 ## Path 9: v2026.5.12 stable → v2026.5.14-beta.1
 
-Former beta jump. Today, treat this as the queue/Codex/per-sender migration checkpoint, then continue to Path 10 for the current stable baseline.
+Former beta jump. Today, treat this as the queue/Codex/per-sender migration checkpoint, then continue through Path 10 and Path 12 for the current stable baseline.
 
 **What changes (the ones you should act on immediately):**
 
@@ -254,7 +255,7 @@ Former beta jump. Today, treat this as the queue/Codex/per-sender migration chec
 
 ## Path 10: v2026.5.14-beta.1 / v2026.5.12 → v2026.5.22 stable
 
-This is the current stable baseline for this guide. It rolls up the 2026.5.16, 2026.5.18, 2026.5.20, and 2026.5.22 trains.
+Former stable baseline. It rolls up the 2026.5.16, 2026.5.18, 2026.5.20, and 2026.5.22 trains. After this, continue to Path 12 for the current 2026.6.4 baseline.
 
 **What changes (the ones you should act on immediately):**
 
@@ -300,6 +301,29 @@ Beta jump. Use a copied profile unless you specifically need iMessage approval r
 4. If you use multiple OpenAI/Codex auth lanes, migrate to named profiles and run one tiny Codex task per profile.
 5. Roll back to 2026.5.22 if voice steering or approval reactions surprise users.
 
+## Path 12: v2026.5.22 / v2026.5.24-beta.1 → v2026.6.4 stable
+
+This is the current stable baseline for this guide. It promotes the 5.24 beta line (in 2026.5.26) and adds the June cost/safety levers.
+
+**What changes (act on these immediately):**
+
+- Per-agent budgets are first-class: `agents.list[].budget` with `dailyUsd`/`monthlyUsd` and `onExceed: warn|degrade|stop`.
+- `openclaw policy check --export attestation.json` produces diffable attestations; drift against the last accepted attestation is now a reviewable change.
+- `models.providers.<id>.health` adds interval probes with bounded automatic lane demotion (`failureThreshold`, `demoteForMs`).
+- Meeting Notes gains Google Meet live capture plus `meetingNotes.retentionDays` and redaction rules.
+- `memory.recall.maxParallel`, scheduled dreaming (`memory.dreaming.schedule`), and `memory promote --dry-run` make memory behavior explicit.
+- `openclaw doctor` adds secret-rotation reminders (`secrets.rotation.maxAgeDays`) and flags unscoped `mcp.servers.<id>.codex.agents`.
+
+**Steps:**
+
+1. Install OpenClaw 2026.6.4 and run `openclaw doctor` + `openclaw policy check`.
+2. Add a `budget` cap to your orchestrator with `onExceed: degrade`; confirm you have at least two fallback lanes for it to degrade onto.
+3. Add `health` checks to your primary provider and verify a forced failure demotes the lane instead of failing turns.
+4. Schedule `openclaw policy check --export` (cron or CI) and store the first attestation as your baseline. Keep `--fix` manual.
+5. If you use Meeting Notes, set `retentionDays` and redaction rules before enabling the Google Meet source.
+6. Resolve any new doctor findings for plaintext/stale secrets and unscoped Codex MCP servers.
+7. Optionally test 2026.6.11-beta.1 on a copied profile for `/context map --diff`, sandbox egress allowlists, and per-channel image-quality overrides.
+
 ## Rollback Plan (Every Path)
 
 If something goes sideways:
@@ -309,7 +333,7 @@ If something goes sideways:
 openclaw gateway stop
 
 # Install previous version (example: pin via your package manager)
-npm install -g openclaw@2026.5.22  # adjust for your install method / previous pin
+npm install -g openclaw@2026.6.4  # adjust for your install method / previous pin
 
 # Restore config
 cp ~/.openclaw/openclaw.json.pre-upgrade.YYYYMMDD ~/.openclaw/openclaw.json

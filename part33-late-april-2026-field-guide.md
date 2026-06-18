@@ -1,9 +1,9 @@
-# Part 33: Late-May 2026 Field Guide
+# Part 33: June 2026 Field Guide
 
-> **Read this if** you last tuned OpenClaw around 2026.5.12/2026.5.14 and want the current tricks without re-reading every release note.
+> **Read this if** you last tuned OpenClaw around 2026.5.22/2026.5.24 and want the current tricks without re-reading every release note.
 > **Skip if** you're pinned before 2026.4.15 and still need the basics — start with [Part 26 — Migration Guide](./part26-migration-guide.md).
 
-OpenClaw's late-May releases changed the operator playbook in eight places: Gateway startup, provider routing, memory/session hygiene, shared-channel policy, browser/Codex automation, voice/meeting capture, plugin/security boundaries, and media handling. This page is the catch-up map.
+OpenClaw's late-May and early-June releases turned a lot of last month's *betas* into stable defaults and added four operator levers worth wiring in now: first-class budget caps, scheduled policy attestations, provider health-checked failover, and recall/dreaming tuning. This page is the catch-up map from the late-May line to the current **2026.6.4 stable** baseline.
 
 ## Version Map
 
@@ -19,10 +19,13 @@ OpenClaw's late-May releases changed the operator playbook in eight places: Gate
 | **2026.5.16 beta train** | Per-agent bootstrap profiles, localized setup, Telegram ambient `room_event`, `openclaw cron run --wait`, xAI Grok OAuth, Codex context-engine thread projection, Codex MCP server scoping, and `codex.defaultToolsApprovalMode`. |
 | **2026.5.18 stable** | Stable rollup after 5.12: Control UI/Mac app polish, realtime Android/Discord/OpenAI voice follow-ups, Telegram/Discord delivery repairs, Codex/OpenAI app-server context/MCP/tool progress fixes, plugin SDK hardening, provider routing fixes, Node 22.19 floor, Docker/Podman `OPENCLAW_IMAGE_APT_PACKAGES`, and broad security robustness. |
 | **2026.5.20 stable** | Policy plugin lands (`openclaw policy check`, attestations, doctor lint/repair), Discord voice can follow configured users, bounded voice bootstrap context, per-agent `experimental.localModelLean`, xAI device-code OAuth, OpenRouter provider routing policy, stricter skill-file exec approvals, secret symlink fail-closed behavior, and plaintext-secret doctor warnings. |
-| **2026.5.22 stable** | Current stable baseline: Gateway startup/perf metadata caching, external Meeting Notes plugin with Discord voice source, docs/config clarifications, sanitized secret/tool telemetry, generic embedding-provider plugin contract, bounded subagent bootstrap context, xAI/Grok web-search auth reuse, session-store helper modernization, protobuf advisory refresh, and plugin dispatch caching. |
-| **2026.5.24-beta.1** | Latest beta sweep: iMessage thumb approval reactions, WebUI/Discord voice status/cancel/steer/follow-up controls, Discord wake-name gating, adaptive `agents.defaults.imageQuality`, meeting-notes startup cleanup, named Codex OAuth profile storage, image/Antigravity media guidance, and more Gateway hot-path caching. |
+| **2026.5.22 stable** | Former stable baseline: Gateway startup/perf metadata caching, external Meeting Notes plugin with Discord voice source, docs/config clarifications, sanitized secret/tool telemetry, generic embedding-provider plugin contract, bounded subagent bootstrap context, xAI/Grok web-search auth reuse, session-store helper modernization, protobuf advisory refresh, and plugin dispatch caching. |
+| **2026.5.24-beta.1** | Beta sweep, now superseded by 2026.5.26 stable: iMessage thumb approval reactions, WebUI/Discord voice status/cancel/steer/follow-up controls, Discord wake-name gating, adaptive `agents.defaults.imageQuality`, meeting-notes startup cleanup, named Codex OAuth profile storage, image/Antigravity media guidance, and more Gateway hot-path caching. |
+| **2026.5.26 stable** | Promotes the 5.24 beta line: iMessage/WhatsApp approval reactions, adaptive `imageQuality`, named Codex OAuth profiles, and WebUI/Discord voice status/cancel/steer/follow-up controls all go stable, plus meeting-notes startup cleanup and broader Gateway hot-path caching. |
+| **2026.6.4 stable** | **Current stable baseline.** First-class per-agent budget caps (`agents.list[].budget`), scheduled `openclaw policy check` with exportable attestations and drift gating, provider health checks with automatic lane demotion, Google Meet live capture as a second Meeting Notes source with retention/redaction config, `memory promote --dry-run`, and `openclaw doctor` MCP-scope + secret-rotation lint. |
+| **2026.6.11-beta.1** | Latest beta sweep: `/context map --diff` regression tracking, tunable parallel partial recall (`memory.recall.maxParallel`), dreaming schedule controls, sandbox egress allowlists (`sandbox.network.allow`), per-channel `imageQuality` overrides, and Codex app-server session reuse. |
 
-If you want boring stability today, run **2026.5.22**. If you actively use WebUI/Discord voice steering, iMessage approval reactions, adaptive image compression, or named Codex OAuth profile storage, test **2026.5.24-beta.1** on a copy of your profile first.
+If you want boring stability today, run **2026.6.4**. If you actively need `/context map --diff`, sandbox egress allowlists, per-channel image-quality overrides, or Codex app-server session reuse, test **2026.6.11-beta.1** on a copy of your profile first.
 
 ## 1. Stop Assuming Claude Subscription Usage
 
@@ -252,6 +255,22 @@ The late-May voice work is not just "talk to the bot":
 - Discord voice bootstraps bounded `IDENTITY.md`, `USER.md`, and `SOUL.md` context by default; set `voice.realtime.bootstrapContextFiles: []` if that is too much.
 - Discord wake-name gating can default to the agent name.
 - Meeting Notes is now a source-only external plugin with auto-start capture config, manual transcript imports, read-only `openclaw meeting-notes` CLI access, and Discord voice as the first live source.
+- 2026.6.4 adds **Google Meet live capture as a second source** plus explicit `meetingNotes.retentionDays` and redaction-rule config, so transcripts can expire and scrub sensitive fields instead of living forever.
+
+Retention config shape:
+
+```json5
+{
+  meetingNotes: {
+    retentionDays: 30,
+    redact: ["email", "phone", "api-key"],
+    sources: {
+      discordVoice: { autoStart: false },
+      googleMeet: { autoStart: false }
+    }
+  }
+}
+```
 
 Operator rule: voice and meeting notes are memory inputs. Decide retention, transcript redaction, and which meetings are allowed before auto-capture. Do not pipe every voice room into durable memory by default.
 
@@ -318,6 +337,8 @@ Context debugging moved from vibes to inspection:
 
 If there is no cached run report yet, run one normal turn first; do not trust estimates as if they were measured prompt data.
 
+2026.6.11-beta.1 adds `/context map --diff`, which compares the current treemap against the previous run's snapshot so you can catch context regressions (a skill that doubled in size, a re-injected file that crept back in) instead of eyeballing two maps side by side.
+
 ## 13. Security Notes Worth Acting On
 
 - **Outbound proxy routing** exists in 2026.4.27, but only with strict `http://` forward-proxy validation and loopback gateway bypass. Use it for corporate egress, not as a vague privacy toggle.
@@ -333,6 +354,9 @@ If there is no cached run report yet, run one normal turn first; do not trust es
 - **Secret symlinks fail closed.** Credential loaders for Telegram, LINE, Zalo, IRC, and Nextcloud Talk reject symlinked secret files when `rejectSymlink: true` is used.
 - **Plaintext secrets are doctor findings.** `openclaw doctor` warns on model provider API keys and sensitive provider headers stored literally in `openclaw.json`.
 - **Approval reactions are convenience, not governance.** iMessage and WhatsApp thumbs are useful for `allow-once`/deny, but explicit approver allowlists and `/approve allow-always` discipline still matter.
+- **Sandbox egress allowlists** land in 2026.6.11-beta.1. `sandbox.network.allow` lets sandboxed runs reach only named hosts instead of the open internet; default-deny and add the domains a task actually needs.
+- **Secret rotation reminders** are now doctor findings in 2026.6.4. `openclaw doctor` flags credentials older than `secrets.rotation.maxAgeDays` so stale long-lived keys surface in routine health checks.
+- **Unscoped Codex MCP servers are doctor findings.** 2026.6.4 lints `mcp.servers.<id>.codex.agents`: an MCP server projected to every agent instead of a named scope is flagged, not silently trusted.
 
 Per-sender minimum:
 
@@ -349,11 +373,98 @@ Per-sender minimum:
 
 Keys are explicit sender identities from the channel adapter (`channel:<platform>:<id>`, `id:<id>`, `e164:<phone>`, `username:<handle>`, `name:<display-name>`, or `*`). Do not build a policy off display names parsed from chat text.
 
+## 14. Put Budget Caps In Config, Not In Your Head
+
+2026.6.4 makes per-agent budgets first-class instead of something you reconstruct from token reports after the fact. Set them where the agent is defined:
+
+```json5
+{
+  agents: {
+    list: [
+      {
+        id: "orchestrator",
+        budget: {
+          dailyUsd: 25,
+          monthlyUsd: 400,
+          onExceed: "degrade"   // "warn" | "degrade" | "stop"
+        }
+      }
+    ]
+  }
+}
+```
+
+- `warn` surfaces a doctor/notification finding but keeps running.
+- `degrade` forces the agent onto its cheapest configured fallback lane for the rest of the window.
+- `stop` fails closed and pauses the agent until the window resets or you raise the cap.
+
+Operator rule: give the orchestrator a real cap and let `degrade` push routine work onto cheap workers automatically. This pairs with the provider routing in Tip 2 — a budget cap without fallback lanes just stops your agent.
+
+## 15. Schedule Policy Checks And Export Attestations
+
+The Policy plugin (2026.5.20) was a manual command. 2026.6.4 makes it something you can automate and audit over time:
+
+```bash
+openclaw policy check --export attestation.json
+openclaw cron add policy-check --schedule "0 8 * * *" --command "policy check --export attestation.json"
+```
+
+- Exported attestations are diffable, so drift between today's channel config and the last accepted attestation becomes a reviewable change, not a surprise.
+- Wire the export into CI for shared instances: fail the pipeline if `openclaw policy check` reports new findings.
+- Keep opt-in repair (`--fix`) out of the scheduled job. Detection can be automatic; mutation should stay a human review step.
+
+This closes the gap between "we ran policy check once during setup" and "our channel policy is still correct three weeks later."
+
+## 16. Add Provider Health Checks And Failover Lanes
+
+May gave you routing policy; 2026.6.4 adds health-checked failover so a degraded provider demotes itself instead of failing every turn:
+
+```json5
+{
+  models: {
+    providers: {
+      "anthropic": {
+        health: {
+          checkIntervalMs: 60000,
+          failureThreshold: 3,
+          demoteForMs: 300000   // route around it for 5 min after 3 failures
+        }
+      }
+    }
+  }
+}
+```
+
+- The Gateway probes each provider on the interval and temporarily demotes a lane that crosses the failure threshold.
+- Demotion is automatic and bounded; the lane is re-promoted after `demoteForMs` so a brief outage does not permanently reroute you.
+- This only helps if you actually configured fallback lanes (Tip 1). A single-provider setup has nowhere to fail over to.
+
+Operator rule: every production agent should have at least two non-Anthropic lanes plus health checks, so an Anthropic incident degrades quality instead of taking the agent offline.
+
+## 17. Tune Recall Parallelism And Dreaming Schedules
+
+Two memory levers landed for long-running agents:
+
+- `memory.recall.maxParallel` bounds how many memory sub-agents run concurrently. Raise it on a fast local embedding tier for snappier recall; lower it on shared hardware to stop recall from starving foreground turns.
+- Dreaming now takes an explicit schedule instead of only firing on idle, so consolidation runs in a predictable window rather than mid-conversation.
+- `memory promote --dry-run` shows what the Deep phase *would* promote into `MEMORY.md` before it mutates anything — use it when you suspect dreaming is promoting noise.
+
+```json5
+{
+  memory: {
+    recall: { maxParallel: 3 },
+    dreaming: { schedule: "0 3 * * *" }
+  }
+}
+```
+
+Operator rule: schedule dreaming for off-hours and verify promotions with `--dry-run` before trusting them; a busy promote step that runs mid-turn is a latency and quality regression, not a feature.
+
 ## The Newcomer Baseline
 
 If someone finds this repo today and asks "what should I run?", tell them:
 
-1. Install stable **2026.5.22** unless they specifically need 2026.5.24-beta.1 voice steering, iMessage approval reactions, or image-quality controls.
+1. Install stable **2026.6.4** unless they specifically need 2026.6.11-beta.1 `/context map --diff`, sandbox egress allowlists, or per-channel image-quality overrides.
 2. Use `qwen3-embedding:0.6b` locally for embeddings.
 3. Use Opus/Sonnet only behind explicit paid budget caps.
 4. Put Kimi K2.6, DeepSeek V4 Flash, DeepInfra, or local models behind worker/fallback lanes.
@@ -364,8 +475,10 @@ If someone finds this repo today and asks "what should I run?", tell them:
 9. Run `openclaw policy check` and fix channel findings before inviting other users.
 10. Use visible-reply enforcement and intentional queue modes in group/channel surfaces.
 11. Audit manifests and per-sender tool policies before installing provider/plugins.
-12. If you use voice/meetings, define transcript retention and redaction before enabling auto-capture.
+12. If you use voice/meetings, set `meetingNotes.retentionDays` and redaction rules before enabling auto-capture.
 13. Use `/context map` after one real run before optimizing prompt bloat.
+14. Set per-agent `budget` caps with `onExceed: degrade` so cost overruns reroute instead of surprising you.
+15. Schedule `openclaw policy check --export` and add provider `health` checks so policy drift and provider outages are caught automatically.
 
 ## What To Delete From Old Runbooks
 
@@ -384,3 +497,7 @@ Delete or rewrite advice that says:
 - "One OpenRouter route is enough; provider routing policy is optional."
 - "A Codex model ref alone proves MCP/tool policy is safe."
 - "Image quality should always be high-detail."
+- "Track per-agent spend by reading token reports after the fact." (Use `agents.list[].budget` caps instead.)
+- "Running `openclaw policy check` once at setup is enough." (Schedule it and export attestations.)
+- "One provider with routing policy can't go down." (Add `health` checks and failover lanes.)
+- "Meeting/voice transcripts can live forever." (Set `meetingNotes.retentionDays` and redaction rules.)

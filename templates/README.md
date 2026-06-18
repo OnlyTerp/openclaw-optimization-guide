@@ -2,7 +2,7 @@
 
 A working-by-default starter bundle that matches the patterns documented in the [OpenClaw Optimization Guide](../README.md). Copy these files into a fresh OpenClaw workspace and you're running the guide's baseline setup.
 
-> Updated for **OpenClaw 2026.5.22 stable** and the **2026.5.24-beta.1** policy/meeting-notes/voice/image changes. See [Part 26 — Migration Guide](../part26-migration-guide.md) if you're on an older version.
+> Updated for **OpenClaw 2026.6.4 stable** (budget caps, scheduled policy attestations, provider health checks, Meeting Notes retention) and tracking **2026.6.11-beta.1**. See [Part 26 — Migration Guide](../part26-migration-guide.md) if you're on an older version.
 
 ## What's in this directory
 
