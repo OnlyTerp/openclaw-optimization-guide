@@ -311,7 +311,7 @@ This is the current stable baseline for this guide. It promotes the 5.24 beta li
 - `openclaw policy check --export attestation.json` produces diffable attestations; drift against the last accepted attestation is now a reviewable change.
 - `models.providers.<id>.health` adds interval probes with bounded automatic lane demotion (`failureThreshold`, `demoteForMs`).
 - Meeting Notes gains Google Meet live capture plus `meetingNotes.retentionDays` and redaction rules.
-- `memory.recall.maxParallel`, scheduled dreaming (`memory.dreaming.schedule`), and `memory promote --dry-run` make memory behavior explicit.
+- `memory promote --dry-run` lets you preview what dreaming would promote into `MEMORY.md` before it mutates anything. (`memory.recall.maxParallel` and additional dreaming schedule controls are 2026.6.11-beta.1, not 2026.6.4 stable — see step 7.)
 - `openclaw doctor` adds secret-rotation reminders (`secrets.rotation.maxAgeDays`) and flags unscoped `mcp.servers.<id>.codex.agents`.
 
 **Steps:**
@@ -322,7 +322,7 @@ This is the current stable baseline for this guide. It promotes the 5.24 beta li
 4. Schedule `openclaw policy check --export` (cron or CI) and store the first attestation as your baseline. Keep `--fix` manual.
 5. If you use Meeting Notes, set `retentionDays` and redaction rules before enabling the Google Meet source.
 6. Resolve any new doctor findings for plaintext/stale secrets and unscoped Codex MCP servers.
-7. Optionally test 2026.6.11-beta.1 on a copied profile for `/context map --diff`, sandbox egress allowlists, and per-channel image-quality overrides.
+7. Optionally test 2026.6.11-beta.1 on a copied profile for `/context map --diff`, `memory.recall.maxParallel`, dreaming schedule controls, sandbox egress allowlists, and per-channel image-quality overrides.
 
 ## Rollback Plan (Every Path)
 

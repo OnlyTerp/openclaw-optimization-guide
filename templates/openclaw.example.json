@@ -64,12 +64,12 @@
         "config": {
           "recall": {
             "maxParallel": 3,
-            "_comment": "2026.6.4+: bound concurrent memory sub-agents. Raise on a fast local embedding tier; lower on shared hardware so recall doesn't starve foreground turns."
+            "_comment": "2026.6.11-beta.1+: bound concurrent memory sub-agents. Raise on a fast local embedding tier; lower on shared hardware so recall doesn't starve foreground turns. Not available on 2026.6.4 stable yet."
           },
           "dreaming": {
             "enabled": true,
             "schedule": "0 3 * * *",
-            "_schedule_comment": "2026.6.4+: explicit off-hours schedule instead of idle-only. Verify promotions with `memory promote --dry-run` before trusting them.",
+            "_schedule_comment": "Off-hours dreaming schedule (cron). 2026.6.11-beta.1 adds finer schedule controls. Verify promotions with `memory promote --dry-run` (2026.6.4+) before trusting them.",
             "storage": {
               "mode": "separate",
               "_comment": "Current default. Phase blocks land in memory/dreaming/{phase}/YYYY-MM-DD.md. Flip to `inline` if you want them in the daily memory file."

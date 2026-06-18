@@ -70,7 +70,7 @@ See [Part 23 — ClawHub Skills Marketplace](./part23-clawhub-skills-marketplace
 - **[memory-lancedb](https://github.com/openclaw/memory-lancedb)** — LanceDB vector store. 2026.4.15-beta.1 added cloud storage mode.
 - **Active Memory filters** — current builds support per-conversation `allowedChatIds` / `deniedChatIds`, partial recall on timeout, and people-aware wiki provenance views.
 - **Meeting Notes plugin** — 2026.5.22 source-only external plugin for date-sharded meeting transcripts, manual imports, CLI reads, and Discord voice as the first live source. 2026.6.4 adds Google Meet live capture plus `meetingNotes.retentionDays`/redaction. Define retention before enabling.
-- **Recall + dreaming tuning** — 2026.6.4 exposes `memory.recall.maxParallel`, scheduled dreaming (`memory.dreaming.schedule`), and `memory promote --dry-run` so consolidation runs off-hours and promotions are reviewable.
+- **Recall + dreaming tuning** — 2026.6.4 ships `memory promote --dry-run` (review what dreaming would promote before it mutates); 2026.6.11-beta.1 adds `memory.recall.maxParallel` and scheduled dreaming (`memory.dreaming.schedule`) so consolidation runs off-hours.
 - **Generic embedding provider contract** — 2026.5.22 plugin SDK surface (`contracts.embeddingProviders`, `api.registerEmbeddingProvider`) that should make explicit OpenAI-compatible embedding providers cleaner.
 - **[Ollama](https://ollama.com/)** — local embedding runtime. `qwen3-embedding:0.6b` is the right default for most setups.
 - **[LightRAG](https://github.com/HKUDS/LightRAG)** — graph + vector hybrid RAG. The right upgrade once your vault crosses ~500 files. See [Part 18](./part18-lightrag-graph-rag.md).

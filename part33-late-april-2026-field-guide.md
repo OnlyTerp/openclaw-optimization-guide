@@ -257,16 +257,22 @@ The late-May voice work is not just "talk to the bot":
 - Meeting Notes is now a source-only external plugin with auto-start capture config, manual transcript imports, read-only `openclaw meeting-notes` CLI access, and Discord voice as the first live source.
 - 2026.6.4 adds **Google Meet live capture as a second source** plus explicit `meetingNotes.retentionDays` and redaction-rule config, so transcripts can expire and scrub sensitive fields instead of living forever.
 
-Retention config shape:
+Retention config shape (under the `meeting-notes` plugin config):
 
 ```json5
 {
-  meetingNotes: {
-    retentionDays: 30,
-    redact: ["email", "phone", "api-key"],
-    sources: {
-      discordVoice: { autoStart: false },
-      googleMeet: { autoStart: false }
+  plugins: {
+    entries: {
+      "meeting-notes": {
+        config: {
+          retentionDays: 30,
+          redact: ["email", "phone", "api-key"],
+          sources: {
+            discordVoice: { autoStart: false },
+            googleMeet: { autoStart: false }
+          }
+        }
+      }
     }
   }
 }
@@ -443,17 +449,25 @@ Operator rule: every production agent should have at least two non-Anthropic lan
 
 ## 17. Tune Recall Parallelism And Dreaming Schedules
 
-Two memory levers landed for long-running agents:
+Three memory levers landed for long-running agents:
 
-- `memory.recall.maxParallel` bounds how many memory sub-agents run concurrently. Raise it on a fast local embedding tier for snappier recall; lower it on shared hardware to stop recall from starving foreground turns.
-- Dreaming now takes an explicit schedule instead of only firing on idle, so consolidation runs in a predictable window rather than mid-conversation.
-- `memory promote --dry-run` shows what the Deep phase *would* promote into `MEMORY.md` before it mutates anything — use it when you suspect dreaming is promoting noise.
+- `memory promote --dry-run` (**2026.6.4 stable**) shows what the Deep phase *would* promote into `MEMORY.md` before it mutates anything — use it when you suspect dreaming is promoting noise.
+- `memory.recall.maxParallel` (**2026.6.11-beta.1**) bounds how many memory sub-agents run concurrently. Raise it on a fast local embedding tier for snappier recall; lower it on shared hardware to stop recall from starving foreground turns.
+- Dreaming schedule controls (**2026.6.11-beta.1**) refine when consolidation runs (building on the existing `dreaming.schedule` key), so it lands in a predictable off-hours window rather than mid-conversation.
+
+The recall/schedule keys live under the `memory-core` plugin config, alongside the dreaming block (see [templates/openclaw.example.json](./templates/openclaw.example.json)):
 
 ```json5
 {
-  memory: {
-    recall: { maxParallel: 3 },
-    dreaming: { schedule: "0 3 * * *" }
+  plugins: {
+    entries: {
+      "memory-core": {
+        config: {
+          recall: { maxParallel: 3 },
+          dreaming: { schedule: "0 3 * * *" }
+        }
+      }
+    }
   }
 }
 ```
