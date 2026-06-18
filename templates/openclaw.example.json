@@ -1,6 +1,6 @@
 {
   "$schema": "https://openclaw.dev/schema/openclaw.schema.json",
-  "_comment": "Reference config from the OpenClaw Optimization Guide. Updated for the 2026.5.22 stable / 2026.5.24-beta.1 era. Copy to ~/.openclaw/openclaw.json (or your project root) and edit. Never commit real credentials — use env var references like ${ANTHROPIC_API_KEY}. Treat this as a starting point; provider catalogs/manifests should own durable model rows where possible.",
+  "_comment": "Reference config from the OpenClaw Optimization Guide. Updated for the 2026.6.4 stable / 2026.6.11-beta.1 era. Copy to ~/.openclaw/openclaw.json (or your project root) and edit. Never commit real credentials — use env var references like ${ANTHROPIC_API_KEY}. Treat this as a starting point; provider catalogs/manifests should own durable model rows where possible.",
 
   "agents": {
     "defaults": {
@@ -15,6 +15,12 @@
         "_comment": "`opus` aliases resolve to Claude Opus 4.7 on current Anthropic/Bedrock routes. Codex app-server routes should use canonical openai/gpt-* refs from your local provider catalog; do not pin durable openai-codex/* or codex-cli/* model refs. Do not assume Claude Pro/Max subscription usage covers OpenClaw after the April 4 cutoff; set budget caps on paid routes."
       },
       "runRetries": 1,
+      "budget": {
+        "dailyUsd": 25,
+        "monthlyUsd": 400,
+        "onExceed": "degrade"
+      },
+      "_budget_comment": "2026.6.4+: per-agent budget caps. onExceed: warn | degrade | stop. `degrade` reroutes to the cheapest fallback lane — only useful if fallbacks are configured. Override per agent in agents.list[].budget.",
       "imageQuality": "balanced",
       "_imageQuality_comment": "2026.5.24-beta.1: token-efficient | balanced | high-detail. Keep balanced unless a worker truly needs high-detail OCR/vision.",
       "compaction": {
@@ -56,9 +62,14 @@
       "memory-core": {
         "enabled": true,
         "config": {
+          "recall": {
+            "maxParallel": 3,
+            "_comment": "2026.6.11-beta.1+: bound concurrent memory sub-agents. Raise on a fast local embedding tier; lower on shared hardware so recall doesn't starve foreground turns. Not available on 2026.6.4 stable yet."
+          },
           "dreaming": {
             "enabled": true,
             "schedule": "0 3 * * *",
+            "_schedule_comment": "Off-hours dreaming schedule (cron). 2026.6.11-beta.1 adds finer schedule controls. Verify promotions with `memory promote --dry-run` (2026.6.4+) before trusting them.",
             "storage": {
               "mode": "separate",
               "_comment": "Current default. Phase blocks land in memory/dreaming/{phase}/YYYY-MM-DD.md. Flip to `inline` if you want them in the daily memory file."
@@ -93,9 +104,14 @@
       "meeting-notes": {
         "enabled": false,
         "config": {
-          "autoStart": false
+          "retentionDays": 30,
+          "redact": ["email", "phone", "api-key"],
+          "sources": {
+            "discordVoice": { "autoStart": false },
+            "googleMeet": { "autoStart": false }
+          }
         },
-        "_comment": "2026.5.22+: source-only external plugin. Define retention/redaction before enabling Discord voice capture."
+        "_comment": "2026.5.22+ source-only external plugin; 2026.6.4 adds Google Meet live capture plus retentionDays/redaction. Define retention before enabling any live source."
       }
     }
   },
@@ -132,6 +148,15 @@
 
   "models": {
     "providers": {
+      "anthropic": {
+        "type": "anthropic",
+        "health": {
+          "checkIntervalMs": 60000,
+          "failureThreshold": 3,
+          "demoteForMs": 300000
+        },
+        "_comment": "2026.6.4+: health-checked failover. A lane that crosses failureThreshold is demoted for demoteForMs, then re-promoted. Only helps if fallback lanes exist (see agents.defaults.model.fallbacks)."
+      },
       "openrouter": {
         "type": "openrouter",
         "params": {
@@ -177,6 +202,12 @@
     "audit": {
       "suppressions": [],
       "_comment": "2026.5.18+: only suppress reviewed audit findings with owner/reason/expiry in your real config."
+    },
+    "secrets": {
+      "rotation": {
+        "maxAgeDays": 90,
+        "_comment": "2026.6.4+: openclaw doctor warns on credentials older than this so stale long-lived keys surface in routine health checks."
+      }
     }
   },
 

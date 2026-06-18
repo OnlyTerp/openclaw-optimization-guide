@@ -2,8 +2,8 @@
 
 **Make your OpenClaw AI agent faster, smarter, cheaper, and actually safe to run in production.**
 
-[![Current sweep: 2026.5.24 beta](https://img.shields.io/badge/OpenClaw-2026.5.24--beta.1-2ea44f)](./part33-late-april-2026-field-guide.md)
-[![Stable baseline: 2026.5.22](https://img.shields.io/badge/stable-2026.5.22-blue)](./part26-migration-guide.md)
+[![Current sweep: 2026.6.11 beta](https://img.shields.io/badge/OpenClaw-2026.6.11--beta.1-2ea44f)](./part33-late-april-2026-field-guide.md)
+[![Stable baseline: 2026.6.4](https://img.shields.io/badge/stable-2026.6.4-blue)](./part26-migration-guide.md)
 [![33 parts](https://img.shields.io/badge/parts-33-blue)](#full-table-of-contents)
 [![Scorecard](https://img.shields.io/badge/scorecard-50_items-8957e5)](./SCORECARD.md)
 [![Awesome](https://img.shields.io/badge/awesome-list-fc60a8)](./AWESOME.md)
@@ -11,24 +11,24 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey)](./LICENSE)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](./CONTRIBUTING.md)
 
-> **Late-May 2026 sweep.** Stable baseline: **OpenClaw 2026.5.22**. Beta tracked: **2026.5.24-beta.1**. This refresh updates the mid-May guidance for the latest release wave: Gateway startup/perf caching, the source-only Meeting Notes plugin, the bundled Policy plugin, Codex/MCP scoping, voice-run control, adaptive image compression, iMessage/WhatsApp approval reactions, xAI/OpenRouter routing upgrades, and stricter secret/tool-policy checks.
+> **June 2026 sweep.** Stable baseline: **OpenClaw 2026.6.4**. Beta tracked: **2026.6.11-beta.1**. This refresh advances the late-May guidance to the current line: per-agent budget caps, scheduled Policy attestations with drift gating, provider health checks with automatic failover, Google Meet live capture for Meeting Notes with retention/redaction, recall/dreaming tuning, `/context map --diff`, sandbox egress allowlists, and `openclaw doctor` secret-rotation + MCP-scope lint.
 
 *By Terp — [Terp AI Labs](https://x.com/OnlyTerp)*
 
 ---
 
-## Start With The Late-May 2026 Reality Check
+## Start With The June 2026 Reality Check
 
-OpenClaw changed more from mid-May through 2026.5.24-beta.1 than most agent projects change in a quarter. If you last read this guide around 2026.5.12/2026.5.14, these are the new rules:
+The late-May betas are now stable, and early-June added four cost/safety levers worth wiring in. If you last read this guide around 2026.5.22/2026.5.24, these are the new rules:
 
 1. **Claude subscription-era advice is dead.** Anthropic's April 4 policy change broke the old "Claude Pro/Max covers OpenClaw" path. Treat Claude as paid API / Bedrock / provider-routed usage unless your own install proves otherwise.
-2. **Codex is now a policy/MCP surface, not just a model route.** Keep canonical `openai/gpt-*` model refs, but also scope user MCP servers with `mcp.servers.<id>.codex.agents`, set Codex tool approval defaults deliberately, and test deny-all sender policies against native Codex tools.
-3. **Policy checks moved into the product.** The bundled Policy plugin adds channel-conformance checks, `openclaw policy check`, doctor findings, attestations, drift checks, and opt-in repair. Use it before exposing shared channels.
-4. **Voice and meetings are now operating surfaces.** Discord voice can follow configured users, realtime callers can ask status/cancel/steer/follow-up mid-consult, and Meeting Notes moved into a source-only external plugin with Discord voice as the first live source.
-5. **Fast Gateway startup is now real, but session hygiene is still your job.** 2026.5.18-5.24 cache plugin/channel/provider metadata aggressively, but long-running agents still need transcript guards, cron/session isolation, and deliberate `/new` or rotation policy.
-6. **Provider routing got more specific.** xAI supports remote-friendly device-code OAuth, OpenRouter honors provider-level `params.provider` routing policy, and `agents.list[].experimental.localModelLean` can now be set per agent.
+2. **Budgets belong in config.** 2026.6.4 makes per-agent `agents.list[].budget` caps first-class with `onExceed: warn|degrade|stop`. Give the orchestrator a cap and let `degrade` reroute routine work to cheap lanes automatically.
+3. **Policy checks should be scheduled, not one-shot.** `openclaw policy check --export` produces diffable attestations; schedule it (and wire it into CI) so channel-policy drift is caught instead of discovered. Opt-in repair stays a human step.
+4. **Provider routing now self-heals.** Add `models.providers.<id>.health` checks so a failing lane demotes itself for a bounded window instead of failing every turn — but only if you configured fallback lanes.
+5. **Voice/meetings need retention, not just capture.** Discord voice and the new Google Meet live source feed Meeting Notes; set `meetingNotes.retentionDays` and redaction rules before auto-capture so transcripts expire and scrub sensitive fields.
+6. **Memory and context got tunable.** `memory.recall.maxParallel`, scheduled dreaming, `memory promote --dry-run`, and `/context map --diff` let you tune recall, consolidation, and context regressions deliberately instead of by feel.
 
-Read **[Part 33 — Late-May 2026 Field Guide](./part33-late-april-2026-field-guide.md)** first if you want the latest tricks before the deep dives.
+Read **[Part 33 — June 2026 Field Guide](./part33-late-april-2026-field-guide.md)** first if you want the latest tricks before the deep dives.
 
 ## The Harness Thesis
 
@@ -156,26 +156,22 @@ Alongside the 33 parts themselves, this repo now includes the tooling that turns
 
 ---
 
-## What Changed In This Release (Late-May 2026 Refresh)
+## What Changed In This Release (June 2026 Refresh)
 
-- **Updated [Part 33 — Late-May 2026 Field Guide](./part33-late-april-2026-field-guide.md)** — concise upgrade map from 2026.4.15 through 2026.5.22 stable / 2026.5.24-beta.1: Gateway performance caching, Meeting Notes, Policy plugin checks, Codex/MCP scoping, Discord voice, image-quality controls, iMessage approvals, and current security hardening.
-- **Codex guidance corrected again** — native Codex still means canonical `openai/gpt-*` model refs, but the real late-May work is MCP projection scoping, `codex.defaultToolsApprovalMode`, named OAuth profiles, and deny-all tool policy verification.
-- **Configuration patterns refreshed** — the template now shows `agents.defaults.imageQuality`, per-agent `localModelLean`, channel room-event settings, `mcp.servers.<id>.codex.agents`, OpenRouter provider routing, and meeting-notes/policy plugin stubs.
-- **Security guidance tightened** — skill-file read/executable allowlist compatibility is gone, symlinked credential files fail closed, doctor warns on plaintext secret-bearing config, and channel conformance belongs in the Policy plugin.
-- **Operator workflow updated** — use `openclaw policy check`, `openclaw tasks maintenance --json`, named Codex auth profiles, realtime voice status/cancel/steer controls, and explicit session/transcript hygiene for long-running agents.
+- **Updated [Part 33 — June 2026 Field Guide](./part33-late-april-2026-field-guide.md)** — advances the catch-up map to the current **2026.6.4 stable** baseline (2026.6.11-beta.1 tracked) and adds four new tips: budget caps, scheduled Policy attestations, provider health checks/failover, and recall/dreaming tuning.
+- **Cost governance is now first-class** — per-agent `agents.list[].budget` caps with `onExceed: warn|degrade|stop` replace "read the token report afterward." The orchestrator gets a cap; `degrade` reroutes routine work to cheap lanes.
+- **Policy and routing self-audit** — `openclaw policy check --export` produces diffable, schedulable attestations, and `models.providers.<id>.health` checks demote a failing provider for a bounded window instead of failing every turn.
+- **Voice/meetings gain retention** — Google Meet joins Discord voice as a Meeting Notes live source, with `meetingNotes.retentionDays` and redaction rules so transcripts expire and scrub sensitive fields.
+- **Memory/context tuning** — `memory.recall.maxParallel`, scheduled dreaming, `memory promote --dry-run`, and `/context map --diff` make recall, consolidation, and context-regression checks deliberate.
+- **Security additions** — sandbox egress allowlists (`sandbox.network.allow`), secret-rotation reminders, and unscoped-Codex-MCP lint are now `openclaw doctor` findings.
 
-### Previous 2026.4.15 refresh
+### Previous Late-May 2026 refresh
 
-- **Task Brain control plane** (new [Part 24](./part24-task-brain-control-plane.md)) — unified task ledger, semantic approval categories, agent-initiated denies, fail-closed plugin defaults. Shipped as the structural fix for the March CVE wave.
-- **ClawHub skills marketplace** (new [Part 23](./part23-clawhub-skills-marketplace.md)) — 13K+ community skills, 1,184 removed for being malicious. Install policy, signing, scope-limiting, sleeper-update mitigation.
-- **v4.0 Architecture Overview** (new [Part 25](./part25-architecture-overview.md)) — the primer that should have existed since the rewrite.
-- **Migration Guide** (new [Part 26](./part26-migration-guide.md)) — opinionated v3 → v4 → v2026.3 → v2026.4 → v2026.4.15 upgrade paths with rollback plans.
-- **Gotchas & FAQ** (new [Part 27](./part27-gotchas-and-faq.md)) — symptom-indexed troubleshooting, most questions answered in one page.
-- **Glossary & Terminology** (new [Part 28](./part28-glossary-and-terminology.md)) — every term this guide uses (MOC, autoDream, Task Brain, ACP, Ralph loop, ClawHavoc, memory-lancedb, LightRAG, semantic approvals, `localModelLean`…) on one page, cross-linked to the part that introduces each.
-- **Decision trees on every part** — each part (README-embedded and external) now opens with a "Read this if / Skip if" callout so you can route yourself through the guide instead of reading it linearly.
-- **Part 16 (custom autoDream) retired** — the file has been removed. Memory-core's native dreaming ([Part 22](#part-22-built-in-dreaming)) is the official path since 2026.4+; see the short retirement note in Part 22 below if you're coming from the old pattern.
-- Updates across existing parts for: memory-lancedb cloud storage, GitHub Copilot embedding provider, `localModelLean` flag, compaction reserve-token floor cap, gateway auth hot-reload, approvals secret redaction, `memory_get` canonical-only, Model Auth status card.
-- **v2026.4.15 stable (April 16, 2026)** — **Claude Opus 4.7** is the new default Anthropic selection (`opus` aliases + Claude CLI defaults + bundled image understanding all point at it); **dreaming default flipped `inline` → `separate`** so phase blocks land in `memory/dreaming/{phase}/YYYY-MM-DD.md` instead of polluting daily memory files; **`memory_get` excerpts are now capped by default** with explicit continuation metadata + trimmed startup/skills prompt budgets; **gateway tool-name normalize-collision rejection** (client tools that collide with a built-in get `400 invalid_request_error`, closing a local-media trust-inheritance hole); plus Gemini TTS in the bundled `google` plugin, Control UI false-positive Model Auth fix, webchat localRoots containment, and Matrix pairing-auth tightening.
+- **Updated Part 33 field guide** — upgrade map from 2026.4.15 through 2026.5.22 stable / 2026.5.24-beta.1: Gateway performance caching, Meeting Notes, the bundled Policy plugin, Codex/MCP scoping, Discord voice, image-quality controls, iMessage approvals, and security hardening.
+- **Codex guidance** — native Codex means canonical `openai/gpt-*` model refs; the operational work is MCP projection scoping, `codex.defaultToolsApprovalMode`, named OAuth profiles, and deny-all tool policy verification.
+- **Security guidance tightened** — skill-file read/executable allowlist compatibility removed, symlinked credential files fail closed, doctor warns on plaintext secret-bearing config, and channel conformance belongs in the Policy plugin.
+
+Earlier refreshes (Task Brain, ClawHub, the v4.0 architecture/migration/glossary primers, and the 2026.4.15 line) are captured in the version tables in **[Part 25 — Architecture Overview](./part25-architecture-overview.md)** and **[Part 26 — Migration Guide](./part26-migration-guide.md)**.
 
 ---
 
@@ -228,7 +224,7 @@ Not every part applies to every reader. Jump directly to the pillar that matches
 
 | I want to… | Start with |
 |-------------|-----------|
-| **Catch up on the latest changes** | [33 May Field Guide](./part33-late-april-2026-field-guide.md) · [26 Migration Guide](./part26-migration-guide.md) · [27 Gotchas & FAQ](./part27-gotchas-and-faq.md) |
+| **Catch up on the latest changes** | [33 June Field Guide](./part33-late-april-2026-field-guide.md) · [26 Migration Guide](./part26-migration-guide.md) · [27 Gotchas & FAQ](./part27-gotchas-and-faq.md) |
 | **Make my agent faster** | [1 Speed](#part-1-speed-stop-being-slow) · [2 Context Engineering](#part-2-context-engineering--the-discipline) · [3 Cron Bloat](#part-3-cron-session-bloat-the-hidden-killer) · [6 Models](#part-6-models-what-to-actually-use) |
 | **Stop it forgetting things** | [4 Memory](#part-4-memory-stop-forgetting-everything) · [9 Vault](#part-9-vault-memory-system-stop-losing-knowledge-between-sessions) · [10 Embeddings](./part10-state-of-the-art-embeddings.md) · [22 Built-In Dreaming](#part-22-built-in-dreaming) · [31 LLM Wiki Pattern](./part31-the-llm-wiki-pattern-in-openclaw.md) |
 | **Reduce cost** | [5 Orchestration](#part-5-orchestration-stop-doing-everything-yourself) · [6 Models](#part-6-models-what-to-actually-use) · [8 One-Shotting](#part-8-one-shotting-big-tasks-stop-iterating-start-researching) · [22 Memory you can afford](#part-22-built-in-dreaming) |
@@ -251,9 +247,9 @@ Not every part applies to every reader. Jump directly to the pillar that matches
 - [26. Migration Guide](./part26-migration-guide.md) — upgrade paths + rollback plans
 - [27. Gotchas & FAQ](./part27-gotchas-and-faq.md) — symptom → fix table + frequently asked questions
 - [28. Glossary & Terminology](./part28-glossary-and-terminology.md) — every term this guide assumes, on one page
-- [33. Late-May 2026 Field Guide](./part33-late-april-2026-field-guide.md) — what changed after 2026.4.15 and what to do now
+- [33. June 2026 Field Guide](./part33-late-april-2026-field-guide.md) — what changed after 2026.5.22 and what to do now
 - [14. Quick Checklist](#part-14-quick-checklist) — 30-minute setup
-- [17. The One-Shot Prompt](#part-17-the-one-shot-prompt) — automation prompt, updated for May defaults
+- [17. The One-Shot Prompt](#part-17-the-one-shot-prompt) — automation prompt, updated for current defaults
 
 **⚡ Speed & context**
 1. [Speed — Stop Being Slow](#part-1-speed-stop-being-slow) — trim context, add fallbacks, reasoning mode, `localModelLean`
@@ -269,7 +265,7 @@ Not every part applies to every reader. Jump directly to the pillar that matches
 13. [Memory Bridge](./part13-memory-bridge.md) — give Codex / Claude Code access to your vault
 22. [Built-In Dreaming (memory-core)](#part-22-built-in-dreaming) — official 3-phase consolidation, DREAMS.md, memory-you-can-afford (LightMem + vbfs)
 31. [The LLM Wiki Pattern In OpenClaw](./part31-the-llm-wiki-pattern-in-openclaw.md) — Karpathy's three-tier pattern mapped onto SOUL/AGENTS/MEMORY/skills
-33. [Late-May 2026 Field Guide](./part33-late-april-2026-field-guide.md) — Gateway perf, Policy plugin, Meeting Notes, provider routing, voice steering, browser/Codex updates
+33. [June 2026 Field Guide](./part33-late-april-2026-field-guide.md) — budget caps, scheduled Policy attestations, provider health/failover, Meeting Notes retention, recall/dreaming tuning
 
 **🤝 Orchestration & models**
 5. [Orchestration](#part-5-orchestration-stop-doing-everything-yourself) — sub-agents-as-GC, Anthropic's 5 coordination patterns, CEO/COO/Worker, verification
