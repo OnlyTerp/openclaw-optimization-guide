@@ -184,7 +184,7 @@ This is the first late-April stability jump. It is worth doing before moving to 
 
 ## Path 7: v2026.4.27 stable → v2026.4.29-beta.1
 
-Former beta jump. If you're upgrading today, treat this as the conceptual migration step for memory/messaging behavior, then continue through Path 10 and Path 12 to the current 2026.6.4 stable baseline.
+Former beta jump. If you're upgrading today, treat this as the conceptual migration step for memory/messaging behavior, then continue through Path 8, Path 10, and Path 12 to the current 2026.6.4 stable baseline.
 
 **What changes (the ones you should act on immediately):**
 
