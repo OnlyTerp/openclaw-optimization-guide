@@ -2,8 +2,8 @@
 
 **Make your OpenClaw AI agent faster, smarter, cheaper, and actually safe to run in production.**
 
-[![Current sweep: 2026.6.11 beta](https://img.shields.io/badge/OpenClaw-2026.6.11--beta.1-2ea44f)](./part33-late-april-2026-field-guide.md)
-[![Stable baseline: 2026.6.4](https://img.shields.io/badge/stable-2026.6.4-blue)](./part26-migration-guide.md)
+[![Current sweep: July 2026](https://img.shields.io/badge/OpenClaw-2026.6.11-2ea44f)](./part33-late-april-2026-field-guide.md)
+[![Stable baseline: 2026.6.11](https://img.shields.io/badge/stable-2026.6.11-blue)](./part26-migration-guide.md)
 [![33 parts](https://img.shields.io/badge/parts-33-blue)](#full-table-of-contents)
 [![Scorecard](https://img.shields.io/badge/scorecard-50_items-8957e5)](./SCORECARD.md)
 [![Awesome](https://img.shields.io/badge/awesome-list-fc60a8)](./AWESOME.md)
@@ -11,22 +11,22 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey)](./LICENSE)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](./CONTRIBUTING.md)
 
-> **June 2026 sweep.** Stable baseline: **OpenClaw 2026.6.4**. Beta tracked: **2026.6.11-beta.1**. This refresh advances the late-May guidance to the current line: per-agent budget caps, scheduled Policy attestations with drift gating, provider health checks with automatic failover, Google Meet live capture for Meeting Notes with retention/redaction, recall/dreaming tuning, `/context map --diff`, sandbox egress allowlists, and `openclaw doctor` secret-rotation + MCP-scope lint.
+> **July 2026 sweep.** Stable baseline: **OpenClaw 2026.6.11** (released 2026-06-30). This refresh covers the 2026.6.8–2026.6.11 trains — automatic fast mode, working failover, per-agent cost visibility, prompt-cache retention, cron fallback controls, and channel-delivery self-recovery — and **corrects the previous revision**, which referenced a "2026.6.4" release and several config keys that were never shipped. See the correction note in [Part 33](./part33-late-april-2026-field-guide.md).
 
 *By Terp — [Terp AI Labs](https://x.com/OnlyTerp)*
 
 ---
 
-## Start With The June 2026 Reality Check
+## Start With The July 2026 Reality Check
 
-The late-May betas are now stable, and early-June added four cost/safety levers worth wiring in. If you last read this guide around 2026.5.22/2026.5.24, these are the new rules:
+The June trains (2026.6.8 → 2026.6.11) were about making OpenClaw dependable. If you last read this guide in mid-June, these are the new rules:
 
 1. **Claude subscription-era advice is dead.** Anthropic's April 4 policy change broke the old "Claude Pro/Max covers OpenClaw" path. Treat Claude as paid API / Bedrock / provider-routed usage unless your own install proves otherwise.
-2. **Budgets belong in config.** 2026.6.4 makes per-agent `agents.list[].budget` caps first-class with `onExceed: warn|degrade|stop`. Give the orchestrator a cap and let `degrade` reroute routine work to cheap lanes automatically.
-3. **Policy checks should be scheduled, not one-shot.** `openclaw policy check --export` produces diffable attestations; schedule it (and wire it into CI) so channel-policy drift is caught instead of discovered. Opt-in repair stays a human step.
-4. **Provider routing now self-heals.** Add `models.providers.<id>.health` checks so a failing lane demotes itself for a bounded window instead of failing every turn — but only if you configured fallback lanes.
-5. **Voice/meetings need retention, not just capture.** Discord voice and the new Google Meet live source feed Meeting Notes; set `meetingNotes.retentionDays` and redaction rules before auto-capture so transcripts expire and scrub sensitive fields.
-6. **Memory and context got tunable.** `memory.recall.maxParallel`, scheduled dreaming, `memory promote --dry-run`, and `/context map --diff` let you tune recall, consolidation, and context regressions deliberately instead of by feel.
+2. **Cost visibility is per-agent now.** `openclaw gateway usage-cost --agent <id>` (or `--all`) shows spend per configured agent; cron it daily and treat spend jumps as context regressions. (There is no per-agent budget-cap config key — an earlier revision of this guide claimed one in error.)
+3. **Failover actually fires.** Provider overloads are classified correctly, usage-limit responses route to fallbacks, and individual cron jobs can carry their own `--fallbacks` list (or run strict with `--fallbacks ""`). None of it helps without at least two configured lanes.
+4. **Fast mode is automatic.** `/fast auto` (2026.6.10) runs short conversational turns in the provider's fast lane and returns to normal mode for longer work, with correct status through retries and fallback switches.
+5. **Long sessions got cheaper.** Tool-heavy sessions now retain prompt-cache savings as results accumulate (2026.6.11) — one more reason to keep sessions long-lived and compaction healthy instead of resetting constantly.
+6. **Stuck channels self-recover.** Telegram/WhatsApp queues that wedge after a crash or long-running task resume automatically in 2026.6.11. "Restart the gateway" should leave your runbooks.
 
 Read **[Part 33 — June 2026 Field Guide](./part33-late-april-2026-field-guide.md)** first if you want the latest tricks before the deep dives.
 
@@ -156,14 +156,13 @@ Alongside the 33 parts themselves, this repo now includes the tooling that turns
 
 ---
 
-## What Changed In This Release (June 2026 Refresh)
+## What Changed In This Release (July 2026 Refresh)
 
-- **Updated [Part 33 — June 2026 Field Guide](./part33-late-april-2026-field-guide.md)** — advances the catch-up map to the current **2026.6.4 stable** baseline (2026.6.11-beta.1 tracked) and adds four new tips: budget caps, scheduled Policy attestations, provider health checks/failover, and recall/dreaming tuning.
-- **Cost governance is now first-class** — per-agent `agents.list[].budget` caps with `onExceed: warn|degrade|stop` replace "read the token report afterward." The orchestrator gets a cap; `degrade` reroutes routine work to cheap lanes.
-- **Policy and routing self-audit** — `openclaw policy check --export` produces diffable, schedulable attestations, and `models.providers.<id>.health` checks demote a failing provider for a bounded window instead of failing every turn.
-- **Voice/meetings gain retention** — Google Meet joins Discord voice as a Meeting Notes live source, with `meetingNotes.retentionDays` and redaction rules so transcripts expire and scrub sensitive fields.
-- **Memory/context tuning** — `memory.recall.maxParallel`, scheduled dreaming, `memory promote --dry-run`, and `/context map --diff` make recall, consolidation, and context-regression checks deliberate.
-- **Security additions** — sandbox egress allowlists (`sandbox.network.allow`), secret-rotation reminders, and unscoped-Codex-MCP lint are now `openclaw doctor` findings.
+- **Correction.** The June refresh referenced a "2026.6.4 stable" release and config keys (`agents.list[].budget`, `models.providers.<id>.health`, `policy check --export`, `memory promote --dry-run`, `memory.recall.maxParallel`, `sandbox.network.allow`, `/context map --diff`, `secrets.rotation.maxAgeDays`, `meetingNotes.retentionDays`) that do not exist in any published OpenClaw release. Those sections have been rewritten around shipped features, and the templates have been fixed. Details in the correction note at the top of [Part 33](./part33-late-april-2026-field-guide.md).
+- **Rebaselined on [2026.6.11 stable](https://github.com/openclaw/openclaw/releases)** — the version map now tracks the real June trains: 2026.6.8, 2026.6.9, 2026.6.10, 2026.6.11.
+- **New Part 33 tips** — per-agent cost visibility (`openclaw gateway usage-cost`), scheduled `policy check --json` attestations, working failover + per-cron-job `--fallbacks`, safe-by-default `memory promote` / `--apply` workflow, and automatic fast mode (`/fast auto`).
+- **Security guidance updated** — secrets redacted from debug output, admin-only HTTP session/model overrides, package-source redirect/lookalike-path hardening, actionable `plugins.allow` trust warnings, `@owner/<slug>` skill verification, and key-free web-search providers staying opt-in.
+- **Ops quality-of-life** — official `openclaw/openclaw` Docker Hub mirror, Slack router relay mode for multi-gateway deployments, `openclaw agent --message-file`, and cron `deleteAfterRun` transcript cleanup.
 
 ### Previous Late-May 2026 refresh
 
@@ -265,7 +264,7 @@ Not every part applies to every reader. Jump directly to the pillar that matches
 13. [Memory Bridge](./part13-memory-bridge.md) — give Codex / Claude Code access to your vault
 22. [Built-In Dreaming (memory-core)](#part-22-built-in-dreaming) — official 3-phase consolidation, DREAMS.md, memory-you-can-afford (LightMem + vbfs)
 31. [The LLM Wiki Pattern In OpenClaw](./part31-the-llm-wiki-pattern-in-openclaw.md) — Karpathy's three-tier pattern mapped onto SOUL/AGENTS/MEMORY/skills
-33. [June 2026 Field Guide](./part33-late-april-2026-field-guide.md) — budget caps, scheduled Policy attestations, provider health/failover, Meeting Notes retention, recall/dreaming tuning
+33. [June 2026 Field Guide](./part33-late-april-2026-field-guide.md) — per-agent cost visibility, scheduled Policy attestations, working failover + cron fallbacks, memory promotion review, automatic fast mode
 
 **🤝 Orchestration & models**
 5. [Orchestration](#part-5-orchestration-stop-doing-everything-yourself) — sub-agents-as-GC, Anthropic's 5 coordination patterns, CEO/COO/Worker, verification
