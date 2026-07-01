@@ -1,22 +1,24 @@
 # Part 26: Migration Guide
 
-> Updated in the June 2026 refresh. Opinionated, battle-tested upgrade paths from older OpenClaw versions to current. If something in this guide does not apply to your version yet, start here.
+> Updated in the July 2026 refresh. Opinionated, battle-tested upgrade paths from older OpenClaw versions to current. If something in this guide does not apply to your version yet, start here.
 
-> **Read this if** you're on anything older than 2026.6.4, or planning an upgrade.
-> **Skip if** you're already on current-beta and don't maintain older instances.
+> **Read this if** you're on anything older than 2026.6.11, or planning an upgrade.
+> **Skip if** you're already on current stable and don't maintain older instances.
+
+> **Correction (July 2026).** A previous revision of this guide referenced a "2026.6.4" release. No such version was ever published — the June stable line runs 2026.6.1 → 2026.6.5 → 2026.6.6 → 2026.6.8 → 2026.6.9 → 2026.6.10 → 2026.6.11. Path 12 below has been rewritten for the real releases.
 
 ## TL;DR By Version
 
 | You're on | Do this first | Then | Finally |
 |-----------|--------------|------|---------|
-| **v3.x** | Full v4.0 upgrade (not a drop-in) | Reach 2026.4.27 through Paths 1–6 | 2026.6.4 |
-| **v4.0.x** | v2026.3.31-beta.1 (Task Brain) | Reach 2026.4.27 through Paths 2–6 | 2026.6.4 |
-| **v2026.3.x** | Apply Task Brain approval policy | Reach 2026.4.27 through Paths 3–6 | 2026.6.4 |
-| **v2026.4.x pre-4.15** | Skip straight to 2026.4.15 | Reach 2026.4.27 through Paths 5–6 | 2026.6.4 |
-| **v2026.4.15** | Remove subscription-era model assumptions | Apply provider-catalog changes | 2026.6.4 |
-| **v2026.4.27** | Apply memory/messaging beta changes | Upgrade to 2026.6.4 | Optional 2026.6.11-beta.1 |
-| **v2026.4.29-beta.1** | Migrate Codex/queue assumptions | Upgrade to 2026.6.4 | Optional 2026.6.11-beta.1 |
-| **v2026.5.22 / 2026.5.24-beta.1** | Apply June budget/policy/health changes | Upgrade to 2026.6.4 via Path 12 | Optional 2026.6.11-beta.1 |
+| **v3.x** | Full v4.0 upgrade (not a drop-in) | Reach 2026.4.27 through Paths 1–6 | 2026.6.11 |
+| **v4.0.x** | v2026.3.31-beta.1 (Task Brain) | Reach 2026.4.27 through Paths 2–6 | 2026.6.11 |
+| **v2026.3.x** | Apply Task Brain approval policy | Reach 2026.4.27 through Paths 3–6 | 2026.6.11 |
+| **v2026.4.x pre-4.15** | Skip straight to 2026.4.15 | Reach 2026.4.27 through Paths 5–6 | 2026.6.11 |
+| **v2026.4.15** | Remove subscription-era model assumptions | Apply provider-catalog changes | 2026.6.11 |
+| **v2026.4.27** | Apply memory/messaging beta changes | Upgrade to 2026.6.11 via Path 12 | — |
+| **v2026.4.29-beta.1** | Migrate Codex/queue assumptions | Upgrade to 2026.6.11 via Path 12 | — |
+| **v2026.5.22 / 2026.5.24-beta.1** | Apply June reliability/cost changes | Upgrade to 2026.6.11 via Path 12 | — |
 
 Each step is described below. Don't skip steps — the CVE wave fixes and Task Brain model changes are not optional for anyone running more than a personal-dev setup.
 
@@ -184,7 +186,7 @@ This is the first late-April stability jump. It is worth doing before moving to 
 
 ## Path 7: v2026.4.27 stable → v2026.4.29-beta.1
 
-Former beta jump. If you're upgrading today, treat this as the conceptual migration step for memory/messaging behavior, then continue through Path 8, Path 10, and Path 12 to the current 2026.6.4 stable baseline.
+Former beta jump. If you're upgrading today, treat this as the conceptual migration step for memory/messaging behavior, then continue through Path 8, Path 10, and Path 12 to the current 2026.6.11 stable baseline.
 
 **What changes (the ones you should act on immediately):**
 
@@ -208,7 +210,7 @@ Former beta jump. If you're upgrading today, treat this as the conceptual migrat
 
 ## Path 8: v2026.4.29-beta.1 → v2026.5.12 stable
 
-This is the former May stable baseline. Do this as the compatibility checkpoint, then continue through Path 10 and Path 12 to the current 2026.6.4 stable baseline (test 2026.5.24-beta.1 only if you need a specific feature before it lands stable).
+This is the former May stable baseline. Do this as the compatibility checkpoint, then continue through Path 10 and Path 12 to the current 2026.6.11 stable baseline (test 2026.5.24-beta.1 only if you need a specific feature before it lands stable).
 
 **What changes (the ones you should act on immediately):**
 
@@ -255,7 +257,7 @@ Former beta jump. Today, treat this as the queue/Codex/per-sender migration chec
 
 ## Path 10: v2026.5.14-beta.1 / v2026.5.12 → v2026.5.22 stable
 
-Former stable baseline. It rolls up the 2026.5.16, 2026.5.18, 2026.5.20, and 2026.5.22 trains. After this, continue to Path 12 for the current 2026.6.4 baseline.
+Former stable baseline. It rolls up the 2026.5.16, 2026.5.18, 2026.5.20, and 2026.5.22 trains. After this, continue to Path 12 for the current 2026.6.11 baseline.
 
 **What changes (the ones you should act on immediately):**
 
@@ -301,28 +303,30 @@ Beta jump. Use a copied profile unless you specifically need iMessage approval r
 4. If you use multiple OpenAI/Codex auth lanes, migrate to named profiles and run one tiny Codex task per profile.
 5. Roll back to 2026.5.22 if voice steering or approval reactions surprise users.
 
-## Path 12: v2026.5.22 / v2026.5.24-beta.1 → v2026.6.4 stable
+## Path 12: v2026.5.22 / v2026.5.24-beta.1 → v2026.6.11 stable
 
-This is the current stable baseline for this guide. It promotes the 5.24 beta line (in 2026.5.26) and adds the June cost/safety levers.
+This is the current stable baseline for this guide. It promotes the 5.24 beta line (in 2026.5.26) and rolls up the June trains (2026.6.1 → 2026.6.5 → 2026.6.6 → 2026.6.8 → 2026.6.9 → 2026.6.10 → 2026.6.11).
 
 **What changes (act on these immediately):**
 
-- Per-agent budgets are first-class: `agents.list[].budget` with `dailyUsd`/`monthlyUsd` and `onExceed: warn|degrade|stop`.
-- `openclaw policy check --export attestation.json` produces diffable attestations; drift against the last accepted attestation is now a reviewable change.
-- `models.providers.<id>.health` adds interval probes with bounded automatic lane demotion (`failureThreshold`, `demoteForMs`).
-- Meeting Notes gains Google Meet live capture plus `meetingNotes.retentionDays` and redaction rules.
-- `memory promote --dry-run` lets you preview what dreaming would promote into `MEMORY.md` before it mutates anything. (`memory.recall.maxParallel` and additional dreaming schedule controls are 2026.6.11-beta.1, not 2026.6.4 stable — see step 7.)
-- `openclaw doctor` adds secret-rotation reminders (`secrets.rotation.maxAgeDays`) and flags unscoped `mcp.servers.<id>.codex.agents`.
+- Automatic fast mode: `/fast auto` runs short conversational turns in the provider's fast lane and returns to normal mode for longer work (2026.6.10).
+- Failover correctness: provider overloads classify correctly, usage-limit responses route to fallbacks, and individual cron jobs can set their own fallback models with `openclaw cron edit <job> --fallbacks ...` or run strict with `--fallbacks ""` (2026.6.10–11).
+- Per-agent cost visibility: `openclaw gateway usage-cost --agent <id>` / `--all` (2026.6.11).
+- Prompt-cache retention in long tool-heavy sessions cuts repeated-history cost automatically (2026.6.11).
+- Stuck Telegram/WhatsApp queues recover without a gateway restart (2026.6.11).
+- Security posture: secrets are redacted from debug/config output, HTTP session/model override surfaces require admin, package-source redirects and lookalike paths are rejected, and plugin trust warnings include ready-to-copy `plugins.allow` examples (2026.6.9–11).
+- Key-free web-search providers (Parallel Free, DuckDuckGo, Ollama, Codex Hosted Search) are explicit opt-ins, never silent fallbacks (2026.6.8–9).
+- Official provider plugins are standalone npm packages, and there is an official `openclaw/openclaw` Docker Hub mirror alongside GHCR (2026.6.9–11).
 
 **Steps:**
 
-1. Install OpenClaw 2026.6.4 and run `openclaw doctor` + `openclaw policy check`.
-2. Add a `budget` cap to your orchestrator with `onExceed: degrade`; confirm you have at least two fallback lanes for it to degrade onto.
-3. Add `health` checks to your primary provider and verify a forced failure demotes the lane instead of failing turns.
-4. Schedule `openclaw policy check --export` (cron or CI) and store the first attestation as your baseline. Keep `--fix` manual.
-5. If you use Meeting Notes, set `retentionDays` and redaction rules before enabling the Google Meet source.
-6. Resolve any new doctor findings for plaintext/stale secrets and unscoped Codex MCP servers.
-7. Optionally test 2026.6.11-beta.1 on a copied profile for `/context map --diff`, `memory.recall.maxParallel`, dreaming schedule controls, sandbox egress allowlists, and per-channel image-quality overrides.
+1. Install OpenClaw 2026.6.11 and run `openclaw doctor` + `openclaw policy check`.
+2. Confirm every production agent has at least two fallback lanes; give long-running cron jobs explicit `--fallbacks`.
+3. Cron `openclaw gateway usage-cost --all` daily and store the output; treat spend jumps as context regressions.
+4. Schedule `openclaw policy check --json` (cron or CI) and store the first attestation output as your baseline. Keep repair manual.
+5. Set `/fast auto` where quick conversational traffic dominates; verify with `/fast status` after a fallback switch.
+6. Resolve any new doctor findings, and fix `plugins.allow` entries using the plugin ids the trust warning now prints.
+7. Delete "restart the gateway when Telegram wedges" from your runbooks after verifying recovery on your install.
 
 ## Rollback Plan (Every Path)
 
@@ -333,7 +337,7 @@ If something goes sideways:
 openclaw gateway stop
 
 # Install previous version (example: pin via your package manager)
-npm install -g openclaw@2026.6.4  # adjust for your install method / previous pin
+npm install -g openclaw@2026.6.10  # adjust for your install method / previous pin
 
 # Restore config
 cp ~/.openclaw/openclaw.json.pre-upgrade.YYYYMMDD ~/.openclaw/openclaw.json

@@ -1,6 +1,6 @@
 # The OpenClaw Production Readiness Scorecard
 
-**Score your OpenClaw setup against the patterns in the [OpenClaw Optimization Guide](./README.md). 50 items across 5 pillars. 2 points each. 100 possible. Updated for OpenClaw 2026.6.4 stable and 2026.6.11 beta.**
+**Score your OpenClaw setup against the patterns in the [OpenClaw Optimization Guide](./README.md). 50 items across 5 pillars. 2 points each. 100 possible. Updated for OpenClaw 2026.6.11 stable.**
 
 > Share your score: *"My OpenClaw Production Readiness Scorecard: XX / 100 — [github.com/OnlyTerp/openclaw-optimization-guide](https://github.com/OnlyTerp/openclaw-optimization-guide)"*
 

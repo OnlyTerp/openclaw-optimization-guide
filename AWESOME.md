@@ -2,7 +2,7 @@
 
 **A curated list of resources for getting the most out of OpenClaw.** Skills, guides, talks, templates, tools, research. Contributions welcome — see [CONTRIBUTING.md](./CONTRIBUTING.md).
 
-> This list is opinionated. Inclusion here means we've actually used it on a production OpenClaw deployment or seen it solve a real problem. Broken or abandoned links are removed aggressively. Last curated: **June 2026, tracking OpenClaw 2026.6.4 stable + 2026.6.11-beta.1**.
+> This list is opinionated. Inclusion here means we've actually used it on a production OpenClaw deployment or seen it solve a real problem. Broken or abandoned links are removed aggressively. Last curated: **July 2026, tracking OpenClaw 2026.6.11 stable**.
 
 ## Contents
 
@@ -35,7 +35,7 @@
 ## Guides & tutorials
 
 - **[OpenClaw Optimization Guide](./README.md)** — this repo. 33 parts, refreshed for the June 2026 release wave.
-- **[June 2026 Field Guide](./part33-late-april-2026-field-guide.md)** — the fast catch-up map from 2026.5.22 to the 2026.6.4 stable baseline (2026.6.11-beta.1 tracked).
+- **[June 2026 Field Guide](./part33-late-april-2026-field-guide.md)** — the fast catch-up map from 2026.5.22 to the 2026.6.11 stable baseline.
 - **[Official "Getting Started" path](https://clawdocs.org/start)** — the minimum-viable setup. Read this first if you're brand new.
 - **[The OpenClaw CVE flood, Feb–Mar 2026](https://www.tryopenclaw.ai/blog/openclaw-cve-flood-march-2026/)** — the definitive writeup on the **ClawHavoc** supply-chain campaign.
 - **[Migration Guide — v3 → v4 → June 2026](./part26-migration-guide.md)** — opinionated upgrade paths.
@@ -69,8 +69,8 @@ See [Part 23 — ClawHub Skills Marketplace](./part23-clawhub-skills-marketplace
 - **[memory-core](https://github.com/openclaw/memory-core)** — the built-in memory plugin with native dreaming (3 phases). Replaced the custom-autoDream patterns in v4.
 - **[memory-lancedb](https://github.com/openclaw/memory-lancedb)** — LanceDB vector store. 2026.4.15-beta.1 added cloud storage mode.
 - **Active Memory filters** — current builds support per-conversation `allowedChatIds` / `deniedChatIds`, partial recall on timeout, and people-aware wiki provenance views.
-- **Meeting Notes plugin** — 2026.5.22 source-only external plugin for date-sharded meeting transcripts, manual imports, CLI reads, and Discord voice as the first live source. 2026.6.4 adds Google Meet live capture plus `meetingNotes.retentionDays`/redaction. Define retention before enabling.
-- **Recall + dreaming tuning** — 2026.6.4 ships `memory promote --dry-run` (review what dreaming would promote before it mutates); 2026.6.11-beta.1 adds `memory.recall.maxParallel` and scheduled dreaming (`memory.dreaming.schedule`) so consolidation runs off-hours.
+- **Meeting Notes plugin** — 2026.5.22 source-only external plugin for date-sharded meeting transcripts, manual imports, CLI reads, and Discord voice as the first live source. Define retention and redaction policy before enabling any live capture.
+- **Memory promotion review** — `openclaw memory promote` is dry-run by default; preview candidates, use `memory promote-explain "<query>"` to understand scoring, then `--apply` deliberately. `memory status --deep` probes vector-store and embedding readiness; `--fix` repairs stale recall locks.
 - **Generic embedding provider contract** — 2026.5.22 plugin SDK surface (`contracts.embeddingProviders`, `api.registerEmbeddingProvider`) that should make explicit OpenAI-compatible embedding providers cleaner.
 - **[Ollama](https://ollama.com/)** — local embedding runtime. `qwen3-embedding:0.6b` is the right default for most setups.
 - **[LightRAG](https://github.com/HKUDS/LightRAG)** — graph + vector hybrid RAG. The right upgrade once your vault crosses ~500 files. See [Part 18](./part18-lightrag-graph-rag.md).
@@ -94,8 +94,8 @@ See [Part 23 — ClawHub Skills Marketplace](./part23-clawhub-skills-marketplace
 ## Observability & evaluation
 
 - **OpenClaw native diagnostics** — late-May builds add sanitized `secrets.prepare` spans, bounded skill usage metrics, tool source/owner labels, Prometheus smoke aliases, and richer `tasks maintenance --json`.
-- **Per-agent budget caps** — 2026.6.4 `agents.list[].budget` (`dailyUsd`/`monthlyUsd`, `onExceed: warn|degrade|stop`) turns cost governance into config instead of after-the-fact token-report reading. See [Part 33](./part33-late-april-2026-field-guide.md).
-- **`/context map --diff`** — 2026.6.11-beta.1 compares the current prompt treemap against the previous run's snapshot to catch context regressions.
+- **Per-agent cost visibility** — 2026.6.11 `openclaw gateway usage-cost --agent <id>` / `--all` shows spend per configured agent; cron it daily and diff. Pair with `/usage full` footers for in-channel per-turn cost. See [Part 33](./part33-late-april-2026-field-guide.md).
+- **Automatic fast mode** — 2026.6.10 `/fast auto` runs short conversational turns in the provider's fast lane and returns to normal mode for longer work; `/fast status` shows the effective state through fallback switches.
 - **[LangFuse](https://langfuse.com/)** — the lightest-weight LLM tracing that actually works end-to-end with OpenClaw surfaces.
 - **[OpenTelemetry LLM instrumentation](https://opentelemetry.io/docs/specs/semconv/gen-ai/)** — the standards track. Pair with LangFuse or Grafana Tempo.
 - **Canvas Model Auth status card** — built into 2026.4.15-beta.1+. The one dashboard you actually read every day.
@@ -114,8 +114,8 @@ See [Part 23 — ClawHub Skills Marketplace](./part23-clawhub-skills-marketplace
 
 - **[Task Brain](./part24-task-brain-control-plane.md)** — OpenClaw's control plane. Semantic approval categories, agent-initiated denies, unified task flow registry.
 - **Approval policy reference** — [templates/openclaw.example.json](./templates/openclaw.example.json) ships with a starting-point policy block.
-- **Policy plugin** — bundled in 2026.5.20. Run `openclaw policy check` for channel conformance checks, attestations, doctor findings, and opt-in repair. 2026.6.4 adds `--export` attestations you can schedule and diff for drift gating.
-- **Provider health checks** — 2026.6.4 `models.providers.<id>.health` adds interval probes with bounded automatic lane demotion, so a failing provider routes around itself instead of failing every turn.
+- **Policy plugin** — bundled in 2026.5.20. Run `openclaw policy check` for channel conformance checks, doctor findings, and opt-in repair; `policy check --json` emits stable attestation hashes you can schedule, store, and diff for drift gating.
+- **Per-job cron fallbacks** — 2026.6.11 `openclaw cron edit <job> --fallbacks ...` gives individual scheduled jobs their own fallback models (or a strict no-fallback run with `--fallbacks ""`), so overnight provider incidents degrade instead of killing the schedule.
 - **Task maintenance JSON** — `openclaw tasks maintenance --json` now explains stale-running retention/reconcile decisions for cron, CLI, backing sessions, and wedged sub-agents.
 
 ## UI surfaces & clients
